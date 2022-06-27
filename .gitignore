@@ -348,3 +348,30 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+
+
+## Ignore CMake files
+## https://github.com/github/gitignore/blob/master/CMake.gitignore
+
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+
+
+## Ignore project specific files
+
+# Visual Studio Solution and Projects files
+*.sln
+*.vcxproj
+*.vcxproj.filters
+
