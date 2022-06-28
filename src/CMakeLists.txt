@@ -2,7 +2,15 @@ cmake_minimum_required(VERSION 3.12.0)
 
 set(TARGET_NAME ${PROJECT_NAME})
 
-add_executable(${TARGET_NAME} main.cpp)
+set(SOURCES
+    main.cpp
+    renderer.cpp
+)
+set(HEADERS
+    renderer.hpp
+)
+
+add_executable(${TARGET_NAME} ${SOURCES} ${HEADERS})
 
 set_target_properties(
     ${TARGET_NAME} PROPERTIES
@@ -17,3 +25,5 @@ target_compile_options(
     /WX
     /MP
 )
+
+target_link_libraries(${PROJECT_NAME} PRIVATE d3d11.lib)
