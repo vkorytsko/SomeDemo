@@ -137,20 +137,20 @@ void Renderer::DrawScene()
     // Bind vertex buffer to pipeline
     const UINT stride = sizeof(Vertex);
     const UINT offset = 0u;
-    GFX_THROW_IF_INFO(m_pD3dContext->IASetVertexBuffers(0u, 1u, m_pVertexBuffer.GetAddressOf(), &stride, &offset));
+    D3D_THROW_IF_INFO(m_pD3dContext->IASetVertexBuffers(0u, 1u, m_pVertexBuffer.GetAddressOf(), &stride, &offset));
 
     // bind shaders
-    GFX_THROW_IF_INFO(m_pD3dContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0u));
-    GFX_THROW_IF_INFO(m_pD3dContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0u));
+    D3D_THROW_IF_INFO(m_pD3dContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0u));
+    D3D_THROW_IF_INFO(m_pD3dContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0u));
 
     // bind vertex layout
-    GFX_THROW_IF_INFO(m_pD3dContext->IASetInputLayout(m_pInputLayout.Get()));
+    D3D_THROW_IF_INFO(m_pD3dContext->IASetInputLayout(m_pInputLayout.Get()));
 
     // bind render target
-    GFX_THROW_IF_INFO(m_pD3dContext->OMSetRenderTargets(1u, m_pRenderTargetView.GetAddressOf(), nullptr));
+    D3D_THROW_IF_INFO(m_pD3dContext->OMSetRenderTargets(1u, m_pRenderTargetView.GetAddressOf(), nullptr));
 
     // Set primitive topology to triangle list (groups of 3 vertices)
-    GFX_THROW_IF_INFO(m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
+    D3D_THROW_IF_INFO(m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
 
     // configure viewport
     RECT rect;
@@ -164,6 +164,5 @@ void Renderer::DrawScene()
     vp.TopLeftY = 0;
     m_pD3dContext->RSSetViewports(1u, &vp);
 
-    GFX_THROW_IF_INFO(m_pD3dContext->Draw(24u, 0u));
-    //m_pD3dContext->Draw(24u, 0u);
+    D3D_THROW_IF_INFO(m_pD3dContext->Draw(24u, 0u));
 }
