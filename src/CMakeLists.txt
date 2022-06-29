@@ -10,7 +10,21 @@ set(HEADERS
     renderer.hpp
 )
 
-add_executable(${TARGET_NAME} ${SOURCES} ${HEADERS})
+set(VERTEX_SHADERS
+    ../res/shaders/vertex.hlsl
+)
+
+set(PIXEL_SHADERS
+    ../res/shaders/pixel.hlsl
+)
+
+set_property(SOURCE ${VERTEX_SHADERS} PROPERTY VS_SHADER_TYPE Vertex)
+set_property(SOURCE ${VERTEX_SHADERS} PROPERTY VS_SHADER_MODEL 4.0_level_9_3)
+set_property(SOURCE ${PIXEL_SHADERS} PROPERTY VS_SHADER_TYPE Pixel)
+set_property(SOURCE ${PIXEL_SHADERS} PROPERTY VS_SHADER_MODEL 4.0_level_9_3)
+source_group("shaders" FILES ${VERTEX_SHADERS} ${PIXEL_SHADERS})
+
+add_executable(${TARGET_NAME} ${SOURCES} ${HEADERS} ${VERTEX_SHADERS} ${PIXEL_SHADERS})
 
 set_target_properties(
     ${TARGET_NAME} PROPERTIES
@@ -26,4 +40,9 @@ target_compile_options(
     /MP
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE d3d11.lib)
+set(LIBS
+    d3d11
+	D3DCompiler
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBS})
