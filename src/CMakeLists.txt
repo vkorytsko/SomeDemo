@@ -4,10 +4,21 @@ set(TARGET_NAME ${PROJECT_NAME})
 
 set(SOURCES
     main.cpp
+
+    application.cpp
+    debug_layer.cpp
+    exceptions.cpp
     renderer.cpp
+    window.cpp
 )
 set(HEADERS
+    application.hpp
+    debug_layer.hpp
+    exceptions.hpp
     renderer.hpp
+    window.hpp
+
+    utils.hpp
 )
 
 set(VERTEX_SHADERS
@@ -42,7 +53,7 @@ target_compile_options(
 
 set(LIBS
     d3d11
-	D3DCompiler
+    D3DCompiler
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBS})
