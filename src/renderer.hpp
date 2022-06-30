@@ -51,6 +51,7 @@ private:
 
     // Scene data
     wrl::ComPtr<ID3D11Buffer> m_pVertexBuffer;
+    wrl::ComPtr<ID3D11Buffer> m_pIndexBuffer;
     wrl::ComPtr<ID3D11VertexShader> m_pVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pPixelShader;
     wrl::ComPtr<ID3D11InputLayout> m_pInputLayout;

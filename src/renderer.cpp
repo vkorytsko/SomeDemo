@@ -93,7 +93,7 @@ void Renderer::SetupScene()
     // for checking results of d3d functions
     HRESULT hr;
 
-    // create vertex buffer (1 2d triangle at center of screen)
+    // create vertex buffer
     const Vertex vertices[] =
     {
         { 0.0f, 0.5f, 255, 0, 0, 255 },
@@ -101,16 +101,33 @@ void Renderer::SetupScene()
         { -0.5f, -0.5f, 0, 0, 255, 255 },
     };
 
-    D3D11_BUFFER_DESC bd = {};
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bd.Usage = D3D11_USAGE_IMMUTABLE;
-    bd.CPUAccessFlags = 0u;
-    bd.MiscFlags = 0u;
-    bd.ByteWidth = sizeof(vertices);
-    bd.StructureByteStride = sizeof(Vertex);
-    D3D11_SUBRESOURCE_DATA sd = {};
-    sd.pSysMem = vertices;
-    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateBuffer(&bd, &sd, &m_pVertexBuffer));
+    D3D11_BUFFER_DESC vbd = {};
+    vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vbd.Usage = D3D11_USAGE_IMMUTABLE;
+    vbd.CPUAccessFlags = 0u;
+    vbd.MiscFlags = 0u;
+    vbd.ByteWidth = sizeof(vertices);
+    vbd.StructureByteStride = sizeof(Vertex);
+    D3D11_SUBRESOURCE_DATA vsd = {};
+    vsd.pSysMem = vertices;
+    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateBuffer(&vbd, &vsd, &m_pVertexBuffer));
+
+    // create index buffer
+    const unsigned short indices[] =
+    {
+        0, 1, 2
+    };
+
+    D3D11_BUFFER_DESC ibd = {};
+    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    ibd.Usage = D3D11_USAGE_IMMUTABLE;
+    ibd.CPUAccessFlags = 0u;
+    ibd.MiscFlags = 0u;
+    ibd.ByteWidth = sizeof(indices);
+    ibd.StructureByteStride = sizeof(unsigned short);
+    D3D11_SUBRESOURCE_DATA isd = {};
+    isd.pSysMem = indices;
+    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateBuffer(&ibd, &isd, &m_pIndexBuffer));
 
     // create shaders
     wrl::ComPtr<ID3DBlob> pBlob;
@@ -134,10 +151,13 @@ void Renderer::SetupScene()
 
 void Renderer::DrawScene()
 {
-    // Bind vertex buffer to pipeline
+    // Bind vertex buffer
     const UINT stride = sizeof(Vertex);
     const UINT offset = 0u;
     D3D_THROW_IF_INFO(m_pD3dContext->IASetVertexBuffers(0u, 1u, m_pVertexBuffer.GetAddressOf(), &stride, &offset));
+
+    // Bind vertex buffer
+    D3D_THROW_IF_INFO(m_pD3dContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u));
 
     // bind shaders
     D3D_THROW_IF_INFO(m_pD3dContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0u));
@@ -164,5 +184,5 @@ void Renderer::DrawScene()
     vp.TopLeftY = 0;
     m_pD3dContext->RSSetViewports(1u, &vp);
 
-    D3D_THROW_IF_INFO(m_pD3dContext->Draw(24u, 0u));
+    D3D_THROW_IF_INFO(m_pD3dContext->DrawIndexed(3u, 0u, 0u));
 }
