@@ -60,6 +60,11 @@ Renderer::Renderer(HWND hWnd)
     SetupScene();
 }
 
+void Renderer::Update(float dt)
+{
+    m_yaw += dt;
+}
+
 void Renderer::Render()
 {
     // for checking results of d3d functions
@@ -94,9 +99,9 @@ void Renderer::SetupScene()
     // create vertex buffer
     const Vertex vertices[] =
     {
-        { 0.0f, 0.5f, 255, 0, 0, 255 },
-        { 0.5f, -0.5f, 0, 255, 0, 255 },
-        { -0.5f, -0.5f, 0, 0, 255, 255 },
+        { 0.0f, 1.0f, 0.0f, 255, 0, 0, 255 },
+        { 0.7f, -0.7f, 0.0f, 0, 255, 0, 255 },
+        { -0.7f, -0.7f, 0.0f, 0, 0, 255, 255 },
     };
 
     D3D11_BUFFER_DESC vbd = {};
@@ -113,7 +118,7 @@ void Renderer::SetupScene()
     // create index buffer
     const unsigned short indices[] =
     {
-        0, 1, 2
+        0, 1, 2,
     };
 
     D3D11_BUFFER_DESC ibd = {};
@@ -137,7 +142,7 @@ void Renderer::SetupScene()
     // input (vertex) layout
     const D3D11_INPUT_ELEMENT_DESC ied[] =
     {
-        { "Position", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "Position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "Color", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
     D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateInputLayout(
@@ -149,6 +154,41 @@ void Renderer::SetupScene()
 
 void Renderer::DrawScene()
 {
+    // for checking results of d3d functions
+    HRESULT hr;
+
+    RECT rect;
+    GetWindowRect(m_hWnd, &rect);
+    const float width = static_cast<float>(rect.right - rect.left);
+    const float height = static_cast<float>(rect.bottom - rect.top);
+
+    // create constant buffer
+    struct ConstantBuffer
+    {
+        dx::XMMATRIX transform;
+    };
+    const ConstantBuffer cb =
+    {
+        {
+            dx::XMMatrixTranspose(
+                dx::XMMatrixRotationZ(m_yaw) *
+                dx::XMMatrixTranslation(0.0f, 0.0f, 2.0f) *
+                dx::XMMatrixPerspectiveLH(1.0f, height / width, 0.5f, 10.0f)
+            )
+        }
+    };
+    wrl::ComPtr<ID3D11Buffer> pConstantBuffer;
+    D3D11_BUFFER_DESC cbd;
+    cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    cbd.Usage = D3D11_USAGE_DYNAMIC;
+    cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    cbd.MiscFlags = 0u;
+    cbd.ByteWidth = sizeof(cb);
+    cbd.StructureByteStride = 0u;
+    D3D11_SUBRESOURCE_DATA csd = {};
+    csd.pSysMem = &cb;
+    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateBuffer(&cbd, &csd, &pConstantBuffer));
+
     // Bind vertex buffer
     const UINT stride = sizeof(Vertex);
     const UINT offset = 0u;
@@ -161,6 +201,9 @@ void Renderer::DrawScene()
     D3D_THROW_IF_INFO(m_pD3dContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0u));
     D3D_THROW_IF_INFO(m_pD3dContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0u));
 
+    // bind constant buffer to vertex shader
+    D3D_THROW_IF_INFO(m_pD3dContext->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf()));
+
     // bind vertex layout
     D3D_THROW_IF_INFO(m_pD3dContext->IASetInputLayout(m_pInputLayout.Get()));
 
@@ -171,11 +214,9 @@ void Renderer::DrawScene()
     D3D_THROW_IF_INFO(m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
 
     // configure viewport
-    RECT rect;
-    GetWindowRect(m_hWnd, &rect);
     D3D11_VIEWPORT vp;
-    vp.Width = static_cast<FLOAT>(rect.right - rect.left);
-    vp.Height = static_cast<FLOAT>(rect.bottom - rect.top);
+    vp.Width = width;
+    vp.Height = height;
     vp.MinDepth = 0;
     vp.MaxDepth = 1;
     vp.TopLeftX = 0;

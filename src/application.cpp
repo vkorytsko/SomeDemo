@@ -34,6 +34,7 @@ int Application::Run()
 		const auto dt = m_pTimer->GetDelta();
 		UpdateFrameStats(dt);
 
+		m_pRenderer->Update(dt);
 		m_pRenderer->Render();
 	}
 }

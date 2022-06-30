@@ -5,10 +5,12 @@
 
 #include <wrl.h>
 #include <d3d11.h>
+#include <DirectXMath.h>
 
 #include "debug_layer.hpp"
 
 namespace wrl = Microsoft::WRL;
+namespace dx = DirectX;
 
 
 class Renderer
@@ -19,6 +21,7 @@ public:
         struct {
             float x;
             float y;
+            float z;
         } pos;
         struct {
             unsigned char r;
@@ -37,6 +40,7 @@ public:
     Renderer(Renderer const&) = delete;
     Renderer& operator= (Renderer const&) = delete;
 
+    void Update(float dt);
     void Render();
 private:
     void SetupScene();
@@ -55,6 +59,8 @@ private:
     wrl::ComPtr<ID3D11VertexShader> m_pVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pPixelShader;
     wrl::ComPtr<ID3D11InputLayout> m_pInputLayout;
+
+    float m_yaw = 0.0f;
 
 #ifndef NDEBUG
     DebugLayer debugLayer;
