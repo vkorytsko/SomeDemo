@@ -22,11 +22,11 @@ set(HEADERS
 )
 
 set(VERTEX_SHADERS
-    ../res/shaders/vertex.hlsl
+    ${PROJECT_SOURCE_DIR}/res/shaders/vertex.hlsl
 )
 
 set(PIXEL_SHADERS
-    ../res/shaders/pixel.hlsl
+    ${PROJECT_SOURCE_DIR}/res/shaders/pixel.hlsl
 )
 
 set_property(SOURCE ${VERTEX_SHADERS} PROPERTY VS_SHADER_TYPE Vertex)
@@ -51,9 +51,16 @@ target_compile_options(
     /MP
 )
 
-set(LIBS
+set(
+    LIBS
     d3d11
     D3DCompiler
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBS})
+target_link_libraries(${TARGET_NAME} PRIVATE ${LIBS})
+
+target_include_directories(
+    ${TARGET_NAME}
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/ext/DirectXMath/Inc/
+)
