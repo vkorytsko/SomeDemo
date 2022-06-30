@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <optional>
+#include <string>
 
 
 class Window
@@ -29,7 +30,7 @@ private:
     };
 
 public:
-    Window(int width, int height, const wchar_t* name);
+    Window(uint16_t width, uint16_t height, const std::wstring name);
     ~Window();
     Window(const Window&) = delete;
     Window& operator=(const Window&) = delete;

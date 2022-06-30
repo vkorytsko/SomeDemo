@@ -72,10 +72,8 @@ void Renderer::Render()
 #ifndef NDEBUG
     debugLayer.Set();
 #endif
-    // The first argument instructs DXGI to block until VSync, putting the application
-    // to sleep until the next VSync. This ensures we don't waste any cycles rendering
-    // frames that will never be displayed to the screen.
-    if (FAILED(hr = m_pSwapChain->Present(1u, 0u)))
+    // First argument for VSync
+    if (FAILED(hr = m_pSwapChain->Present(0u, 0u)))
     {
         if (hr == DXGI_ERROR_DEVICE_REMOVED)
         {

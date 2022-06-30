@@ -9,6 +9,7 @@ set(SOURCES
     debug_layer.cpp
     exceptions.cpp
     renderer.cpp
+	timer.cpp
     window.cpp
 )
 set(HEADERS
@@ -16,6 +17,7 @@ set(HEADERS
     debug_layer.hpp
     exceptions.hpp
     renderer.hpp
+	timer.hpp
     window.hpp
 
     utils.hpp

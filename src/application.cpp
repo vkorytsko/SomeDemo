@@ -4,9 +4,10 @@
 #include <stdint.h>
 
 
-const wchar_t* NAME = L"Some Demo";
-const uint32_t WIDTH = 1200;
-const uint32_t HEIGHT = 800;
+const std::wstring NAME = L"Some Demo";
+const uint16_t WIDTH = 1200;
+const uint16_t HEIGHT = 800;
+const float FRAME_STATS_UPDATE_PERIOD = 0.1f;
 
 
 Application::Application()
@@ -15,6 +16,7 @@ Application::Application()
 
 	m_pWindow = std::make_unique<Window>(WIDTH, HEIGHT, NAME);
 	m_pRenderer = std::make_unique<Renderer>(m_pWindow->GetHandle());
+	m_pTimer = std::make_unique<Timer>();
 }
 
 Application::~Application()
@@ -29,6 +31,32 @@ int Application::Run()
 			return *exitcode;
 		}
 
+		const auto dt = m_pTimer->GetDelta();
+		UpdateFrameStats(dt);
+
 		m_pRenderer->Render();
+	}
+}
+
+void Application::UpdateFrameStats(float dt)
+{
+	auto& [timeDelta, framesCount] = m_frameStatsCollector;
+
+	timeDelta += dt;
+	framesCount++;
+
+	if (timeDelta >= FRAME_STATS_UPDATE_PERIOD) {
+		float fps = static_cast<float>(framesCount) / FRAME_STATS_UPDATE_PERIOD;
+		float mspf = 1000.0f / fps;
+
+		std::wstring frameStatsStr =
+			NAME +
+			L"    fps: " + std::to_wstring(fps) +
+			L"   mspf: " + std::to_wstring(mspf);
+
+		SetWindowText(m_pWindow->GetHandle(), frameStatsStr.c_str());
+
+		timeDelta = 0.f;
+		framesCount = 0;
 	}
 }

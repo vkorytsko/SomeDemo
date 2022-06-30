@@ -36,7 +36,7 @@ HINSTANCE  Window::WindowClass::GetInstance() noexcept
 
 
 
-Window::Window(int width, int height, const wchar_t* name)
+Window::Window(uint16_t width, uint16_t height, const std::wstring name)
     : m_width(width)
     , m_height(height)
 {
@@ -44,7 +44,7 @@ Window::Window(int width, int height, const wchar_t* name)
     AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, false);
 
     m_hWnd = CreateWindow(
-        WindowClass::GetName(), name,
+        WindowClass::GetName(), name.c_str(),
         WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
         windowRect.right - windowRect.left, windowRect.bottom - windowRect.top,
         nullptr, nullptr, WindowClass::GetInstance(), this);
