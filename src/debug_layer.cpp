@@ -37,9 +37,14 @@ DebugLayer::DebugLayer()
 	D3D_THROW_NOINFO_EXCEPTION(dxgiGetDebugInterface(__uuidof(IDXGIInfoQueue), &m_pDxgiInfoQueue));
 }
 
+bool DebugLayer::isInitialised() const
+{
+	return m_pDxgiInfoQueue != nullptr;
+}
+
 void DebugLayer::Set() noexcept
 {
-	if (!m_pDxgiInfoQueue)
+	if (!isInitialised())
 	{
 		return;
 	}
@@ -53,7 +58,7 @@ std::vector<std::string> DebugLayer::GetMessages() const
 {
 	std::vector<std::string> messages;
 
-	if (!m_pDxgiInfoQueue)
+	if (!isInitialised())
 	{
 		return messages;
 	}

@@ -31,7 +31,10 @@ Renderer::Renderer(HWND hWnd)
 
     UINT deviceFlags = 0u;
 #ifndef NDEBUG
-    deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+    if (m_debugLayer.isInitialised())
+    {
+        deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+    }
 #endif
 
     // create device and front/back buffers, and swap chain and rendering context
@@ -70,7 +73,7 @@ void Renderer::Render()
     DrawScene();
 
 #ifndef NDEBUG
-    debugLayer.Set();
+    m_debugLayer.Set();
 #endif
 
     HRESULT hr;

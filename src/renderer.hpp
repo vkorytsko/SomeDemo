@@ -63,6 +63,6 @@ private:
     float m_yaw = 0.0f;
 
 #ifndef NDEBUG
-    DebugLayer debugLayer;
+    DebugLayer m_debugLayer;
 #endif
 };

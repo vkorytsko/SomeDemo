@@ -66,9 +66,9 @@ private:
 #define D3D_THROW_NOINFO_EXCEPTION(hrcall) {HRESULT hr = (hrcall); if(FAILED(hr)) throw SomeD3DException(__LINE__, __FILE__, hr);}
 
 #ifndef NDEBUG
-#define D3D_EXCEPTION(hr) SomeD3DException(__LINE__, __FILE__, hr, debugLayer.GetMessages())
-#define D3D_THROW_INFO_EXCEPTION(hrcall) {debugLayer.Set(); HRESULT hr = (hrcall); if(FAILED(hr)) throw D3D_EXCEPTION(hr);}
-#define D3D_THROW_IF_INFO(call) debugLayer.Set(); (call); {auto msgs = debugLayer.GetMessages(); if(!msgs.empty()) {throw SomeD3DException(__LINE__, __FILE__, S_OK, msgs);}}
+#define D3D_EXCEPTION(hr) SomeD3DException(__LINE__, __FILE__, hr, m_debugLayer.GetMessages())
+#define D3D_THROW_INFO_EXCEPTION(hrcall) {m_debugLayer.Set(); HRESULT hr = (hrcall); if(FAILED(hr)) throw D3D_EXCEPTION(hr);}
+#define D3D_THROW_IF_INFO(call) m_debugLayer.Set(); (call); {auto msgs = m_debugLayer.GetMessages(); if(!msgs.empty()) {throw SomeD3DException(__LINE__, __FILE__, S_OK, msgs);}}
 #else
 #define D3D_EXCEPTION(hr) SomeD3DException(__LINE__, __FILE__, hr)
 #define D3D_THROW_INFO_EXCEPTION(hrcall) D3D_THROW_NOINFO_EXCEPTION(hrcall)
