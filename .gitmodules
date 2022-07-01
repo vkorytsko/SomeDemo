@@ -1,3 +1,6 @@
 [submodule "ext/DirectXMath"]
 	path = ext/DirectXMath
 	url = https://github.com/microsoft/DirectXMath.git
+[submodule "ext/DirectXTex"]
+	path = ext/DirectXTex
+	url = https://github.com/microsoft/DirectXTex.git

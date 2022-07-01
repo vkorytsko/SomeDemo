@@ -13,4 +13,5 @@ Small graphics demo using DirectX 11 backend.
 - [CMake 3.12+](https://cmake.org/install/)
 
 ## Dependencies
-- [DirectXMath](https://github.com/microsoft/DirectXMath) - This package contains the DirectXMath library, an all inline SIMD C++ linear algebra library for use in games and graphics apps.
+- [DirectXMath](https://github.com/microsoft/DirectXMath) - an all inline SIMD C++ linear algebra library for use in games and graphics apps.
+- [DirectXTex](https://github.com/microsoft/DirectXTex) - a shared source library for reading and writing .DDS files, and performing various texture content processing operations including resizing, format conversion, mip-map generation, block compression for Direct3D runtime texture resources, and height-map to normal-map conversion.

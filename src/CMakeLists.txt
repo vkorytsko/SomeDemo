@@ -53,11 +53,13 @@ target_compile_options(
     /MP
 )
 
-set(
-    LIBS
+set(LIBS
     d3d11
     D3DCompiler
 	dxguid
+
+	DirectXMath
+	DirectXTex
 )
 
 target_link_libraries(${TARGET_NAME} PRIVATE ${LIBS})
@@ -66,4 +68,5 @@ target_include_directories(
     ${TARGET_NAME}
     PRIVATE
     ${PROJECT_SOURCE_DIR}/ext/DirectXMath/Inc/
+    ${PROJECT_SOURCE_DIR}/ext/DirectXTex/DirectXTex/
 )
