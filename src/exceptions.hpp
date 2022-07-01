@@ -63,11 +63,11 @@ private:
 
 
 // D3D Exceptions Macro
-#define D3D_THROW_NOINFO_EXCEPTION(hrcall) if(FAILED(hr = (hrcall))) throw SomeD3DException(__LINE__, __FILE__, hr)
+#define D3D_THROW_NOINFO_EXCEPTION(hrcall) {HRESULT hr = (hrcall); if(FAILED(hr)) throw SomeD3DException(__LINE__, __FILE__, hr);}
 
 #ifndef NDEBUG
 #define D3D_EXCEPTION(hr) SomeD3DException(__LINE__, __FILE__, hr, debugLayer.GetMessages())
-#define D3D_THROW_INFO_EXCEPTION(hrcall) debugLayer.Set(); if(FAILED(hr = (hrcall))) throw D3D_EXCEPTION(hr)
+#define D3D_THROW_INFO_EXCEPTION(hrcall) {debugLayer.Set(); HRESULT hr = (hrcall); if(FAILED(hr)) throw D3D_EXCEPTION(hr);}
 #define D3D_THROW_IF_INFO(call) debugLayer.Set(); (call); {auto msgs = debugLayer.GetMessages(); if(!msgs.empty()) {throw SomeD3DException(__LINE__, __FILE__, S_OK, msgs);}}
 #else
 #define D3D_EXCEPTION(hr) SomeD3DException(__LINE__, __FILE__, hr)

@@ -57,6 +57,7 @@ set(
     LIBS
     d3d11
     D3DCompiler
+	dxguid
 )
 
 target_link_libraries(${TARGET_NAME} PRIVATE ${LIBS})

@@ -34,9 +34,6 @@ Renderer::Renderer(HWND hWnd)
     deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-    // for checking results of d3d functions
-    HRESULT hr;
-
     // create device and front/back buffers, and swap chain and rendering context
     D3D_THROW_INFO_EXCEPTION(D3D11CreateDeviceAndSwapChain(
         nullptr,
@@ -52,6 +49,7 @@ Renderer::Renderer(HWND hWnd)
         nullptr,
         &m_pD3dContext
     ));
+
     // gain access to texture subresource in swap chain (back buffer)
     wrl::ComPtr<ID3D11Resource> pBackBuffer;
     D3D_THROW_INFO_EXCEPTION(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Resource), &pBackBuffer));
@@ -67,16 +65,15 @@ void Renderer::Update(float dt)
 
 void Renderer::Render()
 {
-    // for checking results of d3d functions
-    HRESULT hr;
-
-    m_pD3dContext->ClearRenderTargetView(m_pRenderTargetView.Get(), EMPTY_COLOR);
+    D3D_THROW_IF_INFO(m_pD3dContext->ClearRenderTargetView(m_pRenderTargetView.Get(), EMPTY_COLOR));
 
     DrawScene();
 
 #ifndef NDEBUG
     debugLayer.Set();
 #endif
+
+    HRESULT hr;
     // First argument for VSync
     if (FAILED(hr = m_pSwapChain->Present(0u, 0u)))
     {
@@ -93,9 +90,6 @@ void Renderer::Render()
 
 void Renderer::SetupScene()
 {
-    // for checking results of d3d functions
-    HRESULT hr;
-
     // create vertex buffer
     const Vertex vertices[] =
     {
@@ -154,11 +148,8 @@ void Renderer::SetupScene()
 
 void Renderer::DrawScene()
 {
-    // for checking results of d3d functions
-    HRESULT hr;
-
     RECT rect;
-    GetWindowRect(m_hWnd, &rect);
+    WIN_THROW_IF_FAILED(GetClientRect(m_hWnd, &rect));
     const float width = static_cast<float>(rect.right - rect.left);
     const float height = static_cast<float>(rect.bottom - rect.top);
 

@@ -41,7 +41,7 @@ Window::Window(uint16_t width, uint16_t height, const std::wstring name)
     , m_height(height)
 {
     RECT windowRect = { 0, 0, m_width, m_height };
-    AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, false);
+    WIN_THROW_IF_FAILED(AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, false));
 
     m_hWnd = CreateWindow(
         WindowClass::GetName(), name.c_str(),
@@ -53,7 +53,7 @@ Window::Window(uint16_t width, uint16_t height, const std::wstring name)
         WIN_THROW_LAST_EXCEPTION();
     }
 
-    ShowWindow(m_hWnd, SW_SHOWDEFAULT);
+    WIN_THROW_IF_FAILED(ShowWindow(m_hWnd, SW_SHOWDEFAULT));
 }
 
 Window::~Window()
