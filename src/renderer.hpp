@@ -54,6 +54,7 @@ private:
     wrl::ComPtr<ID3D11SamplerState> m_pSampler;
 
     float m_yaw = 0.0f;
+    float m_pitch = 0.0f;
 
 #ifndef NDEBUG
     DebugLayer m_debugLayer;

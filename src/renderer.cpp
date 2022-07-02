@@ -67,7 +67,7 @@ Renderer::Renderer(HWND hWnd)
 void Renderer::Update(float dt)
 {
     m_yaw += dt;
-    m_yaw -= dt;
+    m_pitch += dt;
 }
 
 void Renderer::Render()
@@ -100,10 +100,20 @@ void Renderer::SetupScene()
     // create vertex buffer
     const Vertex vertices[] =
     {
-        {{-1.0f, -1.0f,  0.0f}, {0.0f, 1.0f}},  // BOTTOM LEFT
-        {{-1.0f,  1.0f,  0.0f}, {0.0f, 0.0f}},  // TOP LEFT
-        {{ 1.0f,  1.0f,  0.0f}, {1.0f, 0.0f}},  // TOP RIGHT
-        {{ 1.0f, -1.0f,  0.0f}, {1.0f, 1.0f}},  // BOTTOM RIGHT
+        {{-1.0f, -1.0f, -1.0f}, {2.0f / 3.0f, 0.0f / 4.0f}},
+        {{ 1.0f, -1.0f, -1.0f}, {1.0f / 3.0f ,0.0f / 4.0f}},
+        {{-1.0f,  1.0f, -1.0f}, {2.0f / 3.0f, 1.0f / 4.0f}},
+        {{ 1.0f,  1.0f, -1.0f}, {1.0f / 3.0f, 1.0f / 4.0f}},
+        {{-1.0f, -1.0f,  1.0f}, {2.0f / 3.0f, 3.0f / 4.0f}},
+        {{ 1.0f, -1.0f,  1.0f}, {1.0f / 3.0f, 3.0f / 4.0f}},
+        {{-1.0f,  1.0f,  1.0f}, {2.0f / 3.0f, 2.0f / 4.0f}},
+        {{ 1.0f,  1.0f,  1.0f}, {1.0f / 3.0f, 2.0f / 4.0f}},
+        {{-1.0f, -1.0f, -1.0f}, {2.0f / 3.0f, 4.0f / 4.0f}},
+        {{ 1.0f, -1.0f, -1.0f}, {1.0f / 3.0f, 4.0f / 4.0f}},
+        {{-1.0f, -1.0f, -1.0f}, {3.0f / 3.0f, 1.0f / 4.0f}},
+        {{-1.0f, -1.0f,  1.0f}, {3.0f / 3.0f, 2.0f / 4.0f}},
+        {{ 1.0f, -1.0f, -1.0f}, {0.0f / 3.0f, 1.0f / 4.0f}},
+        {{ 1.0f, -1.0f,  1.0f}, {0.0f / 3.0f, 2.0f / 4.0f}},
     };
 
     D3D11_BUFFER_DESC vbd = {};
@@ -120,8 +130,12 @@ void Renderer::SetupScene()
     // create index buffer
     const unsigned short indices[] =
     {
-        0, 1, 2,
-        0, 2, 3,
+        0,  2,  1,   2,  3,  1,
+        4,  8,  5,   5,  8,  9,
+        2,  6,  3,   3,  6,  7,
+        4,  5,  7,   4,  7,  6,
+        2,  10, 11,  2,  11, 6,
+        12, 3,  7,   12, 7,  13,
     };
 
     D3D11_BUFFER_DESC ibd = {};
@@ -154,7 +168,7 @@ void Renderer::SetupScene()
         &m_pInputLayout
     ));
 
-    dx::ScratchImage scratch = loadImage(L"../res/textures/awesomeface.png");
+    dx::ScratchImage scratch = loadImage(L"../res/textures/cube.png");
     const auto textureWidth = static_cast<UINT>(scratch.GetMetadata().width);
     const auto textureHeight = static_cast<UINT>(scratch.GetMetadata().height);
     const auto rowPitch = static_cast<UINT>(scratch.GetImage(0, 0, 0)->rowPitch);
@@ -211,8 +225,9 @@ void Renderer::DrawScene()
     {
         {
             dx::XMMatrixTranspose(
+                dx::XMMatrixRotationX(m_pitch) *
                 dx::XMMatrixRotationZ(m_yaw) *
-                dx::XMMatrixTranslation(0.0f, 0.0f, 2.0f) *
+                dx::XMMatrixTranslation(0.0f, 0.0f, 5.0f) *
                 dx::XMMatrixPerspectiveLH(1.0f, height / width, 0.5f, 10.0f)
             )
         }
@@ -269,7 +284,7 @@ void Renderer::DrawScene()
     vp.TopLeftY = 0;
     m_pD3dContext->RSSetViewports(1u, &vp);
 
-    D3D_THROW_IF_INFO(m_pD3dContext->DrawIndexed(6u, 0u, 0u));
+    D3D_THROW_IF_INFO(m_pD3dContext->DrawIndexed(36u, 0u, 0u));
 }
 
 dx::ScratchImage loadImage(const wchar_t* name)
