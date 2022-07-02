@@ -6,6 +6,7 @@ set(SOURCES
     main.cpp
 
     application.cpp
+    camera.cpp
     debug_layer.cpp
     exceptions.cpp
     renderer.cpp
@@ -14,6 +15,7 @@ set(SOURCES
 )
 set(HEADERS
     application.hpp
+    camera.hpp
     debug_layer.hpp
     exceptions.hpp
     renderer.hpp

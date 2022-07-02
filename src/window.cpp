@@ -3,6 +3,7 @@
 #include <cassert>
 #include <stdexcept>
 
+#include "application.hpp"
 #include "exceptions.hpp"
 
 
@@ -36,7 +37,7 @@ HINSTANCE  Window::WindowClass::GetInstance() noexcept
 
 
 
-Window::Window(uint16_t width, uint16_t height, const std::wstring name)
+Window::Window(Application* pApp, uint16_t width, uint16_t height, const std::wstring name)
     : m_width(width)
     , m_height(height)
 {
@@ -47,7 +48,7 @@ Window::Window(uint16_t width, uint16_t height, const std::wstring name)
         WindowClass::GetName(), name.c_str(),
         WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
         windowRect.right - windowRect.left, windowRect.bottom - windowRect.top,
-        nullptr, nullptr, WindowClass::GetInstance(), this);
+        nullptr, nullptr, WindowClass::GetInstance(), pApp);
 
     if (!m_hWnd) {
         WIN_THROW_LAST_EXCEPTION();
@@ -83,28 +84,53 @@ HWND Window::GetHandle() const
     return m_hWnd;
 }
 
-LRESULT CALLBACK Window::WindowSetupProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
+float Window::GetWidht() const
 {
-    if (uMsg == WM_NCCREATE) {
-        const CREATESTRUCTW* pCreate = reinterpret_cast<CREATESTRUCTW*>(lParam);
-        Window* pWindow = reinterpret_cast<Window*>(pCreate->lpCreateParams);
+    RECT rect;
+    WIN_THROW_IF_FAILED(GetClientRect(m_hWnd, &rect));
 
-        SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pWindow));
-        SetWindowLongPtr(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&WindowProc));
-
-        return pWindow->WindowProc(hWnd, uMsg, wParam, lParam);
-    }
-
-    return DefWindowProc(hWnd, uMsg, wParam, lParam);
+    return static_cast<float>(rect.right - rect.left);
 }
 
-LRESULT CALLBACK Window::WindowProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
+float Window::GetHeight() const
+{
+    RECT rect;
+    WIN_THROW_IF_FAILED(GetClientRect(m_hWnd, &rect));
+
+    return static_cast<float>(rect.bottom - rect.top);
+}
+
+LRESULT CALLBACK Window::WindowSetupProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
+{
+    switch (uMsg)
+    {
+        case WM_NCCREATE:
+        {
+            const CREATESTRUCTW* pCreate = reinterpret_cast<CREATESTRUCTW*>(lParam);
+            Application* const pApp = reinterpret_cast<Application*>(pCreate->lpCreateParams);
+
+            SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pApp));
+            SetWindowLongPtr(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&WindowRedirectProc));
+
+            return pApp->WindowProc(hWnd, uMsg, wParam, lParam);
+        }
+        default:
+            return DefWindowProc(hWnd, uMsg, wParam, lParam);
+    }
+}
+
+LRESULT CALLBACK Window::WindowRedirectProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
     switch (uMsg) {
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        return 0;
+        case WM_DESTROY:
+        {
+            PostQuitMessage(0);
+            return 0;
+        }
+        default:
+        {
+            Application* const pApp = reinterpret_cast<Application*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+            return pApp->WindowProc(hWnd, uMsg, wParam, lParam);
+        }
     }
-
-    return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }

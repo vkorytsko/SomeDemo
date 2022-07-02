@@ -12,14 +12,20 @@ const uint16_t HEIGHT = 800;
 const float FRAME_STATS_UPDATE_PERIOD = 0.1f;
 
 
+HWND Application::s_hWnd = nullptr;
+
+
 Application::Application()
 {
 	std::clog << "Application initialization!" << std::endl;
 
 	WIN_THROW_IF_FAILED(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 
-	m_pWindow = std::make_unique<Window>(WIDTH, HEIGHT, NAME);
-	m_pRenderer = std::make_unique<Renderer>(m_pWindow->GetHandle(), WIDTH, HEIGHT);
+	m_pWindow = std::make_unique<Window>(this, WIDTH, HEIGHT, NAME);
+	s_hWnd = m_pWindow->GetHandle();
+
+	m_pRenderer = std::make_unique<Renderer>();
+	m_pCamera = std::make_unique<Camera>();
 	m_pTimer = std::make_unique<Timer>();
 }
 
@@ -43,6 +49,46 @@ int Application::Run()
 		m_pRenderer->Update(dt);
 		m_pRenderer->Render();
 	}
+}
+
+Window& Application::GetWindow() const
+{
+	if (!m_pWindow)
+	{
+		THROW_SOME_EXCEPTION(L"MISSING WINDOW!");
+	}
+
+	return *m_pWindow;
+}
+
+Renderer& Application::GetRenderer() const
+{
+	if (!m_pRenderer)
+	{
+		THROW_SOME_EXCEPTION(L"MISSING RENDERER!");
+	}
+
+	return *m_pRenderer;
+}
+
+Camera& Application::GetCamera() const
+{
+	if (!m_pCamera)
+	{
+		THROW_SOME_EXCEPTION(L"MISSING CAMERA!");
+	}
+
+	return *m_pCamera;
+}
+
+LRESULT Application::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}
+
+Application* const Application::GetApplication()
+{
+	return reinterpret_cast<Application*>(GetWindowLongPtr(s_hWnd, GWLP_USERDATA));
 }
 
 void Application::UpdateFrameStats(float dt)

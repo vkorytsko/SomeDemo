@@ -4,6 +4,7 @@
 #include <DirectXTex.h>
 #include <array>
 
+#include "application.hpp"
 #include "exceptions.hpp"
 
 
@@ -12,12 +13,15 @@ const float EMPTY_COLOR[] = { 0.69f, 0.04f, 0.41f, 1.0f };
 dx::ScratchImage loadImage(const wchar_t* name);
 
 
-Renderer::Renderer(HWND hWnd, const uint16_t width, const uint16_t height)
-    : m_hWnd(hWnd)
+Renderer::Renderer()
 {
+    const auto& window = Application::GetApplication()->GetWindow();
+    const auto width = window.GetWidht();
+    const auto height = window.GetHeight();
+
     DXGI_SWAP_CHAIN_DESC sd = {};
-    sd.BufferDesc.Width = width;
-    sd.BufferDesc.Height = height;
+    sd.BufferDesc.Width = static_cast<UINT>(width);
+    sd.BufferDesc.Height = static_cast<UINT>(height);
     sd.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
     sd.BufferDesc.RefreshRate.Numerator = 0;
     sd.BufferDesc.RefreshRate.Denominator = 0;
@@ -27,7 +31,7 @@ Renderer::Renderer(HWND hWnd, const uint16_t width, const uint16_t height)
     sd.SampleDesc.Quality = 0;
     sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     sd.BufferCount = 1;
-    sd.OutputWindow = m_hWnd;
+    sd.OutputWindow = window.GetHandle();
     sd.Windowed = TRUE;
     sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
     sd.Flags = 0;
@@ -75,8 +79,8 @@ Renderer::Renderer(HWND hWnd, const uint16_t width, const uint16_t height)
     // create depth stensil texture
     wrl::ComPtr<ID3D11Texture2D> pDepthStencil;
     D3D11_TEXTURE2D_DESC descDepth = {};
-    descDepth.Width = width;
-    descDepth.Height = height;
+    descDepth.Width = static_cast<UINT>(width);
+    descDepth.Height = static_cast<UINT>(height);
     descDepth.MipLevels = 1u;
     descDepth.ArraySize = 1u;
     descDepth.Format = DXGI_FORMAT_D32_FLOAT;
@@ -257,10 +261,7 @@ void Renderer::SetupScene()
 
 void Renderer::DrawScene()
 {
-    RECT rect;
-    WIN_THROW_IF_FAILED(GetClientRect(m_hWnd, &rect));
-    const float width = static_cast<float>(rect.right - rect.left);
-    const float height = static_cast<float>(rect.bottom - rect.top);
+    const auto& camera = Application::GetApplication()->GetCamera();
 
     // create constant buffer
     struct ConstantBuffer
@@ -274,7 +275,8 @@ void Renderer::DrawScene()
                 dx::XMMatrixRotationX(m_pitch) *
                 dx::XMMatrixRotationZ(m_yaw) *
                 dx::XMMatrixTranslation(0.0f, 0.0f, 5.0f) *
-                dx::XMMatrixPerspectiveLH(1.0f, height / width, 0.5f, 10.0f)
+                camera.getView() *
+                camera.getProjection()
             )
         }
     };

@@ -22,7 +22,7 @@ public:
         dx::XMFLOAT2 uv;
     };
 
-    Renderer(HWND hWnd, const uint16_t width, const uint16_t height);
+    Renderer();
     ~Renderer() = default;
 
     Renderer(Renderer&&) = default;
@@ -36,8 +36,6 @@ public:
 private:
     void SetupScene();
     void DrawScene();
-
-    HWND m_hWnd;
 
     wrl::ComPtr<ID3D11Device> m_pD3dDevice;
     wrl::ComPtr<IDXGISwapChain> m_pSwapChain;

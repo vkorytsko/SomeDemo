@@ -8,6 +8,9 @@
 #include <string>
 
 
+class Application;
+
+
 class Window
 {
 private:
@@ -30,17 +33,19 @@ private:
     };
 
 public:
-    Window(uint16_t width, uint16_t height, const std::wstring name);
+    Window(Application* pApp, uint16_t width, uint16_t height, const std::wstring name);
     ~Window();
     Window(const Window&) = delete;
     Window& operator=(const Window&) = delete;
 
     std::optional<int> ProcessMessages();
     HWND GetHandle() const;
+    float GetWidht() const;
+    float GetHeight() const;
 
 private:
     static LRESULT CALLBACK WindowSetupProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
-    static LRESULT CALLBACK WindowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
+    static LRESULT CALLBACK WindowRedirectProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
 private:
     int m_width;

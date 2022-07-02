@@ -6,9 +6,10 @@
 #include "utils.hpp"
 
 
-SomeException::SomeException(int line, const char* file) noexcept
+SomeException::SomeException(int line, const char* file, const std::wstring message) noexcept
 	: m_line(line)
 	, m_filename(AToWstring(file))
+	, m_message(message)
 {
 }
 
@@ -25,6 +26,11 @@ const std::wstring SomeException::GetInfoMessage() const noexcept
 	woss << "[Type] " << GetType() << std::endl
 		<< "[File] " << GetFilename() << std::endl
 		<< "[Line] " << GetLine() << std::endl;
+
+	if (!m_message.empty())
+	{
+		woss << "[Message]" << m_message << std::endl;
+	}
 
 	return woss.str();
 }

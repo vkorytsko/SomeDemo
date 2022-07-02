@@ -9,7 +9,7 @@
 class SomeException : public std::exception
 {
 public:
-    SomeException(int line, const char* file) noexcept;
+    SomeException(int line, const char* file, const std::wstring message  = L"") noexcept;
 
     const wchar_t* w_what() const noexcept;
 
@@ -22,6 +22,7 @@ public:
 private:
     const int m_line;
     const std::wstring m_filename;
+    const std::wstring m_message;
 
     mutable std::wstring m_whatBuffer;
 };
@@ -56,6 +57,9 @@ public:
 private:
     std::wstring m_errorInfo;
 };
+
+
+#define THROW_SOME_EXCEPTION(msg) {throw SomeException(__LINE__, __FILE__, msg);}
 
 // Win Exceptions Macro
 #define WIN_THROW_IF_FAILED(hrcall) {HRESULT hr = (hrcall); if(FAILED(hr)) throw SomeWinException(__LINE__, __FILE__, hr);}
