@@ -42,6 +42,11 @@ public:
     HWND GetHandle() const;
     float GetWidht() const;
     float GetHeight() const;
+    POINT GetCenter() const;
+
+    void ShowCursor(bool show) const;
+    void ClipCursor(bool clip) const;
+    void CenterCursor() const;
 
 private:
     static LRESULT CALLBACK WindowSetupProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);

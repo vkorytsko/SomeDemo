@@ -55,6 +55,18 @@ Window::Window(Application* pApp, uint16_t width, uint16_t height, const std::ws
     }
 
     WIN_THROW_IF_FAILED(ShowWindow(m_hWnd, SW_SHOWDEFAULT));
+
+    // register mouse raw input device
+    RAWINPUTDEVICE rid;
+    rid.usUsagePage = 0x01; // mouse page
+    rid.usUsage = 0x02; // mouse usage
+    rid.dwFlags = 0;
+    rid.hwndTarget = nullptr;
+    WIN_THROW_IF_FAILED(RegisterRawInputDevices(&rid, 1, sizeof(rid)));
+
+    ClipCursor(true);
+    ShowCursor(false);
+    CenterCursor();
 }
 
 Window::~Window()
@@ -98,6 +110,49 @@ float Window::GetHeight() const
     WIN_THROW_IF_FAILED(GetClientRect(m_hWnd, &rect));
 
     return static_cast<float>(rect.bottom - rect.top);
+}
+
+POINT Window::GetCenter() const
+{
+    RECT rect;
+    WIN_THROW_IF_FAILED(GetClientRect(m_hWnd, &rect));
+    const auto x = static_cast<int>((rect.right - rect.left) / 2.0f);
+    const auto y = static_cast<int>((rect.bottom - rect.top) / 2.0f);
+
+    return {x, y};
+}
+
+void Window::ShowCursor(bool show) const
+{
+    if (show)
+    {
+        while (::ShowCursor(TRUE) < 0);
+    }
+    else
+    {
+        while (::ShowCursor(FALSE) >= 0);
+    }
+}
+
+void Window::ClipCursor(bool clip) const
+{
+    if (clip)
+    {
+        RECT rect;
+        GetClientRect(m_hWnd, &rect);
+        MapWindowPoints(m_hWnd, nullptr, reinterpret_cast<POINT*>(&rect), 2);
+        ::ClipCursor(&rect);
+    }
+    else
+    {
+        ::ClipCursor(nullptr);
+    }
+}
+
+void Window::CenterCursor() const
+{
+    const auto [x, y] = GetCenter();
+    SetCursorPos(static_cast<int>(x), static_cast<int>(y));
 }
 
 LRESULT CALLBACK Window::WindowSetupProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)

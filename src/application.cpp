@@ -47,6 +47,7 @@ int Application::Run()
 		UpdateFrameStats(dt);
 
 		m_pRenderer->Update(dt);
+		m_pCamera->Update(dt);
 		m_pRenderer->Render();
 	}
 }
@@ -81,14 +82,62 @@ Camera& Application::GetCamera() const
 	return *m_pCamera;
 }
 
+bool Application::IsActive() const
+{
+	return m_isActive;
+}
+
 LRESULT Application::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	switch (uMsg)
+	{
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
+		{
+			const bool repeat = static_cast<bool>(lParam & 0x40000000);
+			if (!repeat)
+			{
+				const auto keycode = static_cast<unsigned char>(wParam);
+				if (keycode == VK_ESCAPE)
+				{
+					PostQuitMessage(0);
+				}
+			}
+			break;
+		}
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+		{
+			break;
+		}
+		case WM_ACTIVATE:
+		{
+			const auto active = static_cast<bool>(wParam & (WA_ACTIVE | WA_CLICKACTIVE));
+			Activate(active);
+			break;
+		}
+	}
+	
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
 Application* const Application::GetApplication()
 {
 	return reinterpret_cast<Application*>(GetWindowLongPtr(s_hWnd, GWLP_USERDATA));
+}
+
+void Application::Activate(bool active) {
+	m_isActive = active;
+
+	if (m_pWindow)
+	{
+		m_pWindow->ShowCursor(!active);
+		m_pWindow->ClipCursor(active);
+		if (active)
+		{
+			m_pWindow->CenterCursor();
+		}
+	}
 }
 
 void Application::UpdateFrameStats(float dt)

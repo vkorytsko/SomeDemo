@@ -20,14 +20,19 @@ public:
 	Renderer& GetRenderer() const;
 	Camera& GetCamera() const;
 
+	bool IsActive() const;
+
 	LRESULT WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	static Application* const GetApplication();
 
 private:
+	void Activate(bool active);
 	void UpdateFrameStats(float dt);
 
 private:
+	bool m_isActive = false;
+
 	std::unique_ptr<Window> m_pWindow;
 	std::unique_ptr<Renderer> m_pRenderer;
 	std::unique_ptr<Camera> m_pCamera;
