@@ -22,7 +22,7 @@ public:
         dx::XMFLOAT2 uv;
     };
 
-    Renderer(HWND hWnd);
+    Renderer(HWND hWnd, const uint16_t width, const uint16_t height);
     ~Renderer() = default;
 
     Renderer(Renderer&&) = default;
@@ -43,6 +43,7 @@ private:
     wrl::ComPtr<IDXGISwapChain> m_pSwapChain;
     wrl::ComPtr<ID3D11DeviceContext> m_pD3dContext;
     wrl::ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;
+    wrl::ComPtr<ID3D11DepthStencilView> m_pDepthStencilView;
 
     // Scene data
     wrl::ComPtr<ID3D11Buffer> m_pVertexBuffer;

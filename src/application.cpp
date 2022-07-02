@@ -19,7 +19,7 @@ Application::Application()
 	WIN_THROW_IF_FAILED(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 
 	m_pWindow = std::make_unique<Window>(WIDTH, HEIGHT, NAME);
-	m_pRenderer = std::make_unique<Renderer>(m_pWindow->GetHandle());
+	m_pRenderer = std::make_unique<Renderer>(m_pWindow->GetHandle(), WIDTH, HEIGHT);
 	m_pTimer = std::make_unique<Timer>();
 }
 
