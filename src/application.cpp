@@ -3,6 +3,8 @@
 #include <iostream>
 #include <stdint.h>
 
+#include "exceptions.hpp"
+
 
 const std::wstring NAME = L"Some Demo";
 const uint16_t WIDTH = 1200;
@@ -14,6 +16,8 @@ Application::Application()
 {
 	std::clog << "Application initialization!" << std::endl;
 
+	WIN_THROW_IF_FAILED(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
+
 	m_pWindow = std::make_unique<Window>(WIDTH, HEIGHT, NAME);
 	m_pRenderer = std::make_unique<Renderer>(m_pWindow->GetHandle());
 	m_pTimer = std::make_unique<Timer>();
@@ -22,6 +26,8 @@ Application::Application()
 Application::~Application()
 {
 	std::clog << "Application destroying!" << std::endl;
+
+	CoUninitialize();
 }
 
 int Application::Run()

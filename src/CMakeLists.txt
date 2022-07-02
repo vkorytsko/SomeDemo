@@ -9,7 +9,7 @@ set(SOURCES
     debug_layer.cpp
     exceptions.cpp
     renderer.cpp
-	timer.cpp
+    timer.cpp
     window.cpp
 )
 set(HEADERS
@@ -17,18 +17,20 @@ set(HEADERS
     debug_layer.hpp
     exceptions.hpp
     renderer.hpp
-	timer.hpp
+    timer.hpp
     window.hpp
 
     utils.hpp
 )
 
 set(VERTEX_SHADERS
-    ${PROJECT_SOURCE_DIR}/res/shaders/vertex.hlsl
+    ${PROJECT_SOURCE_DIR}/res/shaders/color.vs.hlsl
+    ${PROJECT_SOURCE_DIR}/res/shaders/texture.vs.hlsl
 )
 
 set(PIXEL_SHADERS
-    ${PROJECT_SOURCE_DIR}/res/shaders/pixel.hlsl
+    ${PROJECT_SOURCE_DIR}/res/shaders/color.ps.hlsl
+    ${PROJECT_SOURCE_DIR}/res/shaders/texture.ps.hlsl
 )
 
 set_property(SOURCE ${VERTEX_SHADERS} PROPERTY VS_SHADER_TYPE Vertex)
@@ -56,10 +58,10 @@ target_compile_options(
 set(LIBS
     d3d11
     D3DCompiler
-	dxguid
+    dxguid
 
-	DirectXMath
-	DirectXTex
+    DirectXMath
+    DirectXTex
 )
 
 target_link_libraries(${TARGET_NAME} PRIVATE ${LIBS})

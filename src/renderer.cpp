@@ -1,12 +1,15 @@
 #include "renderer.hpp"
 
 #include <d3dcompiler.h>
+#include <DirectXTex.h>
 #include <array>
 
 #include "exceptions.hpp"
 
 
 const float EMPTY_COLOR[] = { 0.69f, 0.04f, 0.41f, 1.0f };
+
+dx::ScratchImage loadImage(const wchar_t* name);
 
 
 Renderer::Renderer(HWND hWnd)
@@ -64,6 +67,7 @@ Renderer::Renderer(HWND hWnd)
 void Renderer::Update(float dt)
 {
     m_yaw += dt;
+    m_yaw -= dt;
 }
 
 void Renderer::Render()
@@ -96,9 +100,10 @@ void Renderer::SetupScene()
     // create vertex buffer
     const Vertex vertices[] =
     {
-        { 0.0f, 1.0f, 0.0f, 255, 0, 0, 255 },
-        { 0.7f, -0.7f, 0.0f, 0, 255, 0, 255 },
-        { -0.7f, -0.7f, 0.0f, 0, 0, 255, 255 },
+        {{-1.0f, -1.0f,  0.0f}, {0.0f, 1.0f}},  // BOTTOM LEFT
+        {{-1.0f,  1.0f,  0.0f}, {0.0f, 0.0f}},  // TOP LEFT
+        {{ 1.0f,  1.0f,  0.0f}, {1.0f, 0.0f}},  // TOP RIGHT
+        {{ 1.0f, -1.0f,  0.0f}, {1.0f, 1.0f}},  // BOTTOM RIGHT
     };
 
     D3D11_BUFFER_DESC vbd = {};
@@ -116,6 +121,7 @@ void Renderer::SetupScene()
     const unsigned short indices[] =
     {
         0, 1, 2,
+        0, 2, 3,
     };
 
     D3D11_BUFFER_DESC ibd = {};
@@ -131,22 +137,62 @@ void Renderer::SetupScene()
 
     // create shaders
     wrl::ComPtr<ID3DBlob> pBlob;
-    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob(L"Debug/pixel.cso", &pBlob));
+    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob(L"Debug/texture.ps.cso", &pBlob));
     D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pPixelShader));
-    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob(L"Debug/vertex.cso", &pBlob));
+    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob(L"Debug/texture.vs.cso", &pBlob));
     D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pVertexShader));
 
     // input (vertex) layout
     const D3D11_INPUT_ELEMENT_DESC ied[] =
     {
-        { "Position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "Color", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
     D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateInputLayout(
         ied, static_cast<UINT>(std::size(ied)),
         pBlob->GetBufferPointer(), pBlob->GetBufferSize(),
         &m_pInputLayout
     ));
+
+    dx::ScratchImage scratch = loadImage(L"../res/textures/awesomeface.png");
+    const auto textureWidth = static_cast<UINT>(scratch.GetMetadata().width);
+    const auto textureHeight = static_cast<UINT>(scratch.GetMetadata().height);
+    const auto rowPitch = static_cast<UINT>(scratch.GetImage(0, 0, 0)->rowPitch);
+
+    // create texture resource
+    D3D11_TEXTURE2D_DESC td = {};
+    td.Width = textureWidth;
+    td.Height = textureHeight;
+    td.MipLevels = 1;
+    td.ArraySize = 1;
+    td.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    td.SampleDesc.Count = 1;
+    td.SampleDesc.Quality = 0;
+    td.Usage = D3D11_USAGE_IMMUTABLE;
+    td.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    td.CPUAccessFlags = 0;
+    td.MiscFlags = 0;
+    D3D11_SUBRESOURCE_DATA tsd = {};
+    tsd.pSysMem = scratch.GetPixels();
+    tsd.SysMemPitch = rowPitch;
+    wrl::ComPtr<ID3D11Texture2D> pTexture;
+    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateTexture2D(&td, &tsd, &pTexture));
+
+    // create the resource view on the texture
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = td.Format;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.MipLevels = 1;
+    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateShaderResourceView(pTexture.Get(), &srvDesc, &m_pTextureView));
+
+    // create texture sampler
+    D3D11_SAMPLER_DESC samplerDesc = {};
+    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateSamplerState(&samplerDesc, &m_pSampler));
 }
 
 void Renderer::DrawScene()
@@ -198,6 +244,12 @@ void Renderer::DrawScene()
     // bind constant buffer to vertex shader
     D3D_THROW_IF_INFO(m_pD3dContext->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf()));
 
+    // bind texture to pixel shader
+    D3D_THROW_IF_INFO(m_pD3dContext->PSSetShaderResources(0u, 1u, m_pTextureView.GetAddressOf()));
+
+    // bind texture sampler to pixel shader
+    D3D_THROW_IF_INFO(m_pD3dContext->PSSetSamplers(0, 1, m_pSampler.GetAddressOf()));
+
     // bind vertex layout
     D3D_THROW_IF_INFO(m_pD3dContext->IASetInputLayout(m_pInputLayout.Get()));
 
@@ -217,5 +269,28 @@ void Renderer::DrawScene()
     vp.TopLeftY = 0;
     m_pD3dContext->RSSetViewports(1u, &vp);
 
-    D3D_THROW_IF_INFO(m_pD3dContext->DrawIndexed(3u, 0u, 0u));
+    D3D_THROW_IF_INFO(m_pD3dContext->DrawIndexed(6u, 0u, 0u));
+}
+
+dx::ScratchImage loadImage(const wchar_t* name)
+{
+    dx::ScratchImage scratch;
+    WIN_THROW_IF_FAILED(dx::LoadFromWICFile(name, dx::WIC_FLAGS_IGNORE_SRGB, nullptr, scratch));
+
+    if (scratch.GetImage(0, 0, 0)->format != DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM)
+    {
+        dx::ScratchImage converted;
+
+        WIN_THROW_IF_FAILED(dx::Convert(
+            *scratch.GetImage(0, 0, 0),
+            DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM,
+            dx::TEX_FILTER_DEFAULT,
+            dx::TEX_THRESHOLD_DEFAULT,
+            converted
+        ));
+
+        return converted;
+    }
+
+    return scratch;
 }

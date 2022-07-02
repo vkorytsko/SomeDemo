@@ -18,17 +18,8 @@ class Renderer
 public:
     struct Vertex
     {
-        struct {
-            float x;
-            float y;
-            float z;
-        } pos;
-        struct {
-            unsigned char r;
-            unsigned char g;
-            unsigned char b;
-            unsigned char a;
-        } color;
+        dx::XMFLOAT3 pos;
+        dx::XMFLOAT2 uv;
     };
 
     Renderer(HWND hWnd);
@@ -59,6 +50,8 @@ private:
     wrl::ComPtr<ID3D11VertexShader> m_pVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pPixelShader;
     wrl::ComPtr<ID3D11InputLayout> m_pInputLayout;
+    wrl::ComPtr<ID3D11ShaderResourceView> m_pTextureView;
+    wrl::ComPtr<ID3D11SamplerState> m_pSampler;
 
     float m_yaw = 0.0f;
 
