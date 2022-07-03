@@ -26,6 +26,7 @@ Application::Application()
 
 	m_pRenderer = std::make_unique<Renderer>();
 	m_pCamera = std::make_unique<Camera>();
+	m_pScene = std::make_unique<Scene>();
 	m_pTimer = std::make_unique<Timer>();
 }
 
@@ -46,9 +47,12 @@ int Application::Run()
 		const auto dt = m_pTimer->GetDelta();
 		UpdateFrameStats(dt);
 
-		m_pRenderer->Update(dt);
+		m_pScene->Update(dt);
 		m_pCamera->Update(dt);
-		m_pRenderer->Render();
+
+		m_pRenderer->BeginFrame();
+		m_pScene->Draw();
+		m_pRenderer->EndFrame();
 	}
 }
 
