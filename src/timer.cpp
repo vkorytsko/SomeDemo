@@ -15,3 +15,11 @@ float Timer::GetDelta()
 
 	return dt.count();
 }
+
+float Timer::GetTotal()
+{
+	const HRclock::time_point currentTP = HRclock::now();
+	const std::chrono::duration<float> dt = currentTP - m_startTP;
+
+	return dt.count();
+}

@@ -33,11 +33,13 @@ set(SHADERS_SOURCE_DIR
 
 set(VERTEX_SHADERS
     ${SHADERS_SOURCE_DIR}/color.vs.hlsl
+    ${SHADERS_SOURCE_DIR}/light.vs.hlsl
     ${SHADERS_SOURCE_DIR}/texture.vs.hlsl
 )
 
 set(PIXEL_SHADERS
     ${SHADERS_SOURCE_DIR}/color.ps.hlsl
+    ${SHADERS_SOURCE_DIR}/light.ps.hlsl
     ${SHADERS_SOURCE_DIR}/texture.ps.hlsl
 )
 

@@ -11,7 +11,9 @@ public:
 	Timer();
 
 	float GetDelta();
+	float GetTotal();
 
 private:
+	HRclock::time_point m_startTP;
 	HRclock::time_point m_lastTP;
 };

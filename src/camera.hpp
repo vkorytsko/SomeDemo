@@ -35,7 +35,7 @@ private:
 	void updateProjection();
 
 private:
-	XMFLOAT3 m_position = {0.0f, 0.0f, 0.0f};
+	XMFLOAT3 m_position = {0.0f, 1.0f, -4.0f};
 	XMFLOAT3 m_rotation = {0.0f, 0.0f, 0.0f};
 
 	XMMATRIX m_view = XMMatrixIdentity();
