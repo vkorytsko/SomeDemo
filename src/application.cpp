@@ -47,7 +47,11 @@ int Application::Run()
 		const auto dt = m_pTimer->GetDelta();
 		UpdateFrameStats(dt);
 
-		m_pScene->Update(dt);
+		if (!IsPaused())
+		{
+			m_pScene->Update(dt);
+		}
+
 		m_pCamera->Update(dt);
 
 		m_pRenderer->BeginFrame();
@@ -124,8 +128,13 @@ LRESULT Application::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 			{
 				if (IsActive())
 				{
+					m_pWindow->CenterCursor();
 					m_pWindow->ShowCursor(false);
 				}
+			}
+			if (keycode == VK_MENU)
+			{
+				return 0; // Why does it stuck?!?!
 			}
 			break;
 		}
@@ -145,7 +154,8 @@ Application* const Application::GetApplication()
 	return reinterpret_cast<Application*>(GetWindowLongPtr(s_hWnd, GWLP_USERDATA));
 }
 
-void Application::Activate(bool active) {
+void Application::Activate(bool active)
+{
 	m_isActive = active;
 
 	if (m_pWindow)
@@ -156,6 +166,11 @@ void Application::Activate(bool active) {
 			m_pWindow->CenterCursor();
 		}
 	}
+}
+
+bool Application::IsPaused() const
+{
+	return IsActive() && (GetKeyState(VK_SPACE) < 0);
 }
 
 void Application::UpdateFrameStats(float dt)

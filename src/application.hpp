@@ -29,6 +29,7 @@ public:
 
 private:
 	void Activate(bool active);
+	bool IsPaused() const;
 	void UpdateFrameStats(float dt);
 
 private:
