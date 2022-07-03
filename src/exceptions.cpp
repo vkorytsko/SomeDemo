@@ -6,9 +6,9 @@
 #include "utils.hpp"
 
 
-SomeException::SomeException(int line, const char* file, const std::wstring message) noexcept
+SomeException::SomeException(int line, const wchar_t* file, const std::wstring message) noexcept
 	: m_line(line)
-	, m_filename(AToWstring(file))
+	, m_filename(file)
 	, m_message(message)
 {
 }
@@ -51,7 +51,7 @@ int SomeException::GetLine() const noexcept
 }
 
 
-SomeWinException::SomeWinException(int line, const char* file, HRESULT hr) noexcept
+SomeWinException::SomeWinException(int line, const wchar_t* file, HRESULT hr) noexcept
 	: SomeException(line, file)
 	, m_hresult(hr)
 {
@@ -88,7 +88,7 @@ const std::wstring SomeWinException::GetErrorDescription() const noexcept
 }
 
 
-SomeD3DException::SomeD3DException(int line, const char* file, HRESULT hr, std::vector<std::string> infoMsgs) noexcept
+SomeD3DException::SomeD3DException(int line, const wchar_t* file, HRESULT hr, std::vector<std::string> infoMsgs) noexcept
 	: SomeWinException(line, file, hr)
 {
 	for (const auto& msg : infoMsgs) {
