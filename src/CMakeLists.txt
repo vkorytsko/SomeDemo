@@ -27,14 +27,18 @@ set(HEADERS
     utils.hpp
 )
 
+set(SHADERS_SOURCE_DIR
+    ${PROJECT_SOURCE_DIR}/res/shaders
+)
+
 set(VERTEX_SHADERS
-    ${PROJECT_SOURCE_DIR}/res/shaders/color.vs.hlsl
-    ${PROJECT_SOURCE_DIR}/res/shaders/texture.vs.hlsl
+    ${SHADERS_SOURCE_DIR}/color.vs.hlsl
+    ${SHADERS_SOURCE_DIR}/texture.vs.hlsl
 )
 
 set(PIXEL_SHADERS
-    ${PROJECT_SOURCE_DIR}/res/shaders/color.ps.hlsl
-    ${PROJECT_SOURCE_DIR}/res/shaders/texture.ps.hlsl
+    ${SHADERS_SOURCE_DIR}/color.ps.hlsl
+    ${SHADERS_SOURCE_DIR}/texture.ps.hlsl
 )
 
 set_property(SOURCE ${VERTEX_SHADERS} PROPERTY VS_SHADER_TYPE Vertex)

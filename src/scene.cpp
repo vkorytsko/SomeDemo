@@ -83,11 +83,17 @@ void Scene::Setup()
     isd.pSysMem = indices;
     D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&ibd, &isd, &m_pIndexBuffer));
 
+#ifndef NDEBUG  // WTF?!
+    const std::wstring path = L"Debug\\";
+#else
+    const std::wstring path = L"Release\\";
+#endif
+
     // create shaders
     wrl::ComPtr<ID3DBlob> pBlob;
-    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob(L"Debug/texture.ps.cso", &pBlob));
+    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob((path + L"texture.ps.cso").c_str(), &pBlob));
     D3D_THROW_INFO_EXCEPTION(device->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pPixelShader));
-    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob(L"Debug/texture.vs.cso", &pBlob));
+    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob((path + L"texture.vs.cso").c_str(), &pBlob));
     D3D_THROW_INFO_EXCEPTION(device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pVertexShader));
 
     // input (vertex) layout

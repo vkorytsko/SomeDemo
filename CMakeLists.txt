@@ -9,6 +9,8 @@ add_definitions(
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release")
+
 add_subdirectory(ext)
 add_subdirectory(src)
 
