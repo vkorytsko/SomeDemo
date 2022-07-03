@@ -32,24 +32,27 @@ void Scene::Setup()
 {
     SetupBox();
     SetupLight();
-    SetupGrass();
     SetupFloor();
+
+    SetupGrass();
 }
 
 void Scene::Update(float dt)
 {
     UpdateBox(dt);
     UpdateLight(dt);
-    UpdateGrass(dt);
     UpdateFloor(dt);
+
+    UpdateGrass(dt);
 }
 
 void Scene::Draw()
 {
     DrawBox();
     DrawLight();
-    DrawGrass();
     DrawFloor();
+
+    DrawGrass(); // Alpha blending
 }
 
 void Scene::SetupBox() {
@@ -352,6 +355,36 @@ void Scene::SetupGrass() {
     samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
     D3D_THROW_INFO_EXCEPTION(device->CreateSamplerState(&samplerDesc, &m_pGrassSampler));
+
+    // create blend states
+    // blending enabled
+    D3D11_BLEND_DESC blendDescEnabled = {};
+    auto& brte = blendDescEnabled.RenderTarget[0];
+    brte.BlendEnable = TRUE;
+    brte.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    brte.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    brte.BlendOp = D3D11_BLEND_OP_ADD;
+    brte.SrcBlendAlpha = D3D11_BLEND_ZERO;
+    brte.DestBlendAlpha = D3D11_BLEND_ZERO;
+    brte.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    brte.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    D3D_THROW_IF_INFO(device->CreateBlendState(&blendDescEnabled, &m_pBlendStateEnabled));
+    //blending disabled
+    D3D11_BLEND_DESC blendDescDisabled = {};
+    auto& brtd = blendDescDisabled.RenderTarget[0];
+    brtd.BlendEnable = FALSE;
+    brtd.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    D3D_THROW_IF_INFO(device->CreateBlendState(&blendDescDisabled, &m_pBlendStateDisabled));
+
+    // create rasterizer states
+    // backface culling disabled
+    D3D11_RASTERIZER_DESC rasterDescNoCull = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT{});
+    rasterDescNoCull.CullMode = D3D11_CULL_NONE;
+    D3D_THROW_IF_INFO(device->CreateRasterizerState(&rasterDescNoCull, &m_pRasterizerNoCull));
+    // backfase culling enabled
+    D3D11_RASTERIZER_DESC rasterDescCull = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT{});
+    rasterDescCull.CullMode = D3D11_CULL_BACK;
+    D3D_THROW_IF_INFO(device->CreateRasterizerState(&rasterDescCull, &m_pRasterizerCull));
 }
 
 void Scene::SetupFloor()
@@ -478,7 +511,7 @@ void Scene::UpdateLight(float dt)
 
 void Scene::UpdateGrass(float dt)
 {
-    m_grassRotation.x += dt;
+    m_grassRotation.x += dt * 0.5f;
 }
 
 void Scene::UpdateFloor(float /* dt */)
@@ -700,7 +733,20 @@ void Scene::DrawGrass()
     // Set primitive topology to triangle list (groups of 3 vertices)
     D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
 
+    // Enable alpha blending
+    D3D_THROW_IF_INFO(context->OMSetBlendState(m_pBlendStateEnabled.Get(), nullptr, 0xFFFFFFFFu));
+
+    // Disable backface culling
+    D3D_THROW_IF_INFO(context->RSSetState(m_pRasterizerNoCull.Get()));
+
+
     D3D_THROW_IF_INFO(context->DrawIndexed(6u, 0u, 0u));
+
+    // Disable alpha blending
+    D3D_THROW_IF_INFO(context->OMSetBlendState(m_pBlendStateDisabled.Get(), nullptr, 0xFFFFFFFFu));
+
+    // Enable backface culling
+    D3D_THROW_IF_INFO(context->RSSetState(m_pRasterizerCull.Get()));
 }
 
 void Scene::DrawFloor()

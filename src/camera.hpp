@@ -7,10 +7,10 @@ using namespace DirectX;
 
 
 const float FOV = XM_PIDIV2;
-const float NEAR_Z = 0.5f;
+const float NEAR_Z = 0.05f;
 const float FAR_Z = 100.0f;
-const float ROTATION_SPEED = 10.0f;
-const float MOVEMENT_SPEED = 10.0f;
+const float ROTATION_SPEED = 5.0f;
+const float MOVEMENT_SPEED = 5.0f;
 
 
 class Camera

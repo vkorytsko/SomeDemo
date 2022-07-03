@@ -85,9 +85,13 @@ private:
     wrl::ComPtr<ID3D11InputLayout> m_pGrassInputLayout;
     wrl::ComPtr<ID3D11ShaderResourceView> m_pGrassTextureView;
     wrl::ComPtr<ID3D11SamplerState> m_pGrassSampler;
-    dx::XMFLOAT3 m_grassPosition = { 0.0f, 0.0f, -2.0f };
+    dx::XMFLOAT3 m_grassPosition = { 0.0f, 0.0f, -1.0f };
     dx::XMFLOAT3 m_grassRotation = { 0.0f, 0.0f, 0.0f };
-    dx::XMFLOAT3 m_grassScale = { 0.5f, 0.5f, 0.5f };
+    dx::XMFLOAT3 m_grassScale = { 1.0f, 1.0f, 1.0f };
+    wrl::ComPtr<ID3D11BlendState> m_pBlendStateEnabled;
+    wrl::ComPtr<ID3D11BlendState> m_pBlendStateDisabled;
+    wrl::ComPtr<ID3D11RasterizerState> m_pRasterizerNoCull;
+    wrl::ComPtr<ID3D11RasterizerState> m_pRasterizerCull;
 
     // Floor
     wrl::ComPtr<ID3D11Buffer> m_pFloorVertexBuffer;
