@@ -64,7 +64,6 @@ Window::Window(Application* pApp, uint16_t width, uint16_t height, const std::ws
     rid.hwndTarget = nullptr;
     WIN_THROW_IF_FAILED(RegisterRawInputDevices(&rid, 1, sizeof(rid)));
 
-    ClipCursor(true);
     ShowCursor(false);
     CenterCursor();
 }
@@ -131,21 +130,6 @@ void Window::ShowCursor(bool show) const
     else
     {
         while (::ShowCursor(FALSE) >= 0);
-    }
-}
-
-void Window::ClipCursor(bool clip) const
-{
-    if (clip)
-    {
-        RECT rect;
-        GetClientRect(m_hWnd, &rect);
-        MapWindowPoints(m_hWnd, nullptr, reinterpret_cast<POINT*>(&rect), 2);
-        ::ClipCursor(&rect);
-    }
-    else
-    {
-        ::ClipCursor(nullptr);
     }
 }
 

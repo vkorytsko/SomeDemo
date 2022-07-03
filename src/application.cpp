@@ -106,12 +106,27 @@ LRESULT Application::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 				{
 					PostQuitMessage(0);
 				}
+				if (keycode == VK_CONTROL)
+				{
+					if (IsActive())
+					{
+						m_pWindow->ShowCursor(true);
+					}
+				}
 			}
 			break;
 		}
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
 		{
+			const auto keycode = static_cast<unsigned char>(wParam);
+			if (keycode == VK_CONTROL)
+			{
+				if (IsActive())
+				{
+					m_pWindow->ShowCursor(false);
+				}
+			}
 			break;
 		}
 		case WM_ACTIVATE:
@@ -136,7 +151,6 @@ void Application::Activate(bool active) {
 	if (m_pWindow)
 	{
 		m_pWindow->ShowCursor(!active);
-		m_pWindow->ClipCursor(active);
 		if (active)
 		{
 			m_pWindow->CenterCursor();

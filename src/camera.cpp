@@ -1,5 +1,7 @@
 #include "camera.hpp"
 
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <algorithm>
 #include <cmath>
 
@@ -14,7 +16,13 @@ Camera::Camera()
 
 void Camera::Update(float dt)
 {
-	const auto& window = Application::GetApplication()->GetWindow();
+	const auto& app = Application::GetApplication();
+	if (!app->IsActive() || (GetKeyState(VK_CONTROL) < 0))
+	{
+		return;
+	}
+
+	const auto& window = app->GetWindow();
 
 	XMFLOAT3 translation = { 0.0f, 0.0f, 0.0f };
 	const float movement = dt * MOVEMENT_SPEED;
@@ -46,6 +54,7 @@ void Camera::Update(float dt)
 	Rotate(yaw, pitch);
 
 	updateView();
+
 	window.CenterCursor();
 }
 

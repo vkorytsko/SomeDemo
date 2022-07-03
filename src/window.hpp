@@ -45,7 +45,6 @@ public:
     POINT GetCenter() const;
 
     void ShowCursor(bool show) const;
-    void ClipCursor(bool clip) const;
     void CenterCursor() const;
 
 private:
