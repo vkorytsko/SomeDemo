@@ -27,6 +27,37 @@ public:
         dx::XMFLOAT3 pos;
     };
 
+    struct Vertex3
+    {
+        dx::XMFLOAT3 pos;
+        dx::XMFLOAT3 normal;
+        dx::XMFLOAT2 uv;
+    };
+
+    struct CB_transform
+    {
+        dx::XMMATRIX model;
+        dx::XMMATRIX view;
+        dx::XMMATRIX projection;
+        alignas(16) dx::XMFLOAT3 viewPosition;
+    };
+
+    struct CB_material
+    {
+        alignas(16) dx::XMFLOAT3 ambient;
+        alignas(16) dx::XMFLOAT3 diffuse;
+        alignas(16) dx::XMFLOAT3 specular;
+        float shiness;
+    };
+
+    struct CB_light
+    {
+        alignas(16) dx::XMFLOAT3 position;
+        alignas(16) dx::XMFLOAT3 ambient;
+        alignas(16) dx::XMFLOAT3 diffuse;
+        alignas(16) dx::XMFLOAT3 specular;
+    };
+
 public:
 	Scene();
 	~Scene();

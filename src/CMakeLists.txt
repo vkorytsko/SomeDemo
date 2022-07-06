@@ -34,12 +34,14 @@ set(SHADERS_SOURCE_DIR
 set(VERTEX_SHADERS
     ${SHADERS_SOURCE_DIR}/color.vs.hlsl
     ${SHADERS_SOURCE_DIR}/light.vs.hlsl
+    ${SHADERS_SOURCE_DIR}/phong.vs.hlsl
     ${SHADERS_SOURCE_DIR}/texture.vs.hlsl
 )
 
 set(PIXEL_SHADERS
     ${SHADERS_SOURCE_DIR}/color.ps.hlsl
     ${SHADERS_SOURCE_DIR}/light.ps.hlsl
+    ${SHADERS_SOURCE_DIR}/phong.ps.hlsl
     ${SHADERS_SOURCE_DIR}/texture.ps.hlsl
 )
 
@@ -63,6 +65,8 @@ target_compile_options(
     /W4
     /WX
     /MP
+	
+	/W44324  # C4324 'struct_name' : structure was padded due to __declspec(align())
 )
 
 set(LIBS

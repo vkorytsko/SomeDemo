@@ -59,22 +59,50 @@ void Scene::SetupBox() {
     const auto& app = Application::GetApplication();
     const auto& device = app->GetRenderer().GetDevice();
 
-    const Vertex vertices[] =
+    const Vertex3 vertices[] =
     {
-        {{-0.5f, -0.5f, -0.5f}, {2.0f / 3.0f, 0.0f / 4.0f}},
-        {{ 0.5f, -0.5f, -0.5f}, {1.0f / 3.0f ,0.0f / 4.0f}},
-        {{-0.5f,  0.5f, -0.5f}, {2.0f / 3.0f, 1.0f / 4.0f}},
-        {{ 0.5f,  0.5f, -0.5f}, {1.0f / 3.0f, 1.0f / 4.0f}},
-        {{-0.5f, -0.5f,  0.5f}, {2.0f / 3.0f, 3.0f / 4.0f}},
-        {{ 0.5f, -0.5f,  0.5f}, {1.0f / 3.0f, 3.0f / 4.0f}},
-        {{-0.5f,  0.5f,  0.5f}, {2.0f / 3.0f, 2.0f / 4.0f}},
-        {{ 0.5f,  0.5f,  0.5f}, {1.0f / 3.0f, 2.0f / 4.0f}},
-        {{-0.5f, -0.5f, -0.5f}, {2.0f / 3.0f, 4.0f / 4.0f}},
-        {{ 0.5f, -0.5f, -0.5f}, {1.0f / 3.0f, 4.0f / 4.0f}},
-        {{-0.5f, -0.5f, -0.5f}, {3.0f / 3.0f, 1.0f / 4.0f}},
-        {{-0.5f, -0.5f,  0.5f}, {3.0f / 3.0f, 2.0f / 4.0f}},
-        {{ 0.5f, -0.5f, -0.5f}, {0.0f / 3.0f, 1.0f / 4.0f}},
-        {{ 0.5f, -0.5f,  0.5f}, {0.0f / 3.0f, 2.0f / 4.0f}},
+        // positions             // normals              // texture coords
+        {{ 0.5f, -0.5f, -0.5f},  { 0.0f,  0.0f, -1.0f},  {1.0f, 0.0f}},
+        {{-0.5f, -0.5f, -0.5f},  { 0.0f,  0.0f, -1.0f},  {0.0f, 0.0f}},
+        {{ 0.5f,  0.5f, -0.5f},  { 0.0f,  0.0f, -1.0f},  {1.0f, 1.0f}},
+        {{-0.5f,  0.5f, -0.5f},  { 0.0f,  0.0f, -1.0f},  {0.0f, 1.0f}},
+        {{ 0.5f,  0.5f, -0.5f},  { 0.0f,  0.0f, -1.0f},  {1.0f, 1.0f}},
+        {{-0.5f, -0.5f, -0.5f},  { 0.0f,  0.0f, -1.0f},  {0.0f, 0.0f}},
+
+        {{-0.5f, -0.5f,  0.5f},  { 0.0f,  0.0f,  1.0f},  {0.0f, 0.0f}},
+        {{ 0.5f, -0.5f,  0.5f},  { 0.0f,  0.0f,  1.0f},  {1.0f, 0.0f}},
+        {{ 0.5f,  0.5f,  0.5f},  { 0.0f,  0.0f,  1.0f},  {1.0f, 1.0f}},
+        {{ 0.5f,  0.5f,  0.5f},  { 0.0f,  0.0f,  1.0f},  {1.0f, 1.0f}},
+        {{-0.5f,  0.5f,  0.5f},  { 0.0f,  0.0f,  1.0f},  {0.0f, 1.0f}},
+        {{-0.5f, -0.5f,  0.5f},  { 0.0f,  0.0f,  1.0f},  {0.0f, 0.0f}},
+
+        {{-0.5f,  0.5f,  0.5f},  {-1.0f,  0.0f,  0.0f},  {1.0f, 0.0f}},
+        {{-0.5f,  0.5f, -0.5f},  {-1.0f,  0.0f,  0.0f},  {1.0f, 1.0f}},
+        {{-0.5f, -0.5f, -0.5f},  {-1.0f,  0.0f,  0.0f},  {0.0f, 1.0f}},
+        {{-0.5f, -0.5f, -0.5f},  {-1.0f,  0.0f,  0.0f},  {0.0f, 1.0f}},
+        {{-0.5f, -0.5f,  0.5f},  {-1.0f,  0.0f,  0.0f},  {0.0f, 0.0f}},
+        {{-0.5f,  0.5f,  0.5f},  {-1.0f,  0.0f,  0.0f},  {1.0f, 0.0f}},
+
+        {{ 0.5f,  0.5f, -0.5f},  { 1.0f,  0.0f,  0.0f},  {1.0f, 1.0f}},
+        {{ 0.5f,  0.5f,  0.5f},  { 1.0f,  0.0f,  0.0f},  {1.0f, 0.0f}},
+        {{ 0.5f, -0.5f, -0.5f},  { 1.0f,  0.0f,  0.0f},  {0.0f, 1.0f}},
+        {{ 0.5f, -0.5f,  0.5f},  { 1.0f,  0.0f,  0.0f},  {0.0f, 0.0f}},
+        {{ 0.5f, -0.5f, -0.5f},  { 1.0f,  0.0f,  0.0f},  {0.0f, 1.0f}},
+        {{ 0.5f,  0.5f,  0.5f},  { 1.0f,  0.0f,  0.0f},  {1.0f, 0.0f}},
+
+        {{-0.5f, -0.5f, -0.5f},  { 0.0f, -1.0f,  0.0f},  {0.0f, 1.0f}},
+        {{ 0.5f, -0.5f, -0.5f},  { 0.0f, -1.0f,  0.0f},  {1.0f, 1.0f}},
+        {{ 0.5f, -0.5f,  0.5f},  { 0.0f, -1.0f,  0.0f},  {1.0f, 0.0f}},
+        {{ 0.5f, -0.5f,  0.5f},  { 0.0f, -1.0f,  0.0f},  {1.0f, 0.0f}},
+        {{-0.5f, -0.5f,  0.5f},  { 0.0f, -1.0f,  0.0f},  {0.0f, 0.0f}},
+        {{-0.5f, -0.5f, -0.5f},  { 0.0f, -1.0f,  0.0f},  {0.0f, 1.0f}},
+
+        {{ 0.5f,  0.5f, -0.5f},  {0.0f,  1.0f,  0.0f},  {1.0f, 1.0f}},
+        {{-0.5f,  0.5f, -0.5f},  {0.0f,  1.0f,  0.0f},  {0.0f, 1.0f}},
+        {{ 0.5f,  0.5f,  0.5f},  {0.0f,  1.0f,  0.0f},  {1.0f, 0.0f}},
+        {{-0.5f,  0.5f,  0.5f},  {0.0f,  1.0f,  0.0f},  {0.0f, 0.0f}},
+        {{ 0.5f,  0.5f,  0.5f},  {0.0f,  1.0f,  0.0f},  {1.0f, 0.0f}},
+        {{-0.5f,  0.5f, -0.5f},  {0.0f,  1.0f,  0.0f},  {0.0f, 1.0f}},
     };
 
     D3D11_BUFFER_DESC vbd = {};
@@ -83,7 +111,7 @@ void Scene::SetupBox() {
     vbd.CPUAccessFlags = 0u;
     vbd.MiscFlags = 0u;
     vbd.ByteWidth = sizeof(vertices);
-    vbd.StructureByteStride = sizeof(Vertex);
+    vbd.StructureByteStride = sizeof(Vertex3);
     D3D11_SUBRESOURCE_DATA vsd = {};
     vsd.pSysMem = vertices;
     D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&vbd, &vsd, &m_pBoxVertexBuffer));
@@ -91,12 +119,12 @@ void Scene::SetupBox() {
     // create index buffer
     const unsigned short indices[] =
     {
-        0,  2,  1,   2,  3,  1,
-        4,  8,  5,   5,  8,  9,
-        2,  6,  3,   3,  6,  7,
-        4,  5,  7,   4,  7,  6,
-        2,  10, 11,  2,  11, 6,
-        12, 3,  7,   12, 7,  13,
+        0,  1,  2,    3,  4,  5,
+        6,  7,  8,    9,  10, 11,
+        12, 13, 14,   15, 16, 17,
+        18, 19, 20,   21, 22, 23,
+        24, 25, 26,   27, 28, 29,
+        30, 31, 32,   33, 34, 35,
     };
 
     D3D11_BUFFER_DESC ibd = {};
@@ -118,15 +146,16 @@ void Scene::SetupBox() {
 
     // create shaders
     wrl::ComPtr<ID3DBlob> pBlob;
-    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob((path + L"texture.ps.cso").c_str(), &pBlob));
+    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob((path + L"phong.ps.cso").c_str(), &pBlob));
     D3D_THROW_INFO_EXCEPTION(device->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pBoxPixelShader));
-    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob((path + L"texture.vs.cso").c_str(), &pBlob));
+    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob((path + L"phong.vs.cso").c_str(), &pBlob));
     D3D_THROW_INFO_EXCEPTION(device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pBoxVertexShader));
 
     // input (vertex) layout
     const D3D11_INPUT_ELEMENT_DESC ied[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
     D3D_THROW_INFO_EXCEPTION(device->CreateInputLayout(
@@ -135,7 +164,7 @@ void Scene::SetupBox() {
         &m_pBoxInputLayout
     ));
 
-    dx::ScratchImage scratch = loadImage(L"../res/textures/cube.png");
+    dx::ScratchImage scratch = loadImage(L"../res/textures/box.png");
     const auto textureWidth = static_cast<UINT>(scratch.GetMetadata().width);
     const auto textureHeight = static_cast<UINT>(scratch.GetMetadata().height);
     const auto rowPitch = static_cast<UINT>(scratch.GetImage(0, 0, 0)->rowPitch);
@@ -526,37 +555,65 @@ void Scene::DrawBox()
     const auto& device = app->GetRenderer().GetDevice();
     const auto& context = app->GetRenderer().GetContext();
 
-    // create constant buffer
-    struct ConstantBuffer
-    {
-        dx::XMMATRIX transform;
-    };
-    const ConstantBuffer cb =
-    {
-        {
-            dx::XMMatrixTranspose(
-                dx::XMMatrixScaling(m_boxScale.x, m_boxScale.y, m_boxScale.z) *
-                dx::XMMatrixRotationRollPitchYaw(m_boxRotation.y, m_boxRotation.x, m_boxRotation.z) *
-                dx::XMMatrixTranslation(m_boxPosition.x, m_boxPosition.y, m_boxPosition.z) *
-                camera.getView() *
-                camera.getProjection()
-            )
-        }
-    };
-    wrl::ComPtr<ID3D11Buffer> pConstantBuffer;
-    D3D11_BUFFER_DESC cbd;
-    cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbd.Usage = D3D11_USAGE_DYNAMIC;
-    cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    cbd.MiscFlags = 0u;
-    cbd.ByteWidth = sizeof(cb);
-    cbd.StructureByteStride = 0u;
-    D3D11_SUBRESOURCE_DATA csd = {};
-    csd.pSysMem = &cb;
-    D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&cbd, &csd, &pConstantBuffer));
+    // create constant buffers
+    CB_transform transformCB;
+    transformCB.model = dx::XMMatrixScaling(m_boxScale.x, m_boxScale.y, m_boxScale.z) *
+        dx::XMMatrixRotationRollPitchYaw(m_boxRotation.y, m_boxRotation.x, m_boxRotation.z) *
+        dx::XMMatrixTranslation(m_boxPosition.x, m_boxPosition.y, m_boxPosition.z);
+    transformCB.view = camera.getView();
+    transformCB.projection = camera.getProjection();
+    transformCB.viewPosition = camera.getPosition();
+
+    CB_material materialCB;
+    materialCB.ambient = { 1.0f, 0.5f, 0.31f };
+    materialCB.diffuse = { 1.0f, 0.5f, 0.31f };
+    materialCB.specular = { 0.5f, 0.5f, 0.5f };
+    materialCB.shiness = 32.0f;
+
+    CB_light lightCB;
+    lightCB.position = m_lightPosition;
+    lightCB.ambient = { 0.2f, 0.2f, 0.2f };
+    lightCB.diffuse = { 0.5f, 0.5f, 0.5f };
+    lightCB.specular = { 1.0f, 1.0f, 1.0f };
+
+    wrl::ComPtr<ID3D11Buffer> pTransformCB;
+    D3D11_BUFFER_DESC tcbd;
+    tcbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    tcbd.Usage = D3D11_USAGE_DYNAMIC;
+    tcbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    tcbd.MiscFlags = 0u;
+    tcbd.ByteWidth = sizeof(transformCB);
+    tcbd.StructureByteStride = 0u;
+    D3D11_SUBRESOURCE_DATA tcsd = {};
+    tcsd.pSysMem = &transformCB;
+    D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&tcbd, &tcsd, &pTransformCB));
+
+    wrl::ComPtr<ID3D11Buffer> pMaterialCB;
+    D3D11_BUFFER_DESC mcbd;
+    mcbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    mcbd.Usage = D3D11_USAGE_DYNAMIC;
+    mcbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    mcbd.MiscFlags = 0u;
+    mcbd.ByteWidth = sizeof(materialCB);
+    mcbd.StructureByteStride = 0u;
+    D3D11_SUBRESOURCE_DATA mcsd = {};
+    mcsd.pSysMem = &materialCB;
+    D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&mcbd, &mcsd, &pMaterialCB));
+
+    wrl::ComPtr<ID3D11Buffer> pLightCB;
+    D3D11_BUFFER_DESC lcbd;
+    lcbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    lcbd.Usage = D3D11_USAGE_DYNAMIC;
+    lcbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    lcbd.MiscFlags = 0u;
+    lcbd.ByteWidth = sizeof(lightCB) + 16u;
+    lcbd.StructureByteStride = 0u;
+    D3D11_SUBRESOURCE_DATA lcsd = {};
+    lcsd.pSysMem = &lightCB;
+    D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&lcbd, &lcsd, &pLightCB));
 
     // Bind vertex buffer
-    const UINT stride = sizeof(Vertex);
+    const UINT stride = sizeof(Vertex3);
     const UINT offset = 0u;
     D3D_THROW_IF_INFO(context->IASetVertexBuffers(0u, 1u, m_pBoxVertexBuffer.GetAddressOf(), &stride, &offset));
 
@@ -567,8 +624,10 @@ void Scene::DrawBox()
     D3D_THROW_IF_INFO(context->VSSetShader(m_pBoxVertexShader.Get(), nullptr, 0u));
     D3D_THROW_IF_INFO(context->PSSetShader(m_pBoxPixelShader.Get(), nullptr, 0u));
 
-    // bind constant buffer to vertex shader
-    D3D_THROW_IF_INFO(context->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf()));
+    // bind constant buffers
+    D3D_THROW_IF_INFO(context->VSSetConstantBuffers(0u, 1u, pTransformCB.GetAddressOf()));
+    D3D_THROW_IF_INFO(context->PSSetConstantBuffers(0u, 1u, pMaterialCB.GetAddressOf()))
+    D3D_THROW_IF_INFO(context->PSSetConstantBuffers(1u, 1u, pLightCB.GetAddressOf()))
 
     // bind texture to pixel shader
     D3D_THROW_IF_INFO(context->PSSetShaderResources(0u, 1u, m_pBoxTextureView.GetAddressOf()));

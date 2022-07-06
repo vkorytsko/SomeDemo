@@ -4,9 +4,6 @@
 #include "exceptions.hpp"
 
 
-const float EMPTY_COLOR[] = { 0.69f, 0.04f, 0.41f, 1.0f };
-
-
 Renderer::Renderer()
 {
     const auto& window = Application::GetApplication()->GetWindow();
@@ -107,7 +104,8 @@ Renderer::Renderer()
 
 void Renderer::BeginFrame()
 {
-    D3D_THROW_IF_INFO(m_pD3dContext->ClearRenderTargetView(m_pRenderTargetView.Get(), EMPTY_COLOR));
+    const float color[] = { EMPTY_COLOR.x, EMPTY_COLOR.y, EMPTY_COLOR.z, 1.0f };
+    D3D_THROW_IF_INFO(m_pD3dContext->ClearRenderTargetView(m_pRenderTargetView.Get(), color));
     D3D_THROW_IF_INFO(m_pD3dContext->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
 }
 

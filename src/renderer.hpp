@@ -5,10 +5,14 @@
 
 #include <wrl.h>
 #include <d3d11.h>
+#include <DirectXMath.h>
 
 #include "debug_layer.hpp"
 
 namespace wrl = Microsoft::WRL;
+namespace dx = DirectX;
+
+const dx::XMFLOAT3 EMPTY_COLOR = { 0.1f, 0.1f, 0.2f };
 
 
 class Renderer
