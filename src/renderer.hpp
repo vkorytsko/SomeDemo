@@ -7,6 +7,8 @@
 #include <d3d11.h>
 #include <DirectXMath.h>
 
+#include <memory>
+
 #include "debug_layer.hpp"
 
 namespace wrl = Microsoft::WRL;
@@ -32,6 +34,7 @@ public:
 
     ID3D11Device* GetDevice() const;
     ID3D11DeviceContext* GetContext() const;
+    DebugLayer* GetDebugLayer() const;
 private:
     wrl::ComPtr<ID3D11Device> m_pD3dDevice;
     wrl::ComPtr<IDXGISwapChain> m_pSwapChain;
@@ -39,7 +42,7 @@ private:
     wrl::ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;
     wrl::ComPtr<ID3D11DepthStencilView> m_pDepthStencilView;
 
-#ifndef NDEBUG
-    DebugLayer m_debugLayer;
-#endif
+
+    std::unique_ptr<DebugLayer> m_debugLayer;
+
 };

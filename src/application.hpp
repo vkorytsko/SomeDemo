@@ -17,9 +17,9 @@ public:
 
 	int Run();
 
-	Window& GetWindow() const;
-	Renderer& GetRenderer() const;
-	Camera& GetCamera() const;
+	Window* GetWindow() const;
+	Renderer* GetRenderer() const;
+	Camera* GetCamera() const;
 
 	bool IsActive() const;
 

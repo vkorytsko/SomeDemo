@@ -12,6 +12,7 @@ set(SOURCES
     renderer.cpp
     scene.cpp
     timer.cpp
+    vertex_buffer.cpp
     window.cpp
 )
 set(HEADERS
@@ -22,6 +23,7 @@ set(HEADERS
     renderer.hpp
     scene.hpp
     timer.hpp
+	vertex_buffer.hpp
     window.hpp
 
     utils.hpp

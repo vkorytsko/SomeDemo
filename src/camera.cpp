@@ -48,14 +48,14 @@ void Camera::Update(float dt)
 
 	POINT cursorPos;
 	GetCursorPos(&cursorPos);
-	POINT centerPos = window.GetCenter();
+	POINT centerPos = window->GetCenter();
 	const float yaw = (cursorPos.x - centerPos.x) * dt * ROTATION_SPEED;
 	const float pitch = (cursorPos.y - centerPos.y) * dt * ROTATION_SPEED;
 	Rotate(yaw, pitch);
 
 	updateView();
 
-	window.CenterCursor();
+	window->CenterCursor();
 }
 
 void Camera::Rotate(float yaw, float pitch)
@@ -111,7 +111,7 @@ void Camera::updateView()
 void Camera::updateProjection()
 {
 	const auto& window = Application::GetApplication()->GetWindow();
-	const float aspect = window.GetWidht() / window.GetHeight();
+	const float aspect = window->GetWidht() / window->GetHeight();
 	m_projection = XMMatrixPerspectiveFovLH(FOV, aspect, NEAR_Z, FAR_Z);
 }
 

@@ -8,6 +8,7 @@
 
 #include "debug_layer.hpp"
 #include "timer.hpp"
+#include "vertex_buffer.hpp"
 
 namespace wrl = Microsoft::WRL;
 namespace dx = DirectX;
@@ -92,7 +93,7 @@ private:
     std::unique_ptr<Timer> m_pTimer;
 
     // Box
-    wrl::ComPtr<ID3D11Buffer> m_pBoxVertexBuffer;
+    std::unique_ptr<VertexBuffer> m_pBoxVertexBuffer;
     wrl::ComPtr<ID3D11Buffer> m_pBoxIndexBuffer;
     wrl::ComPtr<ID3D11VertexShader> m_pBoxVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pBoxPixelShader;
@@ -105,7 +106,7 @@ private:
     dx::XMFLOAT3 m_boxScale = { 1.0f, 1.0f, 1.0f };
 
     // Light
-    wrl::ComPtr<ID3D11Buffer> m_pLightVertexBuffer;
+    std::unique_ptr<VertexBuffer> m_pLightVertexBuffer;
     wrl::ComPtr<ID3D11Buffer> m_pLightIndexBuffer;
     wrl::ComPtr<ID3D11VertexShader> m_pLightVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pLightPixelShader;
@@ -116,7 +117,7 @@ private:
     dx::XMFLOAT3 m_lightColor = { 1.0f, 1.0f, 1.0f };
 
     // Grass
-    wrl::ComPtr<ID3D11Buffer> m_pGrassVertexBuffer;
+    std::unique_ptr<VertexBuffer> m_pGrassVertexBuffer;
     wrl::ComPtr<ID3D11Buffer> m_pGrassIndexBuffer;
     wrl::ComPtr<ID3D11VertexShader> m_pGrassVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pGrassPixelShader;
@@ -132,7 +133,7 @@ private:
     wrl::ComPtr<ID3D11RasterizerState> m_pRasterizerCull;
 
     // Floor
-    wrl::ComPtr<ID3D11Buffer> m_pFloorVertexBuffer;
+    std::unique_ptr<VertexBuffer> m_pFloorVertexBuffer;
     wrl::ComPtr<ID3D11Buffer> m_pFloorIndexBuffer;
     wrl::ComPtr<ID3D11VertexShader> m_pFloorVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pFloorPixelShader;
@@ -142,8 +143,4 @@ private:
     dx::XMFLOAT3 m_floorPosition = { 0.0f, -0.5f, 0.0f };
     dx::XMFLOAT3 m_floorRotation = { 0.0f, 0.0f, 0.0f };
     dx::XMFLOAT3 m_floorScale = { 1.0f, 1.0f, 1.0f };
-
-#ifndef NDEBUG
-    DebugLayer m_debugLayer;
-#endif
 };

@@ -13,6 +13,7 @@ const DXGI_INFO_QUEUE_MESSAGE_SEVERITY MIN_SEVERITY_LEVEL = DXGI_INFO_QUEUE_MESS
 
 DebugLayer::DebugLayer()
 {
+#ifndef NDEBUG
 	// define function signature of DXGIGetDebugInterface
 	typedef HRESULT(WINAPI* LPDXGIGETDEBUGINTERFACE)(REFIID, void**);
 
@@ -35,6 +36,7 @@ DebugLayer::DebugLayer()
 	}
 
 	D3D_THROW_NOINFO_EXCEPTION(dxgiGetDebugInterface(__uuidof(IDXGIInfoQueue), &m_pDxgiInfoQueue));
+#endif
 }
 
 bool DebugLayer::isInitialised() const

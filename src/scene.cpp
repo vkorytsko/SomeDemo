@@ -57,9 +57,11 @@ void Scene::Draw()
 
 void Scene::SetupBox() {
     const auto& app = Application::GetApplication();
-    const auto& device = app->GetRenderer().GetDevice();
+    const auto& device = app->GetRenderer()->GetDevice();
 
-    const Vertex3 vertices[] =
+    D3D_DEBUG_LAYER(app->GetRenderer());
+
+    const std::vector<Vertex3> vertices =
     {
         // positions             // normals              // texture coords
         {{ 0.5f, -0.5f, -0.5f},  { 0.0f,  0.0f, -1.0f},  {1.0f, 0.0f}},
@@ -105,16 +107,7 @@ void Scene::SetupBox() {
         {{-0.5f,  0.5f, -0.5f},  {0.0f,  1.0f,  0.0f},  {0.0f, 1.0f}},
     };
 
-    D3D11_BUFFER_DESC vbd = {};
-    vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vbd.Usage = D3D11_USAGE_IMMUTABLE;
-    vbd.CPUAccessFlags = 0u;
-    vbd.MiscFlags = 0u;
-    vbd.ByteWidth = sizeof(vertices);
-    vbd.StructureByteStride = sizeof(Vertex3);
-    D3D11_SUBRESOURCE_DATA vsd = {};
-    vsd.pSysMem = vertices;
-    D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&vbd, &vsd, &m_pBoxVertexBuffer));
+    m_pBoxVertexBuffer = std::make_unique<VertexBuffer>(app->GetRenderer(), vertices);
 
     // create index buffer
     const unsigned short indices[] =
@@ -241,9 +234,11 @@ void Scene::SetupBox() {
 
 void Scene::SetupLight() {
     const auto& app = Application::GetApplication();
-    const auto& device = app->GetRenderer().GetDevice();
+    const auto& device = app->GetRenderer()->GetDevice();
 
-    const Vertex2 vertices[] =
+    D3D_DEBUG_LAYER(app->GetRenderer());
+
+    const std::vector<Vertex2> vertices =
     {
         {{ -0.5f, -0.5f, -0.5f }},
         {{  0.5f, -0.5f, -0.5f }},
@@ -254,17 +249,7 @@ void Scene::SetupLight() {
         {{ -0.5f,  0.5f,  0.5f }},
         {{  0.5f,  0.5f,  0.5f }},
     };
-
-    D3D11_BUFFER_DESC vbd = {};
-    vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vbd.Usage = D3D11_USAGE_IMMUTABLE;
-    vbd.CPUAccessFlags = 0u;
-    vbd.MiscFlags = 0u;
-    vbd.ByteWidth = sizeof(vertices);
-    vbd.StructureByteStride = sizeof(Vertex2);
-    D3D11_SUBRESOURCE_DATA vsd = {};
-    vsd.pSysMem = vertices;
-    D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&vbd, &vsd, &m_pLightVertexBuffer));
+    m_pLightVertexBuffer = std::make_unique<VertexBuffer>(app->GetRenderer(), vertices);
 
     // create index buffer
     const unsigned short indices[] =
@@ -315,26 +300,18 @@ void Scene::SetupLight() {
 
 void Scene::SetupGrass() {
     const auto& app = Application::GetApplication();
-    const auto& device = app->GetRenderer().GetDevice();
+    const auto& device = app->GetRenderer()->GetDevice();
 
-    const Vertex vertices[] =
+    D3D_DEBUG_LAYER(app->GetRenderer());
+
+    const std::vector<Vertex> vertices =
     {
         {{ -0.5f, -0.5f,  0.0f }, {0.0f, 1.0f}},
         {{  0.5f, -0.5f,  0.0f }, {1.0f, 1.0f}},
         {{ -0.5f,  0.5f,  0.0f }, {0.0f, 0.0f}},
         {{  0.5f,  0.5f,  0.0f }, {1.0f, 0.0f}},
     };
-
-    D3D11_BUFFER_DESC vbd = {};
-    vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vbd.Usage = D3D11_USAGE_IMMUTABLE;
-    vbd.CPUAccessFlags = 0u;
-    vbd.MiscFlags = 0u;
-    vbd.ByteWidth = sizeof(vertices);
-    vbd.StructureByteStride = sizeof(Vertex2);
-    D3D11_SUBRESOURCE_DATA vsd = {};
-    vsd.pSysMem = vertices;
-    D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&vbd, &vsd, &m_pGrassVertexBuffer));
+    m_pGrassVertexBuffer = std::make_unique<VertexBuffer>(app->GetRenderer(), vertices);
 
     // create index buffer
     const unsigned short indices[] =
@@ -453,26 +430,18 @@ void Scene::SetupGrass() {
 void Scene::SetupFloor()
 {
     const auto& app = Application::GetApplication();
-    const auto& device = app->GetRenderer().GetDevice();
+    const auto& device = app->GetRenderer()->GetDevice();
 
-    const Vertex vertices[] =
+    D3D_DEBUG_LAYER(app->GetRenderer());
+
+    const std::vector<Vertex> vertices =
     {
         {{ -20.0f, 0.0f, -20.0f }, {0.0f,  10.0f}},
         {{  20.0f, 0.0f, -20.0f }, {10.0f, 10.0f}},
         {{ -20.0f, 0.0f,  20.0f }, {0.0f,  0.0f}},
         {{  20.0f, 0.0f,  20.0f }, {10.0f, 0.0f}},
     };
-
-    D3D11_BUFFER_DESC vbd = {};
-    vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vbd.Usage = D3D11_USAGE_IMMUTABLE;
-    vbd.CPUAccessFlags = 0u;
-    vbd.MiscFlags = 0u;
-    vbd.ByteWidth = sizeof(vertices);
-    vbd.StructureByteStride = sizeof(Vertex2);
-    D3D11_SUBRESOURCE_DATA vsd = {};
-    vsd.pSysMem = vertices;
-    D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&vbd, &vsd, &m_pFloorVertexBuffer));
+    m_pFloorVertexBuffer = std::make_unique<VertexBuffer>(app->GetRenderer(), vertices);
 
     // create index buffer
     const unsigned short indices[] =
@@ -586,17 +555,19 @@ void Scene::DrawBox()
 {
     const auto& app = Application::GetApplication();
     const auto& camera = app->GetCamera();
-    const auto& device = app->GetRenderer().GetDevice();
-    const auto& context = app->GetRenderer().GetContext();
+    const auto& device = app->GetRenderer()->GetDevice();
+    const auto& context = app->GetRenderer()->GetContext();
+
+    D3D_DEBUG_LAYER(app->GetRenderer());
 
     // create constant buffers
     CB_transform transformCB;
     transformCB.model = dx::XMMatrixScaling(m_boxScale.x, m_boxScale.y, m_boxScale.z) *
         dx::XMMatrixRotationRollPitchYaw(m_boxRotation.y, m_boxRotation.x, m_boxRotation.z) *
         dx::XMMatrixTranslation(m_boxPosition.x, m_boxPosition.y, m_boxPosition.z);
-    transformCB.view = camera.getView();
-    transformCB.projection = camera.getProjection();
-    transformCB.viewPosition = camera.getPosition();
+    transformCB.view = camera->getView();
+    transformCB.projection = camera->getProjection();
+    transformCB.viewPosition = camera->getPosition();
 
     CB_material materialCB;
     materialCB.shiness = 32.0f;
@@ -663,9 +634,7 @@ void Scene::DrawBox()
     D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&dlcbd, &dlcsd, &pDirLightCB));
 
     // Bind vertex buffer
-    const UINT stride = sizeof(Vertex3);
-    const UINT offset = 0u;
-    D3D_THROW_IF_INFO(context->IASetVertexBuffers(0u, 1u, m_pBoxVertexBuffer.GetAddressOf(), &stride, &offset));
+    m_pBoxVertexBuffer->Bind(app->GetRenderer());
 
     // Bind vertex buffer
     D3D_THROW_IF_INFO(context->IASetIndexBuffer(m_pBoxIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u));
@@ -700,8 +669,10 @@ void Scene::DrawLight()
 {
     const auto& app = Application::GetApplication();
     const auto& camera = app->GetCamera();
-    const auto& device = app->GetRenderer().GetDevice();
-    const auto& context = app->GetRenderer().GetContext();
+    const auto& device = app->GetRenderer()->GetDevice();
+    const auto& context = app->GetRenderer()->GetContext();
+
+    D3D_DEBUG_LAYER(app->GetRenderer());
 
     // create constant buffer
     struct ConstantBuffer
@@ -716,8 +687,8 @@ void Scene::DrawLight()
                 dx::XMMatrixScaling(m_lightScale.x, m_lightScale.y, m_lightScale.z)*
                 dx::XMMatrixRotationRollPitchYaw(m_lightRotation.y, m_lightRotation.x, m_lightRotation.z) *
                 dx::XMMatrixTranslation(m_lightPosition.x, m_lightPosition.y, m_lightPosition.z) *
-                camera.getView() *
-                camera.getProjection()
+                camera->getView() *
+                camera->getProjection()
             )
         },
         m_lightColor,
@@ -735,9 +706,7 @@ void Scene::DrawLight()
     D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&cbd, &csd, &pConstantBuffer));
 
     // Bind vertex buffer
-    const UINT stride = sizeof(Vertex2);
-    const UINT offset = 0u;
-    D3D_THROW_IF_INFO(context->IASetVertexBuffers(0u, 1u, m_pLightVertexBuffer.GetAddressOf(), &stride, &offset));
+    m_pLightVertexBuffer->Bind(app->GetRenderer());
 
     // Bind vertex buffer
     D3D_THROW_IF_INFO(context->IASetIndexBuffer(m_pLightIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u));
@@ -785,8 +754,10 @@ void Scene::DrawGrass()
 {
     const auto& app = Application::GetApplication();
     const auto& camera = app->GetCamera();
-    const auto& device = app->GetRenderer().GetDevice();
-    const auto& context = app->GetRenderer().GetContext();
+    const auto& device = app->GetRenderer()->GetDevice();
+    const auto& context = app->GetRenderer()->GetContext();
+
+    D3D_DEBUG_LAYER(app->GetRenderer());
 
     // create constant buffer
     struct ConstantBuffer
@@ -800,8 +771,8 @@ void Scene::DrawGrass()
                 dx::XMMatrixScaling(m_grassScale.x, m_grassScale.y, m_grassScale.z) *
                 dx::XMMatrixRotationRollPitchYaw(m_grassRotation.y, m_grassRotation.x, m_grassRotation.z) *
                 dx::XMMatrixTranslation(m_grassPosition.x, m_grassPosition.y, m_grassPosition.z) *
-                camera.getView() *
-                camera.getProjection()
+                camera->getView() *
+                camera->getProjection()
             )
         }
     };
@@ -818,9 +789,7 @@ void Scene::DrawGrass()
     D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&cbd, &csd, &pConstantBuffer));
 
     // Bind vertex buffer
-    const UINT stride = sizeof(Vertex);
-    const UINT offset = 0u;
-    D3D_THROW_IF_INFO(context->IASetVertexBuffers(0u, 1u, m_pGrassVertexBuffer.GetAddressOf(), &stride, &offset));
+    m_pGrassVertexBuffer->Bind(app->GetRenderer());
 
     // Bind vertex buffer
     D3D_THROW_IF_INFO(context->IASetIndexBuffer(m_pGrassIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u));
@@ -864,8 +833,10 @@ void Scene::DrawFloor()
 {
     const auto& app = Application::GetApplication();
     const auto& camera = app->GetCamera();
-    const auto& device = app->GetRenderer().GetDevice();
-    const auto& context = app->GetRenderer().GetContext();
+    const auto& device = app->GetRenderer()->GetDevice();
+    const auto& context = app->GetRenderer()->GetContext();
+
+    D3D_DEBUG_LAYER(app->GetRenderer());
 
     // create constant buffer
     struct ConstantBuffer
@@ -879,8 +850,8 @@ void Scene::DrawFloor()
                 dx::XMMatrixScaling(m_floorScale.x, m_floorScale.y, m_floorScale.z) *
                 dx::XMMatrixRotationRollPitchYaw(m_floorRotation.y, m_floorRotation.x, m_floorRotation.z) *
                 dx::XMMatrixTranslation(m_floorPosition.x, m_floorPosition.y, m_floorPosition.z) *
-                camera.getView() *
-                camera.getProjection()
+                camera->getView() *
+                camera->getProjection()
             )
         }
     };
@@ -897,9 +868,7 @@ void Scene::DrawFloor()
     D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&cbd, &csd, &pConstantBuffer));
 
     // Bind vertex buffer
-    const UINT stride = sizeof(Vertex);
-    const UINT offset = 0u;
-    D3D_THROW_IF_INFO(context->IASetVertexBuffers(0u, 1u, m_pFloorVertexBuffer.GetAddressOf(), &stride, &offset));
+    m_pFloorVertexBuffer->Bind(app->GetRenderer());
 
     // Bind vertex buffer
     D3D_THROW_IF_INFO(context->IASetIndexBuffer(m_pFloorIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u));

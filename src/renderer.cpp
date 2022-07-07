@@ -5,10 +5,13 @@
 
 
 Renderer::Renderer()
+    : m_debugLayer(std::make_unique<DebugLayer>())
 {
+    D3D_DEBUG_LAYER(this);
+
     const auto& window = Application::GetApplication()->GetWindow();
-    const auto width = window.GetWidht();
-    const auto height = window.GetHeight();
+    const auto width = window->GetWidht();
+    const auto height = window->GetHeight();
 
     DXGI_SWAP_CHAIN_DESC sd = {};
     sd.BufferDesc.Width = static_cast<UINT>(width);
@@ -22,18 +25,16 @@ Renderer::Renderer()
     sd.SampleDesc.Quality = 0;
     sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     sd.BufferCount = 1;
-    sd.OutputWindow = window.GetHandle();
+    sd.OutputWindow = window->GetHandle();
     sd.Windowed = TRUE;
     sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
     sd.Flags = 0;
 
     UINT deviceFlags = 0u;
-#ifndef NDEBUG
-    if (m_debugLayer.isInitialised())
+    if (m_debugLayer->isInitialised())
     {
         deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
     }
-#endif
 
     // create device and front/back buffers, and swap chain and rendering context
     D3D_THROW_INFO_EXCEPTION(D3D11CreateDeviceAndSwapChain(
@@ -104,6 +105,8 @@ Renderer::Renderer()
 
 void Renderer::BeginFrame()
 {
+    D3D_DEBUG_LAYER(this);
+
     const float color[] = { EMPTY_COLOR.x, EMPTY_COLOR.y, EMPTY_COLOR.z, 1.0f };
     D3D_THROW_IF_INFO(m_pD3dContext->ClearRenderTargetView(m_pRenderTargetView.Get(), color));
     D3D_THROW_IF_INFO(m_pD3dContext->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
@@ -111,9 +114,9 @@ void Renderer::BeginFrame()
 
 void Renderer::EndFrame()
 {
-#ifndef NDEBUG
-    m_debugLayer.Set();
-#endif
+    D3D_DEBUG_LAYER(this);
+
+    m_debugLayer->Set();
 
     HRESULT hr;
     // First argument for VSync
@@ -138,5 +141,10 @@ ID3D11Device* Renderer::GetDevice() const
 ID3D11DeviceContext* Renderer::GetContext() const
 {
     return m_pD3dContext.Get();
+}
+
+DebugLayer* Renderer::GetDebugLayer() const
+{
+    return m_debugLayer.get();
 }
 

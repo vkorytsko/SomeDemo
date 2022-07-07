@@ -60,34 +60,34 @@ int Application::Run()
 	}
 }
 
-Window& Application::GetWindow() const
+Window* Application::GetWindow() const
 {
 	if (!m_pWindow)
 	{
 		THROW_SOME_EXCEPTION(L"MISSING WINDOW!");
 	}
 
-	return *m_pWindow;
+	return m_pWindow.get();
 }
 
-Renderer& Application::GetRenderer() const
+Renderer* Application::GetRenderer() const
 {
 	if (!m_pRenderer)
 	{
 		THROW_SOME_EXCEPTION(L"MISSING RENDERER!");
 	}
 
-	return *m_pRenderer;
+	return m_pRenderer.get();
 }
 
-Camera& Application::GetCamera() const
+Camera* Application::GetCamera() const
 {
 	if (!m_pCamera)
 	{
 		THROW_SOME_EXCEPTION(L"MISSING CAMERA!");
 	}
 
-	return *m_pCamera;
+	return m_pCamera.get();
 }
 
 bool Application::IsActive() const
