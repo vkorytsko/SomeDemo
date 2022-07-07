@@ -164,37 +164,71 @@ void Scene::SetupBox() {
         &m_pBoxInputLayout
     ));
 
-    dx::ScratchImage scratch = loadImage(L"../res/textures/box.png");
-    const auto textureWidth = static_cast<UINT>(scratch.GetMetadata().width);
-    const auto textureHeight = static_cast<UINT>(scratch.GetMetadata().height);
-    const auto rowPitch = static_cast<UINT>(scratch.GetImage(0, 0, 0)->rowPitch);
+    // load diffuse texture
+    dx::ScratchImage dtScratch = loadImage(L"../res/textures/box.png");
+    const auto dtWidth = static_cast<UINT>(dtScratch.GetMetadata().width);
+    const auto dtHeight = static_cast<UINT>(dtScratch.GetMetadata().height);
+    const auto dtRowPitch = static_cast<UINT>(dtScratch.GetImage(0, 0, 0)->rowPitch);
 
-    // create texture resource
-    D3D11_TEXTURE2D_DESC td = {};
-    td.Width = textureWidth;
-    td.Height = textureHeight;
-    td.MipLevels = 1;
-    td.ArraySize = 1;
-    td.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-    td.SampleDesc.Count = 1;
-    td.SampleDesc.Quality = 0;
-    td.Usage = D3D11_USAGE_IMMUTABLE;
-    td.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    td.CPUAccessFlags = 0;
-    td.MiscFlags = 0;
-    D3D11_SUBRESOURCE_DATA tsd = {};
-    tsd.pSysMem = scratch.GetPixels();
-    tsd.SysMemPitch = rowPitch;
-    wrl::ComPtr<ID3D11Texture2D> pTexture;
-    D3D_THROW_INFO_EXCEPTION(device->CreateTexture2D(&td, &tsd, &pTexture));
+    // create diffuse texture resource
+    D3D11_TEXTURE2D_DESC dtd = {};
+    dtd.Width = dtWidth;
+    dtd.Height = dtHeight;
+    dtd.MipLevels = 1;
+    dtd.ArraySize = 1;
+    dtd.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    dtd.SampleDesc.Count = 1;
+    dtd.SampleDesc.Quality = 0;
+    dtd.Usage = D3D11_USAGE_IMMUTABLE;
+    dtd.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    dtd.CPUAccessFlags = 0;
+    dtd.MiscFlags = 0;
+    D3D11_SUBRESOURCE_DATA dtsd = {};
+    dtsd.pSysMem = dtScratch.GetPixels();
+    dtsd.SysMemPitch = dtRowPitch;
+    wrl::ComPtr<ID3D11Texture2D> pDiffuseTexture;
+    D3D_THROW_INFO_EXCEPTION(device->CreateTexture2D(&dtd, &dtsd, &pDiffuseTexture));
 
-    // create the resource view on the texture
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.Format = td.Format;
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MostDetailedMip = 0;
-    srvDesc.Texture2D.MipLevels = 1;
-    D3D_THROW_INFO_EXCEPTION(device->CreateShaderResourceView(pTexture.Get(), &srvDesc, &m_pBoxTextureView));
+    // create the resource view on the diffuse texture
+    D3D11_SHADER_RESOURCE_VIEW_DESC dtSrvDesc = {};
+    dtSrvDesc.Format = dtd.Format;
+    dtSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    dtSrvDesc.Texture2D.MostDetailedMip = 0;
+    dtSrvDesc.Texture2D.MipLevels = 1;
+    D3D_THROW_INFO_EXCEPTION(device->CreateShaderResourceView(pDiffuseTexture.Get(), &dtSrvDesc, &m_pBoxDiffuseTextureView));
+
+    // load specular texture
+    dx::ScratchImage stScratch = loadImage(L"../res/textures/box_specular.png");
+    const auto stWidth = static_cast<UINT>(stScratch.GetMetadata().width);
+    const auto stHeight = static_cast<UINT>(stScratch.GetMetadata().height);
+    const auto stRowPitch = static_cast<UINT>(stScratch.GetImage(0, 0, 0)->rowPitch);
+
+    // create diffuse texture resource
+    D3D11_TEXTURE2D_DESC std = {};
+    std.Width = stWidth;
+    std.Height = stHeight;
+    std.MipLevels = 1;
+    std.ArraySize = 1;
+    std.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    std.SampleDesc.Count = 1;
+    std.SampleDesc.Quality = 0;
+    std.Usage = D3D11_USAGE_IMMUTABLE;
+    std.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    std.CPUAccessFlags = 0;
+    std.MiscFlags = 0;
+    D3D11_SUBRESOURCE_DATA stsd = {};
+    stsd.pSysMem = stScratch.GetPixels();
+    stsd.SysMemPitch = stRowPitch;
+    wrl::ComPtr<ID3D11Texture2D> pSpecularTexture;
+    D3D_THROW_INFO_EXCEPTION(device->CreateTexture2D(&std, &stsd, &pSpecularTexture));
+
+    // create the resource view on the diffuse texture
+    D3D11_SHADER_RESOURCE_VIEW_DESC stSrvDesc = {};
+    stSrvDesc.Format = std.Format;
+    stSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    stSrvDesc.Texture2D.MostDetailedMip = 0;
+    stSrvDesc.Texture2D.MipLevels = 1;
+    D3D_THROW_INFO_EXCEPTION(device->CreateShaderResourceView(pSpecularTexture.Get(), &stSrvDesc, &m_pBoxSpecularTextureView));
 
     // create texture sampler
     D3D11_SAMPLER_DESC samplerDesc = {};
@@ -565,16 +599,20 @@ void Scene::DrawBox()
     transformCB.viewPosition = camera.getPosition();
 
     CB_material materialCB;
-    materialCB.ambient = { 1.0f, 0.5f, 0.31f };
-    materialCB.diffuse = { 1.0f, 0.5f, 0.31f };
-    materialCB.specular = { 0.5f, 0.5f, 0.5f };
     materialCB.shiness = 32.0f;
 
-    CB_light lightCB;
-    lightCB.position = m_lightPosition;
-    lightCB.ambient = { 0.2f, 0.2f, 0.2f };
-    lightCB.diffuse = { 0.5f, 0.5f, 0.5f };
-    lightCB.specular = { 1.0f, 1.0f, 1.0f };
+    CB_posLight posLightCB;
+    posLightCB.position = m_lightPosition;
+    posLightCB.ambient = { 0.2f, 0.2f, 0.2f };
+    posLightCB.diffuse = { 0.5f, 0.5f, 0.5f };
+    posLightCB.specular = { 1.0f, 1.0f, 1.0f };
+    posLightCB.attenuation = { 1.0f, 0.09f, 0.032f };
+
+    CB_dirLight dirLightCB;
+    dirLightCB.direction = { 2.0f, 8.0f, 3.0f };
+    dirLightCB.ambient = { 0.05f, 0.05f, 0.05f };
+    dirLightCB.diffuse = { 0.4f, 0.4f, 0.4f };
+    dirLightCB.specular = { 0.5f, 0.5f, 0.5f };
 
     wrl::ComPtr<ID3D11Buffer> pTransformCB;
     D3D11_BUFFER_DESC tcbd;
@@ -600,17 +638,29 @@ void Scene::DrawBox()
     mcsd.pSysMem = &materialCB;
     D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&mcbd, &mcsd, &pMaterialCB));
 
-    wrl::ComPtr<ID3D11Buffer> pLightCB;
-    D3D11_BUFFER_DESC lcbd;
-    lcbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    lcbd.Usage = D3D11_USAGE_DYNAMIC;
-    lcbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    lcbd.MiscFlags = 0u;
-    lcbd.ByteWidth = sizeof(lightCB) + 16u;
-    lcbd.StructureByteStride = 0u;
-    D3D11_SUBRESOURCE_DATA lcsd = {};
-    lcsd.pSysMem = &lightCB;
-    D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&lcbd, &lcsd, &pLightCB));
+    wrl::ComPtr<ID3D11Buffer> pPosLightCB;
+    D3D11_BUFFER_DESC plcbd;
+    plcbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    plcbd.Usage = D3D11_USAGE_DYNAMIC;
+    plcbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    plcbd.MiscFlags = 0u;
+    plcbd.ByteWidth = sizeof(posLightCB);
+    plcbd.StructureByteStride = 0u;
+    D3D11_SUBRESOURCE_DATA plcsd = {};
+    plcsd.pSysMem = &posLightCB;
+    D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&plcbd, &plcsd, &pPosLightCB));
+
+    wrl::ComPtr<ID3D11Buffer> pDirLightCB;
+    D3D11_BUFFER_DESC dlcbd;
+    dlcbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    dlcbd.Usage = D3D11_USAGE_DYNAMIC;
+    dlcbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    dlcbd.MiscFlags = 0u;
+    dlcbd.ByteWidth = sizeof(dirLightCB);
+    dlcbd.StructureByteStride = 0u;
+    D3D11_SUBRESOURCE_DATA dlcsd = {};
+    dlcsd.pSysMem = &dirLightCB;
+    D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&dlcbd, &dlcsd, &pDirLightCB));
 
     // Bind vertex buffer
     const UINT stride = sizeof(Vertex3);
@@ -627,10 +677,12 @@ void Scene::DrawBox()
     // bind constant buffers
     D3D_THROW_IF_INFO(context->VSSetConstantBuffers(0u, 1u, pTransformCB.GetAddressOf()));
     D3D_THROW_IF_INFO(context->PSSetConstantBuffers(0u, 1u, pMaterialCB.GetAddressOf()))
-    D3D_THROW_IF_INFO(context->PSSetConstantBuffers(1u, 1u, pLightCB.GetAddressOf()))
+    D3D_THROW_IF_INFO(context->PSSetConstantBuffers(1u, 1u, pPosLightCB.GetAddressOf()))
+    D3D_THROW_IF_INFO(context->PSSetConstantBuffers(2u, 1u, pDirLightCB.GetAddressOf()))
 
     // bind texture to pixel shader
-    D3D_THROW_IF_INFO(context->PSSetShaderResources(0u, 1u, m_pBoxTextureView.GetAddressOf()));
+    D3D_THROW_IF_INFO(context->PSSetShaderResources(0u, 1u, m_pBoxDiffuseTextureView.GetAddressOf()));
+    D3D_THROW_IF_INFO(context->PSSetShaderResources(1u, 1u, m_pBoxSpecularTextureView.GetAddressOf()));
 
     // bind texture sampler to pixel shader
     D3D_THROW_IF_INFO(context->PSSetSamplers(0, 1, m_pBoxSampler.GetAddressOf()));

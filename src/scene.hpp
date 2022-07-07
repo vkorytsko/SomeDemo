@@ -44,15 +44,21 @@ public:
 
     struct CB_material
     {
+        alignas(16) float shiness;
+    };
+
+    struct CB_posLight
+    {
+        alignas(16) dx::XMFLOAT3 position;
         alignas(16) dx::XMFLOAT3 ambient;
         alignas(16) dx::XMFLOAT3 diffuse;
         alignas(16) dx::XMFLOAT3 specular;
-        float shiness;
+        alignas(16) dx::XMFLOAT3 attenuation;  // {constant, linear, quadratic}
     };
 
-    struct CB_light
+    struct CB_dirLight
     {
-        alignas(16) dx::XMFLOAT3 position;
+        alignas(16) dx::XMFLOAT3 direction;
         alignas(16) dx::XMFLOAT3 ambient;
         alignas(16) dx::XMFLOAT3 diffuse;
         alignas(16) dx::XMFLOAT3 specular;
@@ -91,7 +97,8 @@ private:
     wrl::ComPtr<ID3D11VertexShader> m_pBoxVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pBoxPixelShader;
     wrl::ComPtr<ID3D11InputLayout> m_pBoxInputLayout;
-    wrl::ComPtr<ID3D11ShaderResourceView> m_pBoxTextureView;
+    wrl::ComPtr<ID3D11ShaderResourceView> m_pBoxDiffuseTextureView;
+    wrl::ComPtr<ID3D11ShaderResourceView> m_pBoxSpecularTextureView;
     wrl::ComPtr<ID3D11SamplerState> m_pBoxSampler;
     dx::XMFLOAT3 m_boxPosition = { 0.0f, 0.0f, 0.0f };
     dx::XMFLOAT3 m_boxRotation = { 0.0f, 0.0f, 0.0f };
