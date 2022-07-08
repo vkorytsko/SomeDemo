@@ -1,5 +1,7 @@
 #include "index_buffer.hpp"
 
+#include "exceptions.hpp"
+
 
 IndexBuffer::IndexBuffer(Renderer* renderer, const std::vector<unsigned short>& indices)
 	: m_count(static_cast<UINT>(indices.size()))

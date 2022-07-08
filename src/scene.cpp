@@ -135,17 +135,13 @@ void Scene::SetupBox() {
     D3D_THROW_INFO_EXCEPTION(device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pBoxVertexShader));
 
     // input (vertex) layout
-    const D3D11_INPUT_ELEMENT_DESC ied[] =
+    const std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
-    D3D_THROW_INFO_EXCEPTION(device->CreateInputLayout(
-        ied, static_cast<UINT>(std::size(ied)),
-        pBlob->GetBufferPointer(), pBlob->GetBufferSize(),
-        &m_pBoxInputLayout
-    ));
+    m_pBoxInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, pBlob.Get());
 
     // load diffuse texture
     dx::ScratchImage dtScratch = loadImage(L"../res/textures/box.png");
@@ -267,15 +263,11 @@ void Scene::SetupLight() {
     D3D_THROW_INFO_EXCEPTION(device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pLightVertexShader));
 
     // input (vertex) layout
-    const D3D11_INPUT_ELEMENT_DESC ied[] =
+    const std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
-    D3D_THROW_INFO_EXCEPTION(device->CreateInputLayout(
-        ied, static_cast<UINT>(std::size(ied)),
-        pBlob->GetBufferPointer(), pBlob->GetBufferSize(),
-        &m_pLightInputLayout
-    ));
+    m_pLightInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, pBlob.Get());
 }
 
 void Scene::SetupGrass() {
@@ -314,16 +306,12 @@ void Scene::SetupGrass() {
     D3D_THROW_INFO_EXCEPTION(device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pGrassVertexShader));
 
     // input (vertex) layout
-    const D3D11_INPUT_ELEMENT_DESC ied[] =
+    const std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
-    D3D_THROW_INFO_EXCEPTION(device->CreateInputLayout(
-        ied, static_cast<UINT>(std::size(ied)),
-        pBlob->GetBufferPointer(), pBlob->GetBufferSize(),
-        &m_pGrassInputLayout
-    ));
+    m_pGrassInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, pBlob.Get());
 
     dx::ScratchImage scratch = loadImage(L"../res/textures/grass.png");
     const auto textureWidth = static_cast<UINT>(scratch.GetMetadata().width);
@@ -433,16 +421,12 @@ void Scene::SetupFloor()
     D3D_THROW_INFO_EXCEPTION(device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pFloorVertexShader));
 
     // input (vertex) layout
-    const D3D11_INPUT_ELEMENT_DESC ied[] =
+    const std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
-    D3D_THROW_INFO_EXCEPTION(device->CreateInputLayout(
-        ied, static_cast<UINT>(std::size(ied)),
-        pBlob->GetBufferPointer(), pBlob->GetBufferSize(),
-        &m_pFloorInputLayout
-    ));
+    m_pFloorInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, pBlob.Get());
 
     dx::ScratchImage scratch = loadImage(L"../res/textures/marble.jpg");
     const auto textureWidth = static_cast<UINT>(scratch.GetMetadata().width);
@@ -615,7 +599,7 @@ void Scene::DrawBox()
     D3D_THROW_IF_INFO(context->PSSetSamplers(0, 1, m_pBoxSampler.GetAddressOf()));
 
     // bind vertex layout
-    D3D_THROW_IF_INFO(context->IASetInputLayout(m_pBoxInputLayout.Get()));
+    m_pBoxInputLayout->Bind(app->GetRenderer());
 
     // Set primitive topology to triangle list (groups of 3 vertices)
     D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
@@ -677,7 +661,7 @@ void Scene::DrawLight()
     D3D_THROW_IF_INFO(context->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf()));
 
     // bind vertex layout
-    D3D_THROW_IF_INFO(context->IASetInputLayout(m_pLightInputLayout.Get()));
+    m_pLightInputLayout->Bind(app->GetRenderer());
 
     // Set primitive topology to triangle list (groups of 3 vertices)
     D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
@@ -766,7 +750,7 @@ void Scene::DrawGrass()
     D3D_THROW_IF_INFO(context->PSSetSamplers(0, 1, m_pGrassSampler.GetAddressOf()));
 
     // bind vertex layout
-    D3D_THROW_IF_INFO(context->IASetInputLayout(m_pGrassInputLayout.Get()));
+    m_pGrassInputLayout->Bind(app->GetRenderer());
 
     // Set primitive topology to triangle list (groups of 3 vertices)
     D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
@@ -845,7 +829,7 @@ void Scene::DrawFloor()
     D3D_THROW_IF_INFO(context->PSSetSamplers(0, 1, m_pFloorSampler.GetAddressOf()));
 
     // bind vertex layout
-    D3D_THROW_IF_INFO(context->IASetInputLayout(m_pFloorInputLayout.Get()));
+    m_pFloorInputLayout->Bind(app->GetRenderer());
 
     // Set primitive topology to triangle list (groups of 3 vertices)
     D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));

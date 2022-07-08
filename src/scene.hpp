@@ -10,6 +10,7 @@
 #include "timer.hpp"
 
 #include "index_buffer.hpp"
+#include "input_layout.hpp"
 #include "vertex_buffer.hpp"
 
 namespace wrl = Microsoft::WRL;
@@ -99,7 +100,7 @@ private:
     std::unique_ptr<IndexBuffer> m_pBoxIndexBuffer;
     wrl::ComPtr<ID3D11VertexShader> m_pBoxVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pBoxPixelShader;
-    wrl::ComPtr<ID3D11InputLayout> m_pBoxInputLayout;
+    std::unique_ptr<InputLayout> m_pBoxInputLayout;
     wrl::ComPtr<ID3D11ShaderResourceView> m_pBoxDiffuseTextureView;
     wrl::ComPtr<ID3D11ShaderResourceView> m_pBoxSpecularTextureView;
     wrl::ComPtr<ID3D11SamplerState> m_pBoxSampler;
@@ -112,7 +113,7 @@ private:
     std::unique_ptr<IndexBuffer> m_pLightIndexBuffer;
     wrl::ComPtr<ID3D11VertexShader> m_pLightVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pLightPixelShader;
-    wrl::ComPtr<ID3D11InputLayout> m_pLightInputLayout;
+    std::unique_ptr<InputLayout> m_pLightInputLayout;
     dx::XMFLOAT3 m_lightPosition = { 0.0f, 2.0f, 0.0f };
     dx::XMFLOAT3 m_lightRotation = { 0.0f, 0.0f, 0.0f };
     dx::XMFLOAT3 m_lightScale = { 0.2f, 0.2f, 0.2f };
@@ -123,7 +124,7 @@ private:
     std::unique_ptr<IndexBuffer> m_pGrassIndexBuffer;
     wrl::ComPtr<ID3D11VertexShader> m_pGrassVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pGrassPixelShader;
-    wrl::ComPtr<ID3D11InputLayout> m_pGrassInputLayout;
+    std::unique_ptr<InputLayout> m_pGrassInputLayout;
     wrl::ComPtr<ID3D11ShaderResourceView> m_pGrassTextureView;
     wrl::ComPtr<ID3D11SamplerState> m_pGrassSampler;
     dx::XMFLOAT3 m_grassPosition = { 0.0f, 0.0f, -1.0f };
@@ -139,7 +140,7 @@ private:
     std::unique_ptr<IndexBuffer> m_pFloorIndexBuffer;
     wrl::ComPtr<ID3D11VertexShader> m_pFloorVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pFloorPixelShader;
-    wrl::ComPtr<ID3D11InputLayout> m_pFloorInputLayout;
+    std::unique_ptr<InputLayout> m_pFloorInputLayout;
     wrl::ComPtr<ID3D11ShaderResourceView> m_pFloorTextureView;
     wrl::ComPtr<ID3D11SamplerState> m_pFloorSampler;
     dx::XMFLOAT3 m_floorPosition = { 0.0f, -0.5f, 0.0f };

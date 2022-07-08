@@ -10,6 +10,7 @@ set(SOURCES
     debug_layer.cpp
     exceptions.cpp
     index_buffer.cpp
+    input_layout.cpp
     renderer.cpp
     scene.cpp
     timer.cpp
@@ -22,6 +23,7 @@ set(HEADERS
     debug_layer.hpp
     exceptions.hpp
 	index_buffer.hpp
+	input_layout.hpp
     renderer.hpp
     scene.hpp
     timer.hpp

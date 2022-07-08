@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "renderer.hpp"
-#include "exceptions.hpp"
 
 
 class IndexBuffer
