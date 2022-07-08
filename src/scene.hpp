@@ -12,6 +12,7 @@
 #include "index_buffer.hpp"
 #include "input_layout.hpp"
 #include "pixel_shader.hpp"
+#include "texture.hpp"
 #include "vertex_buffer.hpp"
 #include "vertex_shader.hpp"
 
@@ -103,8 +104,8 @@ private:
     std::unique_ptr<VertexShader> m_pBoxVertexShader;
     std::unique_ptr<PixelShader> m_pBoxPixelShader;
     std::unique_ptr<InputLayout> m_pBoxInputLayout;
-    wrl::ComPtr<ID3D11ShaderResourceView> m_pBoxDiffuseTextureView;
-    wrl::ComPtr<ID3D11ShaderResourceView> m_pBoxSpecularTextureView;
+    std::unique_ptr<Texture> m_pBoxDiffuseTexture;
+    std::unique_ptr<Texture> m_pBoxSpecularTexture;
     wrl::ComPtr<ID3D11SamplerState> m_pBoxSampler;
     dx::XMFLOAT3 m_boxPosition = { 0.0f, 0.0f, 0.0f };
     dx::XMFLOAT3 m_boxRotation = { 0.0f, 0.0f, 0.0f };
@@ -127,7 +128,7 @@ private:
     std::unique_ptr<VertexShader> m_pGrassVertexShader;
     std::unique_ptr<PixelShader> m_pGrassPixelShader;
     std::unique_ptr<InputLayout> m_pGrassInputLayout;
-    wrl::ComPtr<ID3D11ShaderResourceView> m_pGrassTextureView;
+    std::unique_ptr<Texture> m_pGrassTexture;
     wrl::ComPtr<ID3D11SamplerState> m_pGrassSampler;
     dx::XMFLOAT3 m_grassPosition = { 0.0f, 0.0f, -1.0f };
     dx::XMFLOAT3 m_grassRotation = { 0.0f, 0.0f, 0.0f };
@@ -143,7 +144,7 @@ private:
     std::unique_ptr<VertexShader> m_pFloorVertexShader;
     std::unique_ptr<PixelShader> m_pFloorPixelShader;
     std::unique_ptr<InputLayout> m_pFloorInputLayout;
-    wrl::ComPtr<ID3D11ShaderResourceView> m_pFloorTextureView;
+    std::unique_ptr<Texture> m_pFloorTexture;
     wrl::ComPtr<ID3D11SamplerState> m_pFloorSampler;
     dx::XMFLOAT3 m_floorPosition = { 0.0f, -0.5f, 0.0f };
     dx::XMFLOAT3 m_floorRotation = { 0.0f, 0.0f, 0.0f };

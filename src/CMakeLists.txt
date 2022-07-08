@@ -14,6 +14,7 @@ set(SOURCES
     pixel_shader.cpp
     renderer.cpp
     scene.cpp
+    texture.cpp
     timer.cpp
     vertex_buffer.cpp
     vertex_shader.cpp
@@ -29,6 +30,7 @@ set(HEADERS
 	pixel_shader.hpp
     renderer.hpp
     scene.hpp
+    texture.hpp
     timer.hpp
 	vertex_buffer.hpp
 	vertex_shader.hpp

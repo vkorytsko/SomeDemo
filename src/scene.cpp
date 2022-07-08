@@ -1,15 +1,10 @@
 #include "scene.hpp"
 
-#include <DirectXTex.h>
-
 #include <iostream>
 #include <cmath>
 
 #include "application.hpp"
 #include "exceptions.hpp"
-
-
-dx::ScratchImage loadImage(const wchar_t* name);
 
 
 Scene::Scene()
@@ -133,71 +128,9 @@ void Scene::SetupBox() {
     };
     m_pBoxInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, m_pBoxVertexShader->GetBytecode());
 
-    // load diffuse texture
-    dx::ScratchImage dtScratch = loadImage(L"../res/textures/box.png");
-    const auto dtWidth = static_cast<UINT>(dtScratch.GetMetadata().width);
-    const auto dtHeight = static_cast<UINT>(dtScratch.GetMetadata().height);
-    const auto dtRowPitch = static_cast<UINT>(dtScratch.GetImage(0, 0, 0)->rowPitch);
-
-    // create diffuse texture resource
-    D3D11_TEXTURE2D_DESC dtd = {};
-    dtd.Width = dtWidth;
-    dtd.Height = dtHeight;
-    dtd.MipLevels = 1;
-    dtd.ArraySize = 1;
-    dtd.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-    dtd.SampleDesc.Count = 1;
-    dtd.SampleDesc.Quality = 0;
-    dtd.Usage = D3D11_USAGE_IMMUTABLE;
-    dtd.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    dtd.CPUAccessFlags = 0;
-    dtd.MiscFlags = 0;
-    D3D11_SUBRESOURCE_DATA dtsd = {};
-    dtsd.pSysMem = dtScratch.GetPixels();
-    dtsd.SysMemPitch = dtRowPitch;
-    wrl::ComPtr<ID3D11Texture2D> pDiffuseTexture;
-    D3D_THROW_INFO_EXCEPTION(device->CreateTexture2D(&dtd, &dtsd, &pDiffuseTexture));
-
-    // create the resource view on the diffuse texture
-    D3D11_SHADER_RESOURCE_VIEW_DESC dtSrvDesc = {};
-    dtSrvDesc.Format = dtd.Format;
-    dtSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    dtSrvDesc.Texture2D.MostDetailedMip = 0;
-    dtSrvDesc.Texture2D.MipLevels = 1;
-    D3D_THROW_INFO_EXCEPTION(device->CreateShaderResourceView(pDiffuseTexture.Get(), &dtSrvDesc, &m_pBoxDiffuseTextureView));
-
-    // load specular texture
-    dx::ScratchImage stScratch = loadImage(L"../res/textures/box_specular.png");
-    const auto stWidth = static_cast<UINT>(stScratch.GetMetadata().width);
-    const auto stHeight = static_cast<UINT>(stScratch.GetMetadata().height);
-    const auto stRowPitch = static_cast<UINT>(stScratch.GetImage(0, 0, 0)->rowPitch);
-
-    // create diffuse texture resource
-    D3D11_TEXTURE2D_DESC std = {};
-    std.Width = stWidth;
-    std.Height = stHeight;
-    std.MipLevels = 1;
-    std.ArraySize = 1;
-    std.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-    std.SampleDesc.Count = 1;
-    std.SampleDesc.Quality = 0;
-    std.Usage = D3D11_USAGE_IMMUTABLE;
-    std.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    std.CPUAccessFlags = 0;
-    std.MiscFlags = 0;
-    D3D11_SUBRESOURCE_DATA stsd = {};
-    stsd.pSysMem = stScratch.GetPixels();
-    stsd.SysMemPitch = stRowPitch;
-    wrl::ComPtr<ID3D11Texture2D> pSpecularTexture;
-    D3D_THROW_INFO_EXCEPTION(device->CreateTexture2D(&std, &stsd, &pSpecularTexture));
-
-    // create the resource view on the diffuse texture
-    D3D11_SHADER_RESOURCE_VIEW_DESC stSrvDesc = {};
-    stSrvDesc.Format = std.Format;
-    stSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    stSrvDesc.Texture2D.MostDetailedMip = 0;
-    stSrvDesc.Texture2D.MipLevels = 1;
-    D3D_THROW_INFO_EXCEPTION(device->CreateShaderResourceView(pSpecularTexture.Get(), &stSrvDesc, &m_pBoxSpecularTextureView));
+    // create textures
+    m_pBoxDiffuseTexture = std::make_unique<Texture>(app->GetRenderer(), L"box.png");
+    m_pBoxSpecularTexture = std::make_unique<Texture>(app->GetRenderer(), L"box_specular.png");
 
     // create texture sampler
     D3D11_SAMPLER_DESC samplerDesc = {};
@@ -285,37 +218,8 @@ void Scene::SetupGrass() {
     };
     m_pGrassInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, m_pGrassVertexShader->GetBytecode());
 
-    dx::ScratchImage scratch = loadImage(L"../res/textures/grass.png");
-    const auto textureWidth = static_cast<UINT>(scratch.GetMetadata().width);
-    const auto textureHeight = static_cast<UINT>(scratch.GetMetadata().height);
-    const auto rowPitch = static_cast<UINT>(scratch.GetImage(0, 0, 0)->rowPitch);
-
-    // create texture resource
-    D3D11_TEXTURE2D_DESC td = {};
-    td.Width = textureWidth;
-    td.Height = textureHeight;
-    td.MipLevels = 1;
-    td.ArraySize = 1;
-    td.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-    td.SampleDesc.Count = 1;
-    td.SampleDesc.Quality = 0;
-    td.Usage = D3D11_USAGE_IMMUTABLE;
-    td.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    td.CPUAccessFlags = 0;
-    td.MiscFlags = 0;
-    D3D11_SUBRESOURCE_DATA tsd = {};
-    tsd.pSysMem = scratch.GetPixels();
-    tsd.SysMemPitch = rowPitch;
-    wrl::ComPtr<ID3D11Texture2D> pTexture;
-    D3D_THROW_INFO_EXCEPTION(device->CreateTexture2D(&td, &tsd, &pTexture));
-
-    // create the resource view on the texture
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.Format = td.Format;
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MostDetailedMip = 0;
-    srvDesc.Texture2D.MipLevels = 1;
-    D3D_THROW_INFO_EXCEPTION(device->CreateShaderResourceView(pTexture.Get(), &srvDesc, &m_pGrassTextureView));
+    // create texture
+    m_pGrassTexture = std::make_unique<Texture>(app->GetRenderer(), L"grass.png");
 
     // create texture sampler
     D3D11_SAMPLER_DESC samplerDesc = {};
@@ -391,37 +295,8 @@ void Scene::SetupFloor()
     };
     m_pFloorInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, m_pFloorVertexShader->GetBytecode());
 
-    dx::ScratchImage scratch = loadImage(L"../res/textures/marble.jpg");
-    const auto textureWidth = static_cast<UINT>(scratch.GetMetadata().width);
-    const auto textureHeight = static_cast<UINT>(scratch.GetMetadata().height);
-    const auto rowPitch = static_cast<UINT>(scratch.GetImage(0, 0, 0)->rowPitch);
-
-    // create texture resource
-    D3D11_TEXTURE2D_DESC td = {};
-    td.Width = textureWidth;
-    td.Height = textureHeight;
-    td.MipLevels = 1;
-    td.ArraySize = 1;
-    td.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-    td.SampleDesc.Count = 1;
-    td.SampleDesc.Quality = 0;
-    td.Usage = D3D11_USAGE_IMMUTABLE;
-    td.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    td.CPUAccessFlags = 0;
-    td.MiscFlags = 0;
-    D3D11_SUBRESOURCE_DATA tsd = {};
-    tsd.pSysMem = scratch.GetPixels();
-    tsd.SysMemPitch = rowPitch;
-    wrl::ComPtr<ID3D11Texture2D> pTexture;
-    D3D_THROW_INFO_EXCEPTION(device->CreateTexture2D(&td, &tsd, &pTexture));
-
-    // create the resource view on the texture
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.Format = td.Format;
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MostDetailedMip = 0;
-    srvDesc.Texture2D.MipLevels = 1;
-    D3D_THROW_INFO_EXCEPTION(device->CreateShaderResourceView(pTexture.Get(), &srvDesc, &m_pFloorTextureView));
+    // create texture
+    m_pFloorTexture = std::make_unique<Texture>(app->GetRenderer(), L"marble.jpg");
 
     // create texture sampler
     D3D11_SAMPLER_DESC samplerDesc = {};
@@ -550,13 +425,13 @@ void Scene::DrawBox()
 
     // bind constant buffers
     D3D_THROW_IF_INFO(context->VSSetConstantBuffers(0u, 1u, pTransformCB.GetAddressOf()));
-    D3D_THROW_IF_INFO(context->PSSetConstantBuffers(0u, 1u, pMaterialCB.GetAddressOf()))
-    D3D_THROW_IF_INFO(context->PSSetConstantBuffers(1u, 1u, pPosLightCB.GetAddressOf()))
-    D3D_THROW_IF_INFO(context->PSSetConstantBuffers(2u, 1u, pDirLightCB.GetAddressOf()))
+    D3D_THROW_IF_INFO(context->PSSetConstantBuffers(0u, 1u, pMaterialCB.GetAddressOf()));
+    D3D_THROW_IF_INFO(context->PSSetConstantBuffers(1u, 1u, pPosLightCB.GetAddressOf()));
+    D3D_THROW_IF_INFO(context->PSSetConstantBuffers(2u, 1u, pDirLightCB.GetAddressOf()));
 
     // bind texture to pixel shader
-    D3D_THROW_IF_INFO(context->PSSetShaderResources(0u, 1u, m_pBoxDiffuseTextureView.GetAddressOf()));
-    D3D_THROW_IF_INFO(context->PSSetShaderResources(1u, 1u, m_pBoxSpecularTextureView.GetAddressOf()));
+    m_pBoxDiffuseTexture->Bind(app->GetRenderer(), 0u);
+    m_pBoxSpecularTexture->Bind(app->GetRenderer(), 1u);
 
     // bind texture sampler to pixel shader
     D3D_THROW_IF_INFO(context->PSSetSamplers(0, 1, m_pBoxSampler.GetAddressOf()));
@@ -632,29 +507,6 @@ void Scene::DrawLight()
     D3D_THROW_IF_INFO(context->DrawIndexed(36u, 0u, 0u));
 }
 
-dx::ScratchImage loadImage(const wchar_t* name)
-{
-    dx::ScratchImage scratch;
-    WIN_THROW_IF_FAILED(dx::LoadFromWICFile(name, dx::WIC_FLAGS_IGNORE_SRGB, nullptr, scratch));
-
-    if (scratch.GetImage(0, 0, 0)->format != DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM)
-    {
-        dx::ScratchImage converted;
-
-        WIN_THROW_IF_FAILED(dx::Convert(
-            *scratch.GetImage(0, 0, 0),
-            DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM,
-            dx::TEX_FILTER_DEFAULT,
-            dx::TEX_THRESHOLD_DEFAULT,
-            converted
-        ));
-
-        return converted;
-    }
-
-    return scratch;
-}
-
 void Scene::DrawGrass()
 {
     const auto& app = Application::GetApplication();
@@ -707,7 +559,7 @@ void Scene::DrawGrass()
     D3D_THROW_IF_INFO(context->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf()));
 
     // bind texture to pixel shader
-    D3D_THROW_IF_INFO(context->PSSetShaderResources(0u, 1u, m_pGrassTextureView.GetAddressOf()));
+    m_pGrassTexture->Bind(app->GetRenderer(), 0u);
 
     // bind texture sampler to pixel shader
     D3D_THROW_IF_INFO(context->PSSetSamplers(0, 1, m_pGrassSampler.GetAddressOf()));
@@ -786,7 +638,7 @@ void Scene::DrawFloor()
     D3D_THROW_IF_INFO(context->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf()));
 
     // bind texture to pixel shader
-    D3D_THROW_IF_INFO(context->PSSetShaderResources(0u, 1u, m_pFloorTextureView.GetAddressOf()));
+    m_pFloorTexture->Bind(app->GetRenderer(), 0u);
 
     // bind texture sampler to pixel shader
     D3D_THROW_IF_INFO(context->PSSetSamplers(0, 1, m_pFloorSampler.GetAddressOf()));
