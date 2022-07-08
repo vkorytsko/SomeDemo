@@ -8,6 +8,8 @@
 
 #include "debug_layer.hpp"
 #include "timer.hpp"
+
+#include "index_buffer.hpp"
 #include "vertex_buffer.hpp"
 
 namespace wrl = Microsoft::WRL;
@@ -94,7 +96,7 @@ private:
 
     // Box
     std::unique_ptr<VertexBuffer> m_pBoxVertexBuffer;
-    wrl::ComPtr<ID3D11Buffer> m_pBoxIndexBuffer;
+    std::unique_ptr<IndexBuffer> m_pBoxIndexBuffer;
     wrl::ComPtr<ID3D11VertexShader> m_pBoxVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pBoxPixelShader;
     wrl::ComPtr<ID3D11InputLayout> m_pBoxInputLayout;
@@ -107,7 +109,7 @@ private:
 
     // Light
     std::unique_ptr<VertexBuffer> m_pLightVertexBuffer;
-    wrl::ComPtr<ID3D11Buffer> m_pLightIndexBuffer;
+    std::unique_ptr<IndexBuffer> m_pLightIndexBuffer;
     wrl::ComPtr<ID3D11VertexShader> m_pLightVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pLightPixelShader;
     wrl::ComPtr<ID3D11InputLayout> m_pLightInputLayout;
@@ -118,7 +120,7 @@ private:
 
     // Grass
     std::unique_ptr<VertexBuffer> m_pGrassVertexBuffer;
-    wrl::ComPtr<ID3D11Buffer> m_pGrassIndexBuffer;
+    std::unique_ptr<IndexBuffer> m_pGrassIndexBuffer;
     wrl::ComPtr<ID3D11VertexShader> m_pGrassVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pGrassPixelShader;
     wrl::ComPtr<ID3D11InputLayout> m_pGrassInputLayout;
@@ -134,7 +136,7 @@ private:
 
     // Floor
     std::unique_ptr<VertexBuffer> m_pFloorVertexBuffer;
-    wrl::ComPtr<ID3D11Buffer> m_pFloorIndexBuffer;
+    std::unique_ptr<IndexBuffer> m_pFloorIndexBuffer;
     wrl::ComPtr<ID3D11VertexShader> m_pFloorVertexShader;
     wrl::ComPtr<ID3D11PixelShader> m_pFloorPixelShader;
     wrl::ComPtr<ID3D11InputLayout> m_pFloorInputLayout;

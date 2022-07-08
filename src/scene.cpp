@@ -110,7 +110,7 @@ void Scene::SetupBox() {
     m_pBoxVertexBuffer = std::make_unique<VertexBuffer>(app->GetRenderer(), vertices);
 
     // create index buffer
-    const unsigned short indices[] =
+    const std::vector<unsigned short> indices =
     {
         0,  1,  2,    3,  4,  5,
         6,  7,  8,    9,  10, 11,
@@ -119,17 +119,7 @@ void Scene::SetupBox() {
         24, 25, 26,   27, 28, 29,
         30, 31, 32,   33, 34, 35,
     };
-
-    D3D11_BUFFER_DESC ibd = {};
-    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    ibd.Usage = D3D11_USAGE_IMMUTABLE;
-    ibd.CPUAccessFlags = 0u;
-    ibd.MiscFlags = 0u;
-    ibd.ByteWidth = sizeof(indices);
-    ibd.StructureByteStride = sizeof(unsigned short);
-    D3D11_SUBRESOURCE_DATA isd = {};
-    isd.pSysMem = indices;
-    D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&ibd, &isd, &m_pBoxIndexBuffer));
+    m_pBoxIndexBuffer = std::make_unique<IndexBuffer>(app->GetRenderer(), indices);
 
 #ifndef NDEBUG  // WTF?!
     const std::wstring path = L"Debug\\";
@@ -252,7 +242,7 @@ void Scene::SetupLight() {
     m_pLightVertexBuffer = std::make_unique<VertexBuffer>(app->GetRenderer(), vertices);
 
     // create index buffer
-    const unsigned short indices[] =
+    const std::vector<unsigned short> indices =
     {
         0, 2, 1,  2, 3, 1,
         1, 3, 5,  3, 7, 5,
@@ -261,17 +251,7 @@ void Scene::SetupLight() {
         0, 4, 2,  2, 4, 6,
         0, 1, 4,  1, 5, 4,
     };
-
-    D3D11_BUFFER_DESC ibd = {};
-    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    ibd.Usage = D3D11_USAGE_IMMUTABLE;
-    ibd.CPUAccessFlags = 0u;
-    ibd.MiscFlags = 0u;
-    ibd.ByteWidth = sizeof(indices);
-    ibd.StructureByteStride = sizeof(unsigned short);
-    D3D11_SUBRESOURCE_DATA isd = {};
-    isd.pSysMem = indices;
-    D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&ibd, &isd, &m_pLightIndexBuffer));
+    m_pLightIndexBuffer = std::make_unique<IndexBuffer>(app->GetRenderer(), indices);
 
 #ifndef NDEBUG  // WTF?!
     const std::wstring path = L"Debug\\";
@@ -314,22 +294,11 @@ void Scene::SetupGrass() {
     m_pGrassVertexBuffer = std::make_unique<VertexBuffer>(app->GetRenderer(), vertices);
 
     // create index buffer
-    const unsigned short indices[] =
+    const std::vector<unsigned short> indices =
     {
-        0, 2, 1,
-        2, 3, 1,
+        0, 2, 1,  2, 3, 1,
     };
-
-    D3D11_BUFFER_DESC ibd = {};
-    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    ibd.Usage = D3D11_USAGE_IMMUTABLE;
-    ibd.CPUAccessFlags = 0u;
-    ibd.MiscFlags = 0u;
-    ibd.ByteWidth = sizeof(indices);
-    ibd.StructureByteStride = sizeof(unsigned short);
-    D3D11_SUBRESOURCE_DATA isd = {};
-    isd.pSysMem = indices;
-    D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&ibd, &isd, &m_pGrassIndexBuffer));
+    m_pGrassIndexBuffer = std::make_unique<IndexBuffer>(app->GetRenderer(), indices);
 
 #ifndef NDEBUG  // WTF?!
     const std::wstring path = L"Debug\\";
@@ -444,22 +413,11 @@ void Scene::SetupFloor()
     m_pFloorVertexBuffer = std::make_unique<VertexBuffer>(app->GetRenderer(), vertices);
 
     // create index buffer
-    const unsigned short indices[] =
+    const std::vector<unsigned short> indices =
     {
-        0, 2, 1,
-        2, 3, 1,
+        0, 2, 1,  2, 3, 1,
     };
-
-    D3D11_BUFFER_DESC ibd = {};
-    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    ibd.Usage = D3D11_USAGE_IMMUTABLE;
-    ibd.CPUAccessFlags = 0u;
-    ibd.MiscFlags = 0u;
-    ibd.ByteWidth = sizeof(indices);
-    ibd.StructureByteStride = sizeof(unsigned short);
-    D3D11_SUBRESOURCE_DATA isd = {};
-    isd.pSysMem = indices;
-    D3D_THROW_INFO_EXCEPTION(device->CreateBuffer(&ibd, &isd, &m_pFloorIndexBuffer));
+    m_pFloorIndexBuffer = std::make_unique<IndexBuffer>(app->GetRenderer(), indices);
 
 #ifndef NDEBUG  // WTF?!
     const std::wstring path = L"Debug\\";
@@ -637,7 +595,7 @@ void Scene::DrawBox()
     m_pBoxVertexBuffer->Bind(app->GetRenderer());
 
     // Bind vertex buffer
-    D3D_THROW_IF_INFO(context->IASetIndexBuffer(m_pBoxIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u));
+    m_pBoxIndexBuffer->Bind(app->GetRenderer());
 
     // bind shaders
     D3D_THROW_IF_INFO(context->VSSetShader(m_pBoxVertexShader.Get(), nullptr, 0u));
@@ -709,7 +667,7 @@ void Scene::DrawLight()
     m_pLightVertexBuffer->Bind(app->GetRenderer());
 
     // Bind vertex buffer
-    D3D_THROW_IF_INFO(context->IASetIndexBuffer(m_pLightIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u));
+    m_pLightIndexBuffer->Bind(app->GetRenderer());
 
     // bind shaders
     D3D_THROW_IF_INFO(context->VSSetShader(m_pLightVertexShader.Get(), nullptr, 0u));
@@ -792,7 +750,7 @@ void Scene::DrawGrass()
     m_pGrassVertexBuffer->Bind(app->GetRenderer());
 
     // Bind vertex buffer
-    D3D_THROW_IF_INFO(context->IASetIndexBuffer(m_pGrassIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u));
+    m_pGrassIndexBuffer->Bind(app->GetRenderer());
 
     // bind shaders
     D3D_THROW_IF_INFO(context->VSSetShader(m_pGrassVertexShader.Get(), nullptr, 0u));
@@ -871,7 +829,7 @@ void Scene::DrawFloor()
     m_pFloorVertexBuffer->Bind(app->GetRenderer());
 
     // Bind vertex buffer
-    D3D_THROW_IF_INFO(context->IASetIndexBuffer(m_pFloorIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u));
+    m_pFloorIndexBuffer->Bind(app->GetRenderer());
 
     // bind shaders
     D3D_THROW_IF_INFO(context->VSSetShader(m_pFloorVertexShader.Get(), nullptr, 0u));

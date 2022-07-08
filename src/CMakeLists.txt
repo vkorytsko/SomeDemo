@@ -9,6 +9,7 @@ set(SOURCES
     camera.cpp
     debug_layer.cpp
     exceptions.cpp
+    index_buffer.cpp
     renderer.cpp
     scene.cpp
     timer.cpp
@@ -20,6 +21,7 @@ set(HEADERS
     camera.hpp
     debug_layer.hpp
     exceptions.hpp
+	index_buffer.hpp
     renderer.hpp
     scene.hpp
     timer.hpp
