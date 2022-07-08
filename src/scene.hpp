@@ -11,7 +11,9 @@
 
 #include "index_buffer.hpp"
 #include "input_layout.hpp"
+#include "pixel_shader.hpp"
 #include "vertex_buffer.hpp"
+#include "vertex_shader.hpp"
 
 namespace wrl = Microsoft::WRL;
 namespace dx = DirectX;
@@ -98,8 +100,8 @@ private:
     // Box
     std::unique_ptr<VertexBuffer> m_pBoxVertexBuffer;
     std::unique_ptr<IndexBuffer> m_pBoxIndexBuffer;
-    wrl::ComPtr<ID3D11VertexShader> m_pBoxVertexShader;
-    wrl::ComPtr<ID3D11PixelShader> m_pBoxPixelShader;
+    std::unique_ptr<VertexShader> m_pBoxVertexShader;
+    std::unique_ptr<PixelShader> m_pBoxPixelShader;
     std::unique_ptr<InputLayout> m_pBoxInputLayout;
     wrl::ComPtr<ID3D11ShaderResourceView> m_pBoxDiffuseTextureView;
     wrl::ComPtr<ID3D11ShaderResourceView> m_pBoxSpecularTextureView;
@@ -111,8 +113,8 @@ private:
     // Light
     std::unique_ptr<VertexBuffer> m_pLightVertexBuffer;
     std::unique_ptr<IndexBuffer> m_pLightIndexBuffer;
-    wrl::ComPtr<ID3D11VertexShader> m_pLightVertexShader;
-    wrl::ComPtr<ID3D11PixelShader> m_pLightPixelShader;
+    std::unique_ptr<VertexShader> m_pLightVertexShader;
+    std::unique_ptr<PixelShader> m_pLightPixelShader;
     std::unique_ptr<InputLayout> m_pLightInputLayout;
     dx::XMFLOAT3 m_lightPosition = { 0.0f, 2.0f, 0.0f };
     dx::XMFLOAT3 m_lightRotation = { 0.0f, 0.0f, 0.0f };
@@ -122,8 +124,8 @@ private:
     // Grass
     std::unique_ptr<VertexBuffer> m_pGrassVertexBuffer;
     std::unique_ptr<IndexBuffer> m_pGrassIndexBuffer;
-    wrl::ComPtr<ID3D11VertexShader> m_pGrassVertexShader;
-    wrl::ComPtr<ID3D11PixelShader> m_pGrassPixelShader;
+    std::unique_ptr<VertexShader> m_pGrassVertexShader;
+    std::unique_ptr<PixelShader> m_pGrassPixelShader;
     std::unique_ptr<InputLayout> m_pGrassInputLayout;
     wrl::ComPtr<ID3D11ShaderResourceView> m_pGrassTextureView;
     wrl::ComPtr<ID3D11SamplerState> m_pGrassSampler;
@@ -138,8 +140,8 @@ private:
     // Floor
     std::unique_ptr<VertexBuffer> m_pFloorVertexBuffer;
     std::unique_ptr<IndexBuffer> m_pFloorIndexBuffer;
-    wrl::ComPtr<ID3D11VertexShader> m_pFloorVertexShader;
-    wrl::ComPtr<ID3D11PixelShader> m_pFloorPixelShader;
+    std::unique_ptr<VertexShader> m_pFloorVertexShader;
+    std::unique_ptr<PixelShader> m_pFloorPixelShader;
     std::unique_ptr<InputLayout> m_pFloorInputLayout;
     wrl::ComPtr<ID3D11ShaderResourceView> m_pFloorTextureView;
     wrl::ComPtr<ID3D11SamplerState> m_pFloorSampler;

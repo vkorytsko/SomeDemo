@@ -1,6 +1,5 @@
 #include "scene.hpp"
 
-#include <d3dcompiler.h>
 #include <DirectXTex.h>
 
 #include <iostream>
@@ -121,18 +120,9 @@ void Scene::SetupBox() {
     };
     m_pBoxIndexBuffer = std::make_unique<IndexBuffer>(app->GetRenderer(), indices);
 
-#ifndef NDEBUG  // WTF?!
-    const std::wstring path = L"Debug\\";
-#else
-    const std::wstring path = L"Release\\";
-#endif
-
     // create shaders
-    wrl::ComPtr<ID3DBlob> pBlob;
-    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob((path + L"phong.ps.cso").c_str(), &pBlob));
-    D3D_THROW_INFO_EXCEPTION(device->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pBoxPixelShader));
-    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob((path + L"phong.vs.cso").c_str(), &pBlob));
-    D3D_THROW_INFO_EXCEPTION(device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pBoxVertexShader));
+    m_pBoxVertexShader = std::make_unique<VertexShader>(app->GetRenderer(), L"phong.vs.cso");
+    m_pBoxPixelShader = std::make_unique<PixelShader>(app->GetRenderer(), L"phong.ps.cso");
 
     // input (vertex) layout
     const std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc =
@@ -141,7 +131,7 @@ void Scene::SetupBox() {
         { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
-    m_pBoxInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, pBlob.Get());
+    m_pBoxInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, m_pBoxVertexShader->GetBytecode());
 
     // load diffuse texture
     dx::ScratchImage dtScratch = loadImage(L"../res/textures/box.png");
@@ -249,25 +239,16 @@ void Scene::SetupLight() {
     };
     m_pLightIndexBuffer = std::make_unique<IndexBuffer>(app->GetRenderer(), indices);
 
-#ifndef NDEBUG  // WTF?!
-    const std::wstring path = L"Debug\\";
-#else
-    const std::wstring path = L"Release\\";
-#endif
-
     // create shaders
-    wrl::ComPtr<ID3DBlob> pBlob;
-    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob((path + L"light.ps.cso").c_str(), &pBlob));
-    D3D_THROW_INFO_EXCEPTION(device->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pLightPixelShader));
-    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob((path + L"light.vs.cso").c_str(), &pBlob));
-    D3D_THROW_INFO_EXCEPTION(device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pLightVertexShader));
+    m_pLightVertexShader = std::make_unique<VertexShader>(app->GetRenderer(), L"light.vs.cso");
+    m_pLightPixelShader = std::make_unique<PixelShader>(app->GetRenderer(), L"light.ps.cso");
 
     // input (vertex) layout
     const std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
-    m_pLightInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, pBlob.Get());
+    m_pLightInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, m_pLightVertexShader->GetBytecode());
 }
 
 void Scene::SetupGrass() {
@@ -292,18 +273,9 @@ void Scene::SetupGrass() {
     };
     m_pGrassIndexBuffer = std::make_unique<IndexBuffer>(app->GetRenderer(), indices);
 
-#ifndef NDEBUG  // WTF?!
-    const std::wstring path = L"Debug\\";
-#else
-    const std::wstring path = L"Release\\";
-#endif
-
     // create shaders
-    wrl::ComPtr<ID3DBlob> pBlob;
-    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob((path + L"texture.ps.cso").c_str(), &pBlob));
-    D3D_THROW_INFO_EXCEPTION(device->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pGrassPixelShader));
-    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob((path + L"texture.vs.cso").c_str(), &pBlob));
-    D3D_THROW_INFO_EXCEPTION(device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pGrassVertexShader));
+    m_pGrassVertexShader = std::make_unique<VertexShader>(app->GetRenderer(), L"texture.vs.cso");
+    m_pGrassPixelShader = std::make_unique<PixelShader>(app->GetRenderer(), L"texture.ps.cso");
 
     // input (vertex) layout
     const std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc =
@@ -311,7 +283,7 @@ void Scene::SetupGrass() {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
-    m_pGrassInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, pBlob.Get());
+    m_pGrassInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, m_pGrassVertexShader->GetBytecode());
 
     dx::ScratchImage scratch = loadImage(L"../res/textures/grass.png");
     const auto textureWidth = static_cast<UINT>(scratch.GetMetadata().width);
@@ -407,18 +379,9 @@ void Scene::SetupFloor()
     };
     m_pFloorIndexBuffer = std::make_unique<IndexBuffer>(app->GetRenderer(), indices);
 
-#ifndef NDEBUG  // WTF?!
-    const std::wstring path = L"Debug\\";
-#else
-    const std::wstring path = L"Release\\";
-#endif
-
     // create shaders
-    wrl::ComPtr<ID3DBlob> pBlob;
-    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob((path + L"texture.ps.cso").c_str(), &pBlob));
-    D3D_THROW_INFO_EXCEPTION(device->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pFloorPixelShader));
-    D3D_THROW_INFO_EXCEPTION(D3DReadFileToBlob((path + L"texture.vs.cso").c_str(), &pBlob));
-    D3D_THROW_INFO_EXCEPTION(device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &m_pFloorVertexShader));
+    m_pFloorVertexShader = std::make_unique<VertexShader>(app->GetRenderer(), L"texture.vs.cso");
+    m_pFloorPixelShader = std::make_unique<PixelShader>(app->GetRenderer(), L"texture.ps.cso");
 
     // input (vertex) layout
     const std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc =
@@ -426,7 +389,7 @@ void Scene::SetupFloor()
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
-    m_pFloorInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, pBlob.Get());
+    m_pFloorInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, m_pFloorVertexShader->GetBytecode());
 
     dx::ScratchImage scratch = loadImage(L"../res/textures/marble.jpg");
     const auto textureWidth = static_cast<UINT>(scratch.GetMetadata().width);
@@ -582,8 +545,8 @@ void Scene::DrawBox()
     m_pBoxIndexBuffer->Bind(app->GetRenderer());
 
     // bind shaders
-    D3D_THROW_IF_INFO(context->VSSetShader(m_pBoxVertexShader.Get(), nullptr, 0u));
-    D3D_THROW_IF_INFO(context->PSSetShader(m_pBoxPixelShader.Get(), nullptr, 0u));
+    m_pBoxVertexShader->Bind(app->GetRenderer());
+    m_pBoxPixelShader->Bind(app->GetRenderer());
 
     // bind constant buffers
     D3D_THROW_IF_INFO(context->VSSetConstantBuffers(0u, 1u, pTransformCB.GetAddressOf()));
@@ -654,8 +617,8 @@ void Scene::DrawLight()
     m_pLightIndexBuffer->Bind(app->GetRenderer());
 
     // bind shaders
-    D3D_THROW_IF_INFO(context->VSSetShader(m_pLightVertexShader.Get(), nullptr, 0u));
-    D3D_THROW_IF_INFO(context->PSSetShader(m_pLightPixelShader.Get(), nullptr, 0u));
+    m_pLightVertexShader->Bind(app->GetRenderer());
+    m_pLightPixelShader->Bind(app->GetRenderer());
 
     // bind constant buffer to vertex shader
     D3D_THROW_IF_INFO(context->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf()));
@@ -737,8 +700,8 @@ void Scene::DrawGrass()
     m_pGrassIndexBuffer->Bind(app->GetRenderer());
 
     // bind shaders
-    D3D_THROW_IF_INFO(context->VSSetShader(m_pGrassVertexShader.Get(), nullptr, 0u));
-    D3D_THROW_IF_INFO(context->PSSetShader(m_pGrassPixelShader.Get(), nullptr, 0u));
+    m_pGrassVertexShader->Bind(app->GetRenderer());
+    m_pGrassPixelShader->Bind(app->GetRenderer());
 
     // bind constant buffer to vertex shader
     D3D_THROW_IF_INFO(context->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf()));
@@ -816,8 +779,8 @@ void Scene::DrawFloor()
     m_pFloorIndexBuffer->Bind(app->GetRenderer());
 
     // bind shaders
-    D3D_THROW_IF_INFO(context->VSSetShader(m_pFloorVertexShader.Get(), nullptr, 0u));
-    D3D_THROW_IF_INFO(context->PSSetShader(m_pFloorPixelShader.Get(), nullptr, 0u));
+    m_pFloorVertexShader->Bind(app->GetRenderer());
+    m_pFloorPixelShader->Bind(app->GetRenderer());
 
     // bind constant buffer to vertex shader
     D3D_THROW_IF_INFO(context->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf()));

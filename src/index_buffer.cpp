@@ -19,7 +19,7 @@ IndexBuffer::IndexBuffer(Renderer* renderer, const std::vector<unsigned short>& 
 	D3D11_SUBRESOURCE_DATA indexBufferData = {};
 	indexBufferData.pSysMem = indices.data();
 
-	D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateBuffer(&indexBufferDesc, &indexBufferData, &m_pIndexBuffer));
+	D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateBuffer(&indexBufferDesc, &indexBufferData, m_pIndexBuffer.GetAddressOf()));
 }
 
 void IndexBuffer::Bind(Renderer* renderer) const

@@ -11,10 +11,12 @@ set(SOURCES
     exceptions.cpp
     index_buffer.cpp
     input_layout.cpp
+    pixel_shader.cpp
     renderer.cpp
     scene.cpp
     timer.cpp
     vertex_buffer.cpp
+    vertex_shader.cpp
     window.cpp
 )
 set(HEADERS
@@ -24,10 +26,12 @@ set(HEADERS
     exceptions.hpp
 	index_buffer.hpp
 	input_layout.hpp
+	pixel_shader.hpp
     renderer.hpp
     scene.hpp
     timer.hpp
 	vertex_buffer.hpp
+	vertex_shader.hpp
     window.hpp
 
     utils.hpp
