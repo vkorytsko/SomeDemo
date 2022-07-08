@@ -13,6 +13,7 @@ set(SOURCES
     input_layout.cpp
     pixel_shader.cpp
     renderer.cpp
+    sampler.cpp
     scene.cpp
     texture.cpp
     timer.cpp
@@ -29,6 +30,7 @@ set(HEADERS
 	input_layout.hpp
 	pixel_shader.hpp
     renderer.hpp
+    sampler.hpp
     scene.hpp
     texture.hpp
     timer.hpp

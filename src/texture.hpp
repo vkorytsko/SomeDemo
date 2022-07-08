@@ -1,7 +1,10 @@
 #pragma once
 
-#include <string>
+#include <d3d11.h>
 #include <DirectXTex.h>
+#include <wrl/client.h>
+
+#include <string>
 
 #include "renderer.hpp"
 

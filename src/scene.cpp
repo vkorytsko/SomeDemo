@@ -133,12 +133,7 @@ void Scene::SetupBox() {
     m_pBoxSpecularTexture = std::make_unique<Texture>(app->GetRenderer(), L"box_specular.png");
 
     // create texture sampler
-    D3D11_SAMPLER_DESC samplerDesc = {};
-    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    D3D_THROW_INFO_EXCEPTION(device->CreateSamplerState(&samplerDesc, &m_pBoxSampler));
+    m_pBoxSampler = std::make_unique<Sampler>(app->GetRenderer());
 }
 
 void Scene::SetupLight() {
@@ -222,12 +217,7 @@ void Scene::SetupGrass() {
     m_pGrassTexture = std::make_unique<Texture>(app->GetRenderer(), L"grass.png");
 
     // create texture sampler
-    D3D11_SAMPLER_DESC samplerDesc = {};
-    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    D3D_THROW_INFO_EXCEPTION(device->CreateSamplerState(&samplerDesc, &m_pGrassSampler));
+    m_pGrassSampler = std::make_unique<Sampler>(app->GetRenderer());
 
     // create blend states
     // blending enabled
@@ -299,12 +289,7 @@ void Scene::SetupFloor()
     m_pFloorTexture = std::make_unique<Texture>(app->GetRenderer(), L"marble.jpg");
 
     // create texture sampler
-    D3D11_SAMPLER_DESC samplerDesc = {};
-    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    D3D_THROW_INFO_EXCEPTION(device->CreateSamplerState(&samplerDesc, &m_pFloorSampler));
+    m_pFloorSampler = std::make_unique<Sampler>(app->GetRenderer());
 }
 
 void Scene::UpdateBox(float /* dt */)
@@ -434,7 +419,7 @@ void Scene::DrawBox()
     m_pBoxSpecularTexture->Bind(app->GetRenderer(), 1u);
 
     // bind texture sampler to pixel shader
-    D3D_THROW_IF_INFO(context->PSSetSamplers(0, 1, m_pBoxSampler.GetAddressOf()));
+    m_pBoxSampler->Bind(app->GetRenderer());
 
     // bind vertex layout
     m_pBoxInputLayout->Bind(app->GetRenderer());
@@ -562,7 +547,7 @@ void Scene::DrawGrass()
     m_pGrassTexture->Bind(app->GetRenderer(), 0u);
 
     // bind texture sampler to pixel shader
-    D3D_THROW_IF_INFO(context->PSSetSamplers(0, 1, m_pGrassSampler.GetAddressOf()));
+    m_pGrassSampler->Bind(app->GetRenderer());
 
     // bind vertex layout
     m_pGrassInputLayout->Bind(app->GetRenderer());
@@ -641,7 +626,7 @@ void Scene::DrawFloor()
     m_pFloorTexture->Bind(app->GetRenderer(), 0u);
 
     // bind texture sampler to pixel shader
-    D3D_THROW_IF_INFO(context->PSSetSamplers(0, 1, m_pFloorSampler.GetAddressOf()));
+    m_pFloorSampler->Bind(app->GetRenderer());
 
     // bind vertex layout
     m_pFloorInputLayout->Bind(app->GetRenderer());
