@@ -17,13 +17,13 @@ set(SOURCES
     scene.cpp
     texture.cpp
     timer.cpp
-    vertex_buffer.cpp
     vertex_shader.cpp
     window.cpp
 )
 set(HEADERS
     application.hpp
     camera.hpp
+    constant_buffer.hpp
     debug_layer.hpp
     exceptions.hpp
 	index_buffer.hpp

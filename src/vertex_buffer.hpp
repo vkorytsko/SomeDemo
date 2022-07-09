@@ -9,6 +9,7 @@
 #include "exceptions.hpp"
 
 
+template<class V>
 class VertexBuffer
 {
 public:
@@ -32,7 +33,13 @@ public:
 		D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &m_pVertexBuffer));
 	}
 
-	void Bind(Renderer* renderer) const;
+	void Bind(Renderer* renderer) const
+	{
+		D3D_DEBUG_LAYER(renderer);
+
+		const UINT offset = 0u;
+		D3D_THROW_IF_INFO(renderer->GetContext()->IASetVertexBuffers(0u, 1u, m_pVertexBuffer.GetAddressOf(), &m_stride, &offset));
+	}
 
 private:
 	UINT m_stride;

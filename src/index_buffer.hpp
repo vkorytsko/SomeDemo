@@ -14,6 +14,7 @@ public:
 	IndexBuffer(Renderer* renderer, const std::vector<unsigned short>& indices);
 
 	void Bind(Renderer* renderer) const;
+	UINT GetIndicesCount() const;
 
 private:
 	UINT m_count;

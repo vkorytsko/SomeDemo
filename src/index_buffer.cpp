@@ -28,3 +28,8 @@ void IndexBuffer::Bind(Renderer* renderer) const
 
 	D3D_THROW_IF_INFO(renderer->GetContext()->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u));
 }
+
+UINT IndexBuffer::GetIndicesCount() const
+{
+	return m_count;
+}

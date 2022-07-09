@@ -49,9 +49,10 @@ int Application::Run()
 
 		if (!IsPaused())
 		{
-			m_pScene->Update(dt);
+			m_pScene->Simulate(dt);
 		}
 
+		m_pScene->Update(dt);
 		m_pCamera->Update(dt);
 
 		m_pRenderer->BeginFrame();
