@@ -1,7 +1,6 @@
 #include "scene.hpp"
 
 #include <iostream>
-#include <cmath>
 
 #include "application.hpp"
 #include "exceptions.hpp"
@@ -37,18 +36,16 @@ void Scene::Simulate(float dt)
     
     SimulateBox(dt);
     SimulateLight(dt);
-    SimulateFloor(dt);
-
     SimulateGrass(dt);
+    SimulateFloor(dt);
 }
 
 void Scene::Update(float dt)
 {
     UpdateBox(dt);
     UpdateLight(dt);
-    UpdateFloor(dt);
-
     UpdateGrass(dt);
+    UpdateFloor(dt);
 }
 
 void Scene::Draw()
@@ -220,9 +217,6 @@ void Scene::SetupLight() {
 void Scene::SetupGrass() {
     const auto& app = Application::GetApplication();
     const auto& renderer = app->GetRenderer();
-    const auto& device = renderer->GetDevice();
-
-    D3D_DEBUG_LAYER(app->GetRenderer());
 
     // create vertex buffer
     const std::vector<Vertex> vertices =
@@ -264,18 +258,12 @@ void Scene::SetupGrass() {
     m_pGrassTransformCB = std::make_unique<ConstantBuffer<CB_transform>>(renderer, transformCB);
 
     // create blend states
-    m_pBlendStateEnabled = std::make_unique<BlendState>(renderer, true);
-    m_pBlendStateDisabled = std::make_unique<BlendState>(renderer, false);
+    m_pBlendStateEnabled = std::make_unique<Blender>(renderer, true);
+    m_pBlendStateDisabled = std::make_unique<Blender>(renderer, false);
 
     // create rasterizer states
-    // backface culling disabled
-    D3D11_RASTERIZER_DESC rasterDescNoCull = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT{});
-    rasterDescNoCull.CullMode = D3D11_CULL_NONE;
-    D3D_THROW_IF_INFO(device->CreateRasterizerState(&rasterDescNoCull, &m_pRasterizerNoCull));
-    // backfase culling enabled
-    D3D11_RASTERIZER_DESC rasterDescCull = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT{});
-    rasterDescCull.CullMode = D3D11_CULL_BACK;
-    D3D_THROW_IF_INFO(device->CreateRasterizerState(&rasterDescCull, &m_pRasterizerCull));
+    m_pRasterizerNoCull = std::make_unique<Rasterizer>(renderer, false);
+    m_pRasterizerCull = std::make_unique<Rasterizer>(renderer, true);
 }
 
 void Scene::SetupFloor()
@@ -509,7 +497,7 @@ void Scene::DrawGrass()
     m_pBlendStateEnabled->Bind(renderer);
 
     // Disable backface culling
-    D3D_THROW_IF_INFO(context->RSSetState(m_pRasterizerNoCull.Get()));
+    m_pRasterizerNoCull->Bind(renderer);
 
     // Draw
     D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
@@ -519,7 +507,7 @@ void Scene::DrawGrass()
     m_pBlendStateDisabled->Bind(renderer);
 
     // Enable backface culling
-    D3D_THROW_IF_INFO(context->RSSetState(m_pRasterizerCull.Get()));
+    m_pRasterizerCull->Bind(renderer);
 }
 
 void Scene::DrawFloor()

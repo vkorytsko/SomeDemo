@@ -1,9 +1,9 @@
-#include "blend_state.hpp"
+#include "blender.hpp"
 
 #include "exceptions.hpp"
 
 
-BlendState::BlendState(Renderer* renderer, bool enabled)
+Blender::Blender(Renderer* renderer, bool enabled)
     : m_enabled(enabled)
 {
     D3D_DEBUG_LAYER(renderer);
@@ -27,12 +27,12 @@ BlendState::BlendState(Renderer* renderer, bool enabled)
         blendDescRT.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
     }
 
-    D3D_THROW_IF_INFO(renderer->GetDevice()->CreateBlendState(&blendDesc, m_pBlendState.GetAddressOf()));
+    D3D_THROW_IF_INFO(renderer->GetDevice()->CreateBlendState(&blendDesc, m_pBlender.GetAddressOf()));
 }
 
-void BlendState::Bind(Renderer* renderer)
+void Blender::Bind(Renderer* renderer)
 {
     D3D_DEBUG_LAYER(renderer);
 
-    D3D_THROW_IF_INFO(renderer->GetContext()->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xFFFFFFFFu));
+    D3D_THROW_IF_INFO(renderer->GetContext()->OMSetBlendState(m_pBlender.Get(), nullptr, 0xFFFFFFFFu));
 }

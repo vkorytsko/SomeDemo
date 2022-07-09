@@ -9,11 +9,12 @@
 #include "debug_layer.hpp"
 #include "timer.hpp"
 
-#include "blend_state.hpp"
+#include "blender.hpp"
 #include "constant_buffer.hpp"
 #include "index_buffer.hpp"
 #include "input_layout.hpp"
 #include "pixel_shader.hpp"
+#include "rasterizer.hpp"
 #include "sampler.hpp"
 #include "texture.hpp"
 #include "vertex_buffer.hpp"
@@ -125,10 +126,12 @@ private:
     std::unique_ptr<Texture> m_pBoxDiffuseTexture;
     std::unique_ptr<Texture> m_pBoxSpecularTexture;
     std::unique_ptr<Sampler> m_pBoxSampler;
+
     std::unique_ptr<ConstantBuffer<CB_transform>> m_pBoxTransformCB;
     std::unique_ptr<ConstantBuffer<CB_material>> m_pBoxMaterialCB;
     std::unique_ptr<ConstantBuffer<CB_posLight>> m_pBoxPosLightCB;
     std::unique_ptr<ConstantBuffer<CB_dirLight>> m_pBoxDirLightCB;
+
     dx::XMFLOAT3 m_boxPosition = { 0.0f, 0.0f, 0.0f };
     dx::XMFLOAT3 m_boxRotation = { 0.0f, 0.0f, 0.0f };
     dx::XMFLOAT3 m_boxScale = { 1.0f, 1.0f, 1.0f };
@@ -139,8 +142,10 @@ private:
     std::unique_ptr<VertexShader> m_pLightVertexShader;
     std::unique_ptr<PixelShader> m_pLightPixelShader;
     std::unique_ptr<InputLayout> m_pLightInputLayout;
+
     std::unique_ptr<ConstantBuffer<CB_transform>> m_pLightTransformCB;
     std::unique_ptr<ConstantBuffer<CB_color>> m_pLightColorCB;
+
     dx::XMFLOAT3 m_lightPosition = { 0.0f, 2.0f, 0.0f };
     dx::XMFLOAT3 m_lightRotation = { 0.0f, 0.0f, 0.0f };
     dx::XMFLOAT3 m_lightScale = { 0.2f, 0.2f, 0.2f };
@@ -154,14 +159,16 @@ private:
     std::unique_ptr<InputLayout> m_pGrassInputLayout;
     std::unique_ptr<Texture> m_pGrassTexture;
     std::unique_ptr<Sampler> m_pGrassSampler;
+    std::unique_ptr<Blender> m_pBlendStateEnabled;
+    std::unique_ptr<Blender> m_pBlendStateDisabled;
+    std::unique_ptr<Rasterizer> m_pRasterizerNoCull;
+    std::unique_ptr<Rasterizer> m_pRasterizerCull;
+
     std::unique_ptr<ConstantBuffer<CB_transform>> m_pGrassTransformCB;
-    std::unique_ptr<BlendState> m_pBlendStateEnabled;
-    std::unique_ptr<BlendState> m_pBlendStateDisabled;
+
     dx::XMFLOAT3 m_grassPosition = { 0.0f, 0.0f, -1.0f };
     dx::XMFLOAT3 m_grassRotation = { 0.0f, 0.0f, 0.0f };
     dx::XMFLOAT3 m_grassScale = { 1.0f, 1.0f, 1.0f };
-    wrl::ComPtr<ID3D11RasterizerState> m_pRasterizerNoCull;
-    wrl::ComPtr<ID3D11RasterizerState> m_pRasterizerCull;
 
     // Floor
     std::unique_ptr<VertexBuffer<Vertex>> m_pFloorVertexBuffer;
@@ -171,7 +178,9 @@ private:
     std::unique_ptr<InputLayout> m_pFloorInputLayout;
     std::unique_ptr<Texture> m_pFloorTexture;
     std::unique_ptr<Sampler> m_pFloorSampler;
+
     std::unique_ptr<ConstantBuffer<CB_transform>> m_pFloorTransformCB;
+
     dx::XMFLOAT3 m_floorPosition = { 0.0f, -0.5f, 0.0f };
     dx::XMFLOAT3 m_floorRotation = { 0.0f, 0.0f, 0.0f };
     dx::XMFLOAT3 m_floorScale = { 1.0f, 1.0f, 1.0f };

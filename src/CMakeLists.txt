@@ -6,13 +6,14 @@ set(SOURCES
     main.cpp
 
     application.cpp
-    blend_state.cpp
+    blender.cpp
     camera.cpp
     debug_layer.cpp
     exceptions.cpp
     index_buffer.cpp
     input_layout.cpp
     pixel_shader.cpp
+    rasterizer.cpp
     renderer.cpp
     sampler.cpp
     scene.cpp
@@ -23,7 +24,7 @@ set(SOURCES
 )
 set(HEADERS
     application.hpp
-	blend_state.hpp
+	blender.hpp
     camera.hpp
     constant_buffer.hpp
     debug_layer.hpp
@@ -31,6 +32,7 @@ set(HEADERS
 	index_buffer.hpp
 	input_layout.hpp
 	pixel_shader.hpp
+	rasterizer.hpp
     renderer.hpp
     sampler.hpp
     scene.hpp
