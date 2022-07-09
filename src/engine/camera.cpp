@@ -8,6 +8,8 @@
 #include "application.hpp"
 
 
+namespace SD::ENGINE {
+
 Camera::Camera()
 {
 	updateView();
@@ -115,3 +117,4 @@ void Camera::updateProjection()
 	m_projection = XMMatrixPerspectiveFovLH(FOV, aspect, NEAR_Z, FAR_Z);
 }
 
+}  // end namespace SD::ENGINE

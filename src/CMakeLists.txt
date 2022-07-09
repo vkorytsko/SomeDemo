@@ -33,8 +33,8 @@ set(ENGINE_HEADERS
     ${ENGINE_SOURCE_DIR}exceptions.hpp
     ${ENGINE_SOURCE_DIR}scene.hpp
     ${ENGINE_SOURCE_DIR}timer.hpp
-    ${ENGINE_SOURCE_DIR}window.hpp
     ${ENGINE_SOURCE_DIR}utils.hpp
+    ${ENGINE_SOURCE_DIR}window.hpp
 )
 source_group("engine" FILES ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 
@@ -51,18 +51,18 @@ set(RENDER_SOURCES
     ${RENDER_SOURCE_DIR}vertex_shader.cpp
 )
 set(RENDER_HEADERS
-	${RENDER_SOURCE_DIR}blender.hpp
+    ${RENDER_SOURCE_DIR}blender.hpp
     ${RENDER_SOURCE_DIR}constant_buffer.hpp
     ${RENDER_SOURCE_DIR}debug_layer.hpp
-	${RENDER_SOURCE_DIR}index_buffer.hpp
-	${RENDER_SOURCE_DIR}input_layout.hpp
-	${RENDER_SOURCE_DIR}pixel_shader.hpp
-	${RENDER_SOURCE_DIR}rasterizer.hpp
+    ${RENDER_SOURCE_DIR}index_buffer.hpp
+    ${RENDER_SOURCE_DIR}input_layout.hpp
+    ${RENDER_SOURCE_DIR}pixel_shader.hpp
+    ${RENDER_SOURCE_DIR}rasterizer.hpp
     ${RENDER_SOURCE_DIR}renderer.hpp
     ${RENDER_SOURCE_DIR}sampler.hpp
     ${RENDER_SOURCE_DIR}texture.hpp
-	${RENDER_SOURCE_DIR}vertex_buffer.hpp
-	${RENDER_SOURCE_DIR}vertex_shader.hpp
+    ${RENDER_SOURCE_DIR}vertex_buffer.hpp
+    ${RENDER_SOURCE_DIR}vertex_shader.hpp
 )
 source_group("render" FILES ${RENDER_SOURCES} ${RENDER_HEADERS})
 
@@ -104,8 +104,8 @@ target_compile_options(
     /W4
     /WX
     /MP
-	
-	/W44324  # C4324 'struct_name' : structure was padded due to __declspec(align())
+
+    /W44324  # C4324 'struct_name' : structure was padded due to __declspec(align())
 )
 
 set(LIBS
@@ -124,7 +124,7 @@ target_include_directories(
     PRIVATE
     ${PROJECT_SOURCE_DIR}/ext/DirectXMath/Inc/
     ${PROJECT_SOURCE_DIR}/ext/DirectXTex/DirectXTex/
-	
-	${ENGINE_SOURCE_DIR}
-	${RENDER_SOURCE_DIR}
+
+    ${ENGINE_SOURCE_DIR}
+    ${RENDER_SOURCE_DIR}
 )

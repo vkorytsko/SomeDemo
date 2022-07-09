@@ -3,6 +3,8 @@
 #include "exceptions.hpp"
 
 
+namespace SD::RENDER {
+
 Sampler::Sampler(Renderer* renderer)
 {
     D3D_DEBUG_LAYER(renderer);
@@ -21,3 +23,5 @@ void Sampler::Bind(Renderer* renderer)
 
     D3D_THROW_IF_INFO(renderer->GetContext()->PSSetSamplers(0, 1, m_pSampler.GetAddressOf()));
 }
+
+}  // end namespace SD::RENDER

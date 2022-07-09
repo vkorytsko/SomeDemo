@@ -6,6 +6,8 @@
 #include "exceptions.hpp"
 
 
+namespace SD::ENGINE {
+
 const std::wstring NAME = L"Some Demo";
 const uint16_t WIDTH = 1200;
 const uint16_t HEIGHT = 800;
@@ -24,7 +26,7 @@ Application::Application()
 	m_pWindow = std::make_unique<Window>(this, WIDTH, HEIGHT, NAME);
 	s_hWnd = m_pWindow->GetHandle();
 
-	m_pRenderer = std::make_unique<Renderer>();
+	m_pRenderer = std::make_unique<RENDER::Renderer>();
 	m_pCamera = std::make_unique<Camera>();
 	m_pScene = std::make_unique<Scene>();
 	m_pTimer = std::make_unique<Timer>();
@@ -71,7 +73,7 @@ Window* Application::GetWindow() const
 	return m_pWindow.get();
 }
 
-Renderer* Application::GetRenderer() const
+RENDER::Renderer* Application::GetRenderer() const
 {
 	if (!m_pRenderer)
 	{
@@ -196,3 +198,5 @@ void Application::UpdateFrameStats(float dt)
 		framesCount = 0;
 	}
 }
+
+}  // end namespace SD::ENGINE

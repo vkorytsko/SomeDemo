@@ -9,6 +9,8 @@
 #include "renderer.hpp"
 
 
+namespace SD::RENDER {
+
 const std::wstring TEXTURES_PATH = L"..\\res\\textures\\";
 
 
@@ -24,3 +26,5 @@ private:
 private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pTextureView;
 };
+
+}  // end namespace SD::RENDER

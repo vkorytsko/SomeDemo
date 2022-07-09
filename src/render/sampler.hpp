@@ -6,6 +6,8 @@
 #include "renderer.hpp"
 
 
+namespace SD::RENDER {
+
 class Sampler
 {
 public:
@@ -16,3 +18,5 @@ public:
 private:
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_pSampler;
 };
+
+}  // end namespace SD::RENDER

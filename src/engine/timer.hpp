@@ -3,6 +3,8 @@
 #include <chrono>
 
 
+namespace SD::ENGINE {
+
 class Timer
 {
 	using HRclock = std::chrono::high_resolution_clock;
@@ -17,3 +19,5 @@ private:
 	HRclock::time_point m_startTP;
 	HRclock::time_point m_lastTP;
 };
+
+}  // end namespace SD::ENGINE

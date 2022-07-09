@@ -3,6 +3,8 @@
 #include "exceptions.hpp"
 
 
+namespace SD::RENDER {
+
 InputLayout::InputLayout(Renderer* renderer, const std::vector<D3D11_INPUT_ELEMENT_DESC>& layout, ID3DBlob* pVSBytecode)
 {
 	D3D_DEBUG_LAYER(renderer);
@@ -20,3 +22,5 @@ void InputLayout::Bind(Renderer* renderer)
 
 	D3D_THROW_IF_INFO(renderer->GetContext()->IASetInputLayout(m_pInputLayout.Get()));
 }
+
+}  // end namespace SD::RENDER

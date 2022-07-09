@@ -7,11 +7,14 @@
 #include "exceptions.hpp"
 
 
+using namespace SD;
+
+
 int main(int, char**)
 {
     try
     {
-        return Application().Run();
+        return ENGINE::Application().Run();
     }
     catch (const SomeException& e)
     {

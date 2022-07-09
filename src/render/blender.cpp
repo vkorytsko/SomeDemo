@@ -3,6 +3,8 @@
 #include "exceptions.hpp"
 
 
+namespace SD::RENDER {
+
 Blender::Blender(Renderer* renderer, bool enabled)
     : m_enabled(enabled)
 {
@@ -36,3 +38,5 @@ void Blender::Bind(Renderer* renderer)
 
     D3D_THROW_IF_INFO(renderer->GetContext()->OMSetBlendState(m_pBlender.Get(), nullptr, 0xFFFFFFFFu));
 }
+
+}  // end namespace SD::RENDER

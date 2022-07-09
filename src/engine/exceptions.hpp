@@ -6,10 +6,12 @@
 #include <Windows.h>
 
 
+namespace SD {
+
 class SomeException : public std::exception
 {
 public:
-    SomeException(int line, const wchar_t* file, const std::wstring message  = L"") noexcept;
+    SomeException(int line, const wchar_t* file, const std::wstring message = L"") noexcept;
 
     const wchar_t* w_what() const noexcept;
 
@@ -61,7 +63,7 @@ private:
 
 #define THROW_SOME_EXCEPTION(msg) {throw SomeException(__LINE__, __FILEW__, msg);}
 
-// Win Exceptions Macro
+    // Win Exceptions Macro
 #define WIN_THROW_IF_FAILED(hrcall) {HRESULT hr = (hrcall); if(FAILED(hr)) throw SomeWinException(__LINE__, __FILEW__ , hr);}
 #define WIN_THROW_LAST_EXCEPTION() {throw  SomeWinException(__LINE__, __FILEW__ , GetLastError());}
 
@@ -72,3 +74,5 @@ private:
 #define D3D_THROW_INFO_EXCEPTION(hrcall) {debugLayer->Set(); HRESULT hr = (hrcall); if(FAILED(hr)) throw D3D_EXCEPTION(hr);}
 #define D3D_THROW_NOINFO_EXCEPTION(hrcall) {HRESULT hr = (hrcall); if(FAILED(hr)) throw SomeD3DException(__LINE__, __FILEW__ , hr);}
 #define D3D_THROW_IF_INFO(call) debugLayer->Set(); (call); {auto msgs = debugLayer->GetMessages(); if(!msgs.empty()) {throw SomeD3DException(__LINE__, __FILEW__ , S_OK, msgs);}}
+
+}  // end namespace SD

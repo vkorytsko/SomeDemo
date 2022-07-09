@@ -6,6 +6,8 @@
 #include "renderer.hpp"
 
 
+namespace SD::RENDER {
+
 class Rasterizer
 {
 public:
@@ -17,3 +19,5 @@ private:
 	bool m_cull = true;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_pRasterizer;
 };
+
+}  // end namespace SD::RENDER

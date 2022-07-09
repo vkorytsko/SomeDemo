@@ -9,6 +9,8 @@
 #include "exceptions.hpp"
 
 
+namespace SD::RENDER {
+
 template<class V>
 class VertexBuffer
 {
@@ -45,3 +47,5 @@ private:
 	UINT m_stride;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pVertexBuffer;
 };
+
+}  // end namespace SD::RENDER

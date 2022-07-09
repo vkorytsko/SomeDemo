@@ -7,6 +7,8 @@
 #include "exceptions.hpp"
 
 
+namespace SD::ENGINE {
+
 Window::WindowClass Window::WindowClass::m_wndClass;
 
 Window::WindowClass::WindowClass()
@@ -173,3 +175,5 @@ LRESULT CALLBACK Window::WindowRedirectProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_
         }
     }
 }
+
+}  // end namespace SD::ENGINE

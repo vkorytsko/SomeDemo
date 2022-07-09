@@ -5,6 +5,8 @@
 #include "renderer.hpp"
 
 
+namespace SD::RENDER {
+
 #ifndef NDEBUG
 const std::wstring PS_PATH = L"Debug\\";
 #else
@@ -24,3 +26,5 @@ private:
 	Microsoft::WRL::ComPtr<ID3DBlob> m_pBytecodeBlob;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pPixelShader;
 };
+
+}  // end namespace SD::RENDER

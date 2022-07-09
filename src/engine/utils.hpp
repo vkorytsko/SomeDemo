@@ -4,6 +4,8 @@
 #include <stdlib.h>
 
 
+namespace SD {
+
 inline std::wstring AToWstring(const std::string& str)
 {
     WCHAR buffer[512];
@@ -17,3 +19,5 @@ inline std::string WToAstring(const std::wstring& str)
     wcstombs_s(nullptr, buffer, str.c_str(), _TRUNCATE);
     return buffer;
 }
+
+}  // end namespace SD

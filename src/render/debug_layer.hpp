@@ -5,6 +5,9 @@
 #include <string>
 #include <dxgidebug.h>
 
+
+namespace SD::RENDER {
+
 class DebugLayer
 {
 public:
@@ -23,3 +26,5 @@ private:
 	unsigned long long m_start = 0u;
 	Microsoft::WRL::ComPtr<IDXGIInfoQueue> m_pDxgiInfoQueue = nullptr;
 };
+
+}  // end namespace SD::RENDER

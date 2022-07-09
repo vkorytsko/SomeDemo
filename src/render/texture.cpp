@@ -3,11 +3,13 @@
 #include "exceptions.hpp"
 
 
+namespace SD::RENDER {
+
 Texture::Texture(Renderer* renderer, const std::wstring& name)
 {
     D3D_DEBUG_LAYER(renderer);
 
-    dx::ScratchImage scratch = Load(TEXTURES_PATH + name);
+    DirectX::ScratchImage scratch = Load(TEXTURES_PATH + name);
     const auto width = static_cast<UINT>(scratch.GetMetadata().width);
     const auto height = static_cast<UINT>(scratch.GetMetadata().height);
     const auto rowPitch = static_cast<UINT>(scratch.GetImage(0, 0, 0)->rowPitch);
@@ -29,7 +31,7 @@ Texture::Texture(Renderer* renderer, const std::wstring& name)
     textureData.pSysMem = scratch.GetPixels();
     textureData.SysMemPitch = rowPitch;
 
-    wrl::ComPtr<ID3D11Texture2D> pDiffuseTexture;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> pDiffuseTexture;
     D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateTexture2D(&textureDesc, &textureData, pDiffuseTexture.GetAddressOf()));
 
     D3D11_SHADER_RESOURCE_VIEW_DESC textureSRVDesc = {};
@@ -47,16 +49,16 @@ void Texture::Bind(Renderer* renderer, UINT slot)
     D3D_THROW_IF_INFO(renderer->GetContext()->PSSetShaderResources(slot, 1u, m_pTextureView.GetAddressOf()));
 }
 
-dx::ScratchImage Texture::Load(const std::wstring& name)
+DirectX::ScratchImage Texture::Load(const std::wstring& name)
 {
     DirectX::ScratchImage scratch;
-    WIN_THROW_IF_FAILED(dx::LoadFromWICFile(name.c_str(), DirectX::WIC_FLAGS_IGNORE_SRGB, nullptr, scratch));
+    WIN_THROW_IF_FAILED(DirectX::LoadFromWICFile(name.c_str(), DirectX::WIC_FLAGS_IGNORE_SRGB, nullptr, scratch));
 
     if (scratch.GetImage(0, 0, 0)->format != DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM)
     {
         DirectX::ScratchImage converted;
 
-        WIN_THROW_IF_FAILED(dx::Convert(
+        WIN_THROW_IF_FAILED(DirectX::Convert(
             *scratch.GetImage(0, 0, 0),
             DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM,
             DirectX::TEX_FILTER_DEFAULT,
@@ -69,3 +71,5 @@ dx::ScratchImage Texture::Load(const std::wstring& name)
 
     return scratch;
 }
+
+}  // end namespace SD::RENDER

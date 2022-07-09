@@ -5,6 +5,8 @@
 #include "exceptions.hpp"
 
 
+namespace SD::RENDER {
+
 PixelShader::PixelShader(Renderer* renderer, const std::wstring& name)
 {
 	D3D_DEBUG_LAYER(renderer);
@@ -26,3 +28,5 @@ ID3DBlob* PixelShader::GetBytecode() const
 {
 	return m_pBytecodeBlob.Get();
 }
+
+}  // end namespace SD::RENDER

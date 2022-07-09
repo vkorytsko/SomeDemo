@@ -8,8 +8,9 @@
 #include <string>
 
 
-class Application;
+namespace SD::ENGINE {
 
+class Application;
 
 class Window
 {
@@ -57,3 +58,5 @@ private:
 
     HWND m_hWnd = nullptr;
 };
+
+}  // end namespace SD::ENGINE

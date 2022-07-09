@@ -1,6 +1,8 @@
 #include "timer.hpp"
 
 
+namespace SD::ENGINE {
+
 Timer::Timer()
 {
 	m_lastTP = HRclock::now();
@@ -23,3 +25,5 @@ float Timer::GetTotal()
 
 	return dt.count();
 }
+
+}  // end namespace SD::ENGINE

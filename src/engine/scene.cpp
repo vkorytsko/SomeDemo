@@ -6,6 +6,10 @@
 #include "exceptions.hpp"
 
 
+namespace SD::ENGINE {
+
+using namespace RENDER;
+
 Scene::Scene()
 {
     std::clog << "Scene initialisation!" << std::endl;
@@ -545,9 +549,11 @@ void Scene::DrawFloor()
     D3D_THROW_IF_INFO(context->DrawIndexed(m_pFloorIndexBuffer->GetIndicesCount(), 0u, 0u));
 }
 
-dx::XMMATRIX Scene::GetModelMatrix(const dx::XMFLOAT3& position, const dx::XMFLOAT3& rotation, const dx::XMFLOAT3& scale) const
+DirectX::XMMATRIX Scene::GetModelMatrix(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& rotation, const DirectX::XMFLOAT3& scale) const
 {
-    return dx::XMMatrixScaling(scale.x, scale.y, scale.z)*
-        dx::XMMatrixRotationRollPitchYaw(rotation.y, rotation.x, rotation.z)*
-        dx::XMMatrixTranslation(position.x, position.y, position.z);
+    return DirectX::XMMatrixScaling(scale.x, scale.y, scale.z)*
+        DirectX::XMMatrixRotationRollPitchYaw(rotation.y, rotation.x, rotation.z)*
+        DirectX::XMMatrixTranslation(position.x, position.y, position.z);
 }
+
+}  // end namespace SD::ENGINE

@@ -4,12 +4,14 @@
 #include "exceptions.hpp"
 
 
+namespace SD::RENDER {
+
 Renderer::Renderer()
     : m_debugLayer(std::make_unique<DebugLayer>())
 {
     D3D_DEBUG_LAYER(this);
 
-    const auto& window = Application::GetApplication()->GetWindow();
+    const auto& window = ENGINE::Application::GetApplication()->GetWindow();
     const auto width = window->GetWidht();
     const auto height = window->GetHeight();
 
@@ -53,7 +55,7 @@ Renderer::Renderer()
     ));
 
     // gain access to texture subresource in swap chain (back buffer)
-    wrl::ComPtr<ID3D11Resource> pBackBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Resource> pBackBuffer;
     D3D_THROW_INFO_EXCEPTION(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Resource), &pBackBuffer));
     D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &m_pRenderTargetView));
 
@@ -62,14 +64,14 @@ Renderer::Renderer()
     dsDesc.DepthEnable = TRUE;
     dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
     dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
-    wrl::ComPtr<ID3D11DepthStencilState> pDSState;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
     D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateDepthStencilState(&dsDesc, &pDSState));
 
     // bind depth state
     D3D_THROW_IF_INFO(m_pD3dContext->OMSetDepthStencilState(pDSState.Get(), 1u));
 
     // create depth stensil texture
-    wrl::ComPtr<ID3D11Texture2D> pDepthStencil;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;
     D3D11_TEXTURE2D_DESC descDepth = {};
     descDepth.Width = static_cast<UINT>(width);
     descDepth.Height = static_cast<UINT>(height);
@@ -148,3 +150,4 @@ DebugLayer* Renderer::GetDebugLayer() const
     return m_debugLayer.get();
 }
 
+}  // end namespace SD::RENDER

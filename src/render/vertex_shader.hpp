@@ -8,6 +8,8 @@
 #include "renderer.hpp"
 
 
+namespace SD::RENDER {
+
 #ifndef NDEBUG
 const std::wstring VS_PATH = L"Debug\\";
 #else
@@ -27,3 +29,5 @@ private:
 	Microsoft::WRL::ComPtr<ID3DBlob> m_pBytecodeBlob;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_pVertexShader;
 };
+
+}  // end namespace SD::RENDER

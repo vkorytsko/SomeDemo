@@ -8,6 +8,8 @@
 #include "renderer.hpp"
 
 
+namespace SD::RENDER {
+
 class IndexBuffer
 {
 public:
@@ -20,3 +22,5 @@ private:
 	UINT m_count;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pIndexBuffer;
 };
+
+}  // end namespace SD::RENDER

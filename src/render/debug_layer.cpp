@@ -7,6 +7,8 @@
 #include "exceptions.hpp"
 
 
+namespace SD::RENDER {
+
 //const DXGI_INFO_QUEUE_MESSAGE_SEVERITY MIN_SEVERITY_LEVEL = DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR;
 const DXGI_INFO_QUEUE_MESSAGE_SEVERITY MIN_SEVERITY_LEVEL = DXGI_INFO_QUEUE_MESSAGE_SEVERITY_WARNING;
 
@@ -83,3 +85,5 @@ std::vector<std::string> DebugLayer::GetMessages() const
 
 	return messages;
 }
+
+}  // end namespace SD::RENDER

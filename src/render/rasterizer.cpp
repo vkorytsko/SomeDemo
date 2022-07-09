@@ -3,6 +3,8 @@
 #include "exceptions.hpp"
 
 
+namespace SD::RENDER {
+
 Rasterizer::Rasterizer(Renderer* renderer, bool cull)
     : m_cull(cull)
 {
@@ -20,3 +22,5 @@ void Rasterizer::Bind(Renderer* renderer)
 
     D3D_THROW_IF_INFO(renderer->GetContext()->RSSetState(m_pRasterizer.Get()));
 }
+
+}  // end namespace SD::RENDER

@@ -6,6 +6,8 @@
 #include "utils.hpp"
 
 
+namespace SD {
+
 SomeException::SomeException(int line, const wchar_t* file, const std::wstring message) noexcept
 	: m_line(line)
 	, m_filename(file)
@@ -118,3 +120,5 @@ std::wstring SomeD3DException::GetErrorInfo() const noexcept
 {
 	return m_errorInfo;
 }
+
+}  // end namespace SD

@@ -8,6 +8,8 @@
 #include "renderer.hpp"
 
 
+namespace SD::RENDER {
+
 class InputLayout
 {
 public:
@@ -18,3 +20,5 @@ public:
 private:
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_pInputLayout;
 };
+
+}  // end namespace SD::RENDER

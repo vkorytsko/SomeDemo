@@ -7,6 +7,8 @@
 #include "exceptions.hpp"
 
 
+namespace SD::RENDER {
+
 template<class C>
 class ConstantBuffer
 {
@@ -62,3 +64,5 @@ private:
 	C m_data;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pConstantBuffer;
 };
+
+}  // end namespace SD::RENDER

@@ -9,6 +9,8 @@
 #include "window.hpp"
 
 
+namespace SD::ENGINE {
+
 class Application
 {
 public:
@@ -18,7 +20,7 @@ public:
 	int Run();
 
 	Window* GetWindow() const;
-	Renderer* GetRenderer() const;
+	RENDER::Renderer* GetRenderer() const;
 	Camera* GetCamera() const;
 
 	bool IsActive() const;
@@ -36,7 +38,7 @@ private:
 	bool m_isActive = false;
 
 	std::unique_ptr<Window> m_pWindow;
-	std::unique_ptr<Renderer> m_pRenderer;
+	std::unique_ptr<RENDER::Renderer> m_pRenderer;
 	std::unique_ptr<Camera> m_pCamera;
 	std::unique_ptr<Scene> m_pScene;
 	std::unique_ptr<Timer> m_pTimer;
@@ -46,3 +48,5 @@ private:
 
 	static HWND s_hWnd;
 };
+
+}  // end namespace SD::ENGINE

@@ -3,6 +3,9 @@
 #include <DirectXMath.h>
 
 
+
+namespace SD::ENGINE {
+
 using namespace DirectX;
 
 
@@ -44,3 +47,5 @@ private:
 	const XMVECTOR FORWARD = {0.0f, 0.0f, 1.0f, 0.0f};
 	const XMVECTOR UP = {0.0f, 1.0f, 0.0f, 0.0f};
 };
+
+}  // end namespace SD::ENGINE

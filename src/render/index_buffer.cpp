@@ -3,6 +3,8 @@
 #include "exceptions.hpp"
 
 
+namespace SD::RENDER {
+
 IndexBuffer::IndexBuffer(Renderer* renderer, const std::vector<unsigned short>& indices)
 	: m_count(static_cast<UINT>(indices.size()))
 {
@@ -33,3 +35,5 @@ UINT IndexBuffer::GetIndicesCount() const
 {
 	return m_count;
 }
+
+}  // end namespace SD::RENDER
