@@ -2,74 +2,95 @@ cmake_minimum_required(VERSION 3.12.0)
 
 set(TARGET_NAME ${PROJECT_NAME})
 
+set(SHADERS_SOURCE_DIR
+    ${PROJECT_SOURCE_DIR}/res/shaders/
+)
+set(ENGINE_SOURCE_DIR
+    ${PROJECT_SOURCE_DIR}/src/engine/
+)
+set(RENDER_SOURCE_DIR
+    ${PROJECT_SOURCE_DIR}/src/render/
+)
+
 set(SOURCES
     main.cpp
-
-    application.cpp
-    blender.cpp
-    camera.cpp
-    debug_layer.cpp
-    exceptions.cpp
-    index_buffer.cpp
-    input_layout.cpp
-    pixel_shader.cpp
-    rasterizer.cpp
-    renderer.cpp
-    sampler.cpp
-    scene.cpp
-    texture.cpp
-    timer.cpp
-    vertex_shader.cpp
-    window.cpp
 )
 set(HEADERS
-    application.hpp
-	blender.hpp
-    camera.hpp
-    constant_buffer.hpp
-    debug_layer.hpp
-    exceptions.hpp
-	index_buffer.hpp
-	input_layout.hpp
-	pixel_shader.hpp
-	rasterizer.hpp
-    renderer.hpp
-    sampler.hpp
-    scene.hpp
-    texture.hpp
-    timer.hpp
-	vertex_buffer.hpp
-	vertex_shader.hpp
-    window.hpp
-
-    utils.hpp
 )
+source_group(" " FILES ${SOURCES} ${HEADERS})
 
-set(SHADERS_SOURCE_DIR
-    ${PROJECT_SOURCE_DIR}/res/shaders
+set(ENGINE_SOURCES
+    ${ENGINE_SOURCE_DIR}application.cpp
+    ${ENGINE_SOURCE_DIR}camera.cpp
+    ${ENGINE_SOURCE_DIR}exceptions.cpp
+    ${ENGINE_SOURCE_DIR}scene.cpp
+    ${ENGINE_SOURCE_DIR}timer.cpp
+    ${ENGINE_SOURCE_DIR}window.cpp
 )
+set(ENGINE_HEADERS
+    ${ENGINE_SOURCE_DIR}application.hpp
+    ${ENGINE_SOURCE_DIR}camera.hpp
+    ${ENGINE_SOURCE_DIR}exceptions.hpp
+    ${ENGINE_SOURCE_DIR}scene.hpp
+    ${ENGINE_SOURCE_DIR}timer.hpp
+    ${ENGINE_SOURCE_DIR}window.hpp
+    ${ENGINE_SOURCE_DIR}utils.hpp
+)
+source_group("engine" FILES ${ENGINE_SOURCES} ${ENGINE_HEADERS})
+
+set(RENDER_SOURCES
+    ${RENDER_SOURCE_DIR}blender.cpp
+    ${RENDER_SOURCE_DIR}debug_layer.cpp
+    ${RENDER_SOURCE_DIR}index_buffer.cpp
+    ${RENDER_SOURCE_DIR}input_layout.cpp
+    ${RENDER_SOURCE_DIR}pixel_shader.cpp
+    ${RENDER_SOURCE_DIR}rasterizer.cpp
+    ${RENDER_SOURCE_DIR}renderer.cpp
+    ${RENDER_SOURCE_DIR}sampler.cpp
+    ${RENDER_SOURCE_DIR}texture.cpp
+    ${RENDER_SOURCE_DIR}vertex_shader.cpp
+)
+set(RENDER_HEADERS
+	${RENDER_SOURCE_DIR}blender.hpp
+    ${RENDER_SOURCE_DIR}constant_buffer.hpp
+    ${RENDER_SOURCE_DIR}debug_layer.hpp
+	${RENDER_SOURCE_DIR}index_buffer.hpp
+	${RENDER_SOURCE_DIR}input_layout.hpp
+	${RENDER_SOURCE_DIR}pixel_shader.hpp
+	${RENDER_SOURCE_DIR}rasterizer.hpp
+    ${RENDER_SOURCE_DIR}renderer.hpp
+    ${RENDER_SOURCE_DIR}sampler.hpp
+    ${RENDER_SOURCE_DIR}texture.hpp
+	${RENDER_SOURCE_DIR}vertex_buffer.hpp
+	${RENDER_SOURCE_DIR}vertex_shader.hpp
+)
+source_group("render" FILES ${RENDER_SOURCES} ${RENDER_HEADERS})
 
 set(VERTEX_SHADERS
-    ${SHADERS_SOURCE_DIR}/color.vs.hlsl
-    ${SHADERS_SOURCE_DIR}/light.vs.hlsl
-    ${SHADERS_SOURCE_DIR}/phong.vs.hlsl
-    ${SHADERS_SOURCE_DIR}/texture.vs.hlsl
+    ${SHADERS_SOURCE_DIR}color.vs.hlsl
+    ${SHADERS_SOURCE_DIR}light.vs.hlsl
+    ${SHADERS_SOURCE_DIR}phong.vs.hlsl
+    ${SHADERS_SOURCE_DIR}texture.vs.hlsl
 )
-
 set(PIXEL_SHADERS
-    ${SHADERS_SOURCE_DIR}/color.ps.hlsl
-    ${SHADERS_SOURCE_DIR}/light.ps.hlsl
-    ${SHADERS_SOURCE_DIR}/phong.ps.hlsl
-    ${SHADERS_SOURCE_DIR}/texture.ps.hlsl
+    ${SHADERS_SOURCE_DIR}color.ps.hlsl
+    ${SHADERS_SOURCE_DIR}light.ps.hlsl
+    ${SHADERS_SOURCE_DIR}phong.ps.hlsl
+    ${SHADERS_SOURCE_DIR}texture.ps.hlsl
 )
+source_group("shaders" FILES ${VERTEX_SHADERS} ${PIXEL_SHADERS})
 
 set_property(SOURCE ${VERTEX_SHADERS} PROPERTY VS_SHADER_TYPE Vertex)
 set_property(SOURCE ${VERTEX_SHADERS} PROPERTY VS_SHADER_MODEL 4.0_level_9_3)
 set_property(SOURCE ${PIXEL_SHADERS} PROPERTY VS_SHADER_TYPE Pixel)
 set_property(SOURCE ${PIXEL_SHADERS} PROPERTY VS_SHADER_MODEL 4.0_level_9_3)
-source_group("shaders" FILES ${VERTEX_SHADERS} ${PIXEL_SHADERS})
 
-add_executable(${TARGET_NAME} ${SOURCES} ${HEADERS} ${VERTEX_SHADERS} ${PIXEL_SHADERS})
+add_executable(${TARGET_NAME}
+    ${SOURCES} ${HEADERS}
+    ${ENGINE_SOURCES} ${ENGINE_HEADERS}
+    ${RENDER_SOURCES} ${RENDER_HEADERS}
+    ${VERTEX_SHADERS} ${PIXEL_SHADERS}
+)
 
 set_target_properties(
     ${TARGET_NAME} PROPERTIES
@@ -103,4 +124,7 @@ target_include_directories(
     PRIVATE
     ${PROJECT_SOURCE_DIR}/ext/DirectXMath/Inc/
     ${PROJECT_SOURCE_DIR}/ext/DirectXTex/DirectXTex/
+	
+	${ENGINE_SOURCE_DIR}
+	${RENDER_SOURCE_DIR}
 )
