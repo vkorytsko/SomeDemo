@@ -78,6 +78,18 @@ public:
         alignas(16) DirectX::XMFLOAT3 specular;
     };
 
+    struct CB_spotLight
+    {
+        alignas(16) DirectX::XMFLOAT3 position;
+        alignas(16) DirectX::XMFLOAT3 direction;
+        alignas(16) DirectX::XMFLOAT3 ambient;
+        alignas(16) DirectX::XMFLOAT3 diffuse;
+        alignas(16) DirectX::XMFLOAT3 specular;
+        alignas(16) DirectX::XMFLOAT3 attenuation;  // {constant, linear, quadratic}
+        alignas(16) DirectX::XMFLOAT2 cutOff;  // {inner, outer}
+        int enabled;
+    };
+
 public:
 	Scene();
 	~Scene();
@@ -129,6 +141,7 @@ private:
     std::unique_ptr<RENDER::ConstantBuffer<CB_material>> m_pBoxMaterialCB;
     std::unique_ptr<RENDER::ConstantBuffer<CB_posLight>> m_pBoxPosLightCB;
     std::unique_ptr<RENDER::ConstantBuffer<CB_dirLight>> m_pBoxDirLightCB;
+    std::unique_ptr<RENDER::ConstantBuffer<CB_spotLight>> m_pBoxSpotLightCB;
 
     DirectX::XMFLOAT3 m_boxPosition = { 0.0f, 0.0f, 0.0f };
     DirectX::XMFLOAT3 m_boxRotation = { 0.0f, 0.0f, 0.0f };

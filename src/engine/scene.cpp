@@ -1,6 +1,7 @@
 #include "scene.hpp"
 
 #include <iostream>
+#include <math.h>
 
 #include "application.hpp"
 #include "exceptions.hpp"
@@ -166,6 +167,14 @@ void Scene::SetupBox() {
     dirLightCB.diffuse = { 0.4f, 0.4f, 0.4f };
     dirLightCB.specular = { 0.5f, 0.5f, 0.5f };
     m_pBoxDirLightCB = std::make_unique<ConstantBuffer<CB_dirLight>>(renderer, dirLightCB);
+
+    CB_spotLight spotLightCB;
+    spotLightCB.ambient = { 0.0f, 0.0f, 0.0f };
+    spotLightCB.diffuse = { 1.0f, 1.0f, 1.0f };
+    spotLightCB.specular = { 1.0f, 1.0f, 1.0f };
+    spotLightCB.attenuation = { 1.0f, 0.09f, 0.032f };
+    spotLightCB.cutOff = { std::cosf(DirectX::XMConvertToRadians(12.5f)), std::cosf(DirectX::XMConvertToRadians(15.0f)) };
+    m_pBoxSpotLightCB = std::make_unique<ConstantBuffer<CB_spotLight>>(renderer, spotLightCB);
 }
 
 void Scene::SetupLight() {
@@ -354,6 +363,12 @@ void Scene::UpdateBox(float /* dt */)
     const auto& posLightCB = m_pBoxPosLightCB->GetData();
     posLightCB->position = m_lightPosition;
     m_pBoxPosLightCB->Update(renderer);
+
+    const auto& spotLightCB = m_pBoxSpotLightCB->GetData();
+    spotLightCB->position = camera->getPosition();
+    spotLightCB->direction = camera->getDirection();
+    spotLightCB->enabled = GetKeyState('F') < 0 ? 1 : 0;  // Is "F" pressed
+    m_pBoxSpotLightCB->Update(renderer);
 }
 
 void Scene::UpdateLight(float dt)
@@ -421,6 +436,7 @@ void Scene::DrawBox()
     m_pBoxMaterialCB->PSBind(renderer, 0u);
     m_pBoxPosLightCB->PSBind(renderer, 1u);
     m_pBoxDirLightCB->PSBind(renderer, 2u);
+    m_pBoxSpotLightCB->PSBind(renderer, 3u);
 
     // bind textures
     m_pBoxDiffuseTexture->Bind(renderer, 0u);

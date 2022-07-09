@@ -7,6 +7,12 @@ Small graphics demo using DirectX 11 backend.
 `cd SomeDemo`\
 `cmake .`
 
+## Controls
+**W, A, S, D, Q, E** - Camera\
+**F** - Spot Light\
+**Space** - Pause\
+**Ctrl** - Cursor
+
 ## Requirements
 - [DirectX 11](https://support.microsoft.com/en-us/topic/how-to-install-the-latest-version-of-directx-d1f5ffa5-dae2-246c-91b1-ee1e973ed8c2)
 - [Visual Studio 2019](https://visualstudio.microsoft.com/ru/downloads/)

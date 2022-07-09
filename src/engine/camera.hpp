@@ -6,10 +6,7 @@
 
 namespace SD::ENGINE {
 
-using namespace DirectX;
-
-
-const float FOV = XM_PIDIV2;
+const float FOV = DirectX::XM_PIDIV2;
 const float NEAR_Z = 0.05f;
 const float FAR_Z = 100.0f;
 const float ROTATION_SPEED = 5.0f;
@@ -24,11 +21,12 @@ public:
 
 	void Update(float dt);
 
-	const XMFLOAT3 getPosition() const;
-	const XMFLOAT3 getRotation() const;
+	const DirectX::XMFLOAT3 getPosition() const;
+	const DirectX::XMFLOAT3 getDirection() const;
+	const DirectX::XMFLOAT3 getRotation() const;
 
-	const XMMATRIX getView() const;
-	const XMMATRIX getProjection() const;
+	const DirectX::XMMATRIX getView() const;
+	const DirectX::XMMATRIX getProjection() const;
 
 private:
 	void Rotate(float yaw, float pitch);
@@ -38,14 +36,14 @@ private:
 	void updateProjection();
 
 private:
-	XMFLOAT3 m_position = {0.0f, 1.0f, -4.0f};
-	XMFLOAT3 m_rotation = {0.0f, 0.0f, 0.0f};
+	DirectX::XMFLOAT3 m_position = {0.0f, 1.0f, -4.0f};
+	DirectX::XMFLOAT3 m_rotation = {0.0f, 0.0f, 0.0f};
 
-	XMMATRIX m_view = XMMatrixIdentity();
-	XMMATRIX m_projection = XMMatrixIdentity();
+	DirectX::XMMATRIX m_view = DirectX::XMMatrixIdentity();
+	DirectX::XMMATRIX m_projection = DirectX::XMMatrixIdentity();
 
-	const XMVECTOR FORWARD = {0.0f, 0.0f, 1.0f, 0.0f};
-	const XMVECTOR UP = {0.0f, 1.0f, 0.0f, 0.0f};
+	const DirectX::XMVECTOR FORWARD = {0.0f, 0.0f, 1.0f, 0.0f};
+	const DirectX::XMVECTOR UP = {0.0f, 1.0f, 0.0f, 0.0f};
 };
 
 }  // end namespace SD::ENGINE

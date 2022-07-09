@@ -10,6 +10,8 @@
 
 namespace SD::ENGINE {
 
+using namespace DirectX;
+
 Camera::Camera()
 {
 	updateView();
@@ -83,6 +85,15 @@ void Camera::Translate(float x, float y, float z)
 const XMFLOAT3 Camera::getPosition() const
 {
 	return m_position;
+}
+
+const XMFLOAT3 Camera::getDirection() const
+{
+	XMFLOAT4 direction;
+	XMMATRIX camRotationMatrix = XMMatrixRotationRollPitchYaw(m_rotation.y, m_rotation.x, m_rotation.z);
+	XMStoreFloat4(&direction, XMVector3TransformCoord(FORWARD, camRotationMatrix));
+
+	return { direction.x, direction.y, direction.z };
 }
 
 const XMFLOAT3 Camera::getRotation() const
