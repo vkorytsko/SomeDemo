@@ -264,24 +264,8 @@ void Scene::SetupGrass() {
     m_pGrassTransformCB = std::make_unique<ConstantBuffer<CB_transform>>(renderer, transformCB);
 
     // create blend states
-    // blending enabled
-    D3D11_BLEND_DESC blendDescEnabled = {};
-    auto& brte = blendDescEnabled.RenderTarget[0];
-    brte.BlendEnable = TRUE;
-    brte.SrcBlend = D3D11_BLEND_SRC_ALPHA;
-    brte.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-    brte.BlendOp = D3D11_BLEND_OP_ADD;
-    brte.SrcBlendAlpha = D3D11_BLEND_ZERO;
-    brte.DestBlendAlpha = D3D11_BLEND_ZERO;
-    brte.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-    brte.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-    D3D_THROW_IF_INFO(device->CreateBlendState(&blendDescEnabled, &m_pBlendStateEnabled));
-    //blending disabled
-    D3D11_BLEND_DESC blendDescDisabled = {};
-    auto& brtd = blendDescDisabled.RenderTarget[0];
-    brtd.BlendEnable = FALSE;
-    brtd.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-    D3D_THROW_IF_INFO(device->CreateBlendState(&blendDescDisabled, &m_pBlendStateDisabled));
+    m_pBlendStateEnabled = std::make_unique<BlendState>(renderer, true);
+    m_pBlendStateDisabled = std::make_unique<BlendState>(renderer, false);
 
     // create rasterizer states
     // backface culling disabled
@@ -522,7 +506,8 @@ void Scene::DrawGrass()
     m_pGrassInputLayout->Bind(renderer);
 
     // Enable alpha blending
-    D3D_THROW_IF_INFO(context->OMSetBlendState(m_pBlendStateEnabled.Get(), nullptr, 0xFFFFFFFFu));
+    m_pBlendStateEnabled->Bind(renderer);
+
     // Disable backface culling
     D3D_THROW_IF_INFO(context->RSSetState(m_pRasterizerNoCull.Get()));
 
@@ -531,7 +516,8 @@ void Scene::DrawGrass()
     D3D_THROW_IF_INFO(context->DrawIndexed(m_pGrassIndexBuffer->GetIndicesCount(), 0u, 0u));
 
     // Disable alpha blending
-    D3D_THROW_IF_INFO(context->OMSetBlendState(m_pBlendStateDisabled.Get(), nullptr, 0xFFFFFFFFu));
+    m_pBlendStateDisabled->Bind(renderer);
+
     // Enable backface culling
     D3D_THROW_IF_INFO(context->RSSetState(m_pRasterizerCull.Get()));
 }

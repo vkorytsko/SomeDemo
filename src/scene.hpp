@@ -9,6 +9,7 @@
 #include "debug_layer.hpp"
 #include "timer.hpp"
 
+#include "blend_state.hpp"
 #include "constant_buffer.hpp"
 #include "index_buffer.hpp"
 #include "input_layout.hpp"
@@ -154,11 +155,11 @@ private:
     std::unique_ptr<Texture> m_pGrassTexture;
     std::unique_ptr<Sampler> m_pGrassSampler;
     std::unique_ptr<ConstantBuffer<CB_transform>> m_pGrassTransformCB;
+    std::unique_ptr<BlendState> m_pBlendStateEnabled;
+    std::unique_ptr<BlendState> m_pBlendStateDisabled;
     dx::XMFLOAT3 m_grassPosition = { 0.0f, 0.0f, -1.0f };
     dx::XMFLOAT3 m_grassRotation = { 0.0f, 0.0f, 0.0f };
     dx::XMFLOAT3 m_grassScale = { 1.0f, 1.0f, 1.0f };
-    wrl::ComPtr<ID3D11BlendState> m_pBlendStateEnabled;
-    wrl::ComPtr<ID3D11BlendState> m_pBlendStateDisabled;
     wrl::ComPtr<ID3D11RasterizerState> m_pRasterizerNoCull;
     wrl::ComPtr<ID3D11RasterizerState> m_pRasterizerCull;
 

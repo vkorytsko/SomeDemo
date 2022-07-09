@@ -6,6 +6,7 @@ set(SOURCES
     main.cpp
 
     application.cpp
+    blend_state.cpp
     camera.cpp
     debug_layer.cpp
     exceptions.cpp
@@ -22,6 +23,7 @@ set(SOURCES
 )
 set(HEADERS
     application.hpp
+	blend_state.hpp
     camera.hpp
     constant_buffer.hpp
     debug_layer.hpp
