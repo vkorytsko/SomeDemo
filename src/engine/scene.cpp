@@ -153,28 +153,6 @@ void Scene::SetupBox() {
     CB_material materialCB;
     materialCB.shiness = 32.0f;
     m_pBoxMaterialCB = std::make_unique<ConstantBuffer<CB_material>>(renderer, materialCB);
-
-    CB_posLight posLightCB;
-    posLightCB.ambient = { 0.2f, 0.2f, 0.2f };
-    posLightCB.diffuse = { 0.5f, 0.5f, 0.5f };
-    posLightCB.specular = { 1.0f, 1.0f, 1.0f };
-    posLightCB.attenuation = { 1.0f, 0.09f, 0.032f };
-    m_pBoxPosLightCB = std::make_unique<ConstantBuffer<CB_posLight>>(renderer, posLightCB);
-
-    CB_dirLight dirLightCB;
-    dirLightCB.direction = { 2.0f, 8.0f, 3.0f };
-    dirLightCB.ambient = { 0.05f, 0.05f, 0.05f };
-    dirLightCB.diffuse = { 0.4f, 0.4f, 0.4f };
-    dirLightCB.specular = { 0.5f, 0.5f, 0.5f };
-    m_pBoxDirLightCB = std::make_unique<ConstantBuffer<CB_dirLight>>(renderer, dirLightCB);
-
-    CB_spotLight spotLightCB;
-    spotLightCB.ambient = { 0.0f, 0.0f, 0.0f };
-    spotLightCB.diffuse = { 1.0f, 1.0f, 1.0f };
-    spotLightCB.specular = { 1.0f, 1.0f, 1.0f };
-    spotLightCB.attenuation = { 1.0f, 0.09f, 0.032f };
-    spotLightCB.cutOff = { std::cosf(DirectX::XMConvertToRadians(12.5f)), std::cosf(DirectX::XMConvertToRadians(15.0f)) };
-    m_pBoxSpotLightCB = std::make_unique<ConstantBuffer<CB_spotLight>>(renderer, spotLightCB);
 }
 
 void Scene::SetupLight() {
@@ -225,6 +203,28 @@ void Scene::SetupLight() {
     CB_color colorCB;
     colorCB.color = m_lightColor;
     m_pLightColorCB = std::make_unique<ConstantBuffer<CB_color>>(renderer, colorCB);
+
+    CB_posLight posLightCB;
+    posLightCB.ambient = { 0.2f, 0.2f, 0.2f };
+    posLightCB.diffuse = { 0.5f, 0.5f, 0.5f };
+    posLightCB.specular = { 1.0f, 1.0f, 1.0f };
+    posLightCB.attenuation = { 1.0f, 0.09f, 0.032f };
+    m_pPosLightCB = std::make_unique<ConstantBuffer<CB_posLight>>(renderer, posLightCB);
+
+    CB_dirLight dirLightCB;
+    dirLightCB.direction = { 2.0f, 8.0f, 3.0f };
+    dirLightCB.ambient = { 0.05f, 0.05f, 0.05f };
+    dirLightCB.diffuse = { 0.1f, 0.1f, 0.1f };
+    dirLightCB.specular = { 0.5f, 0.5f, 0.5f };
+    m_pDirLightCB = std::make_unique<ConstantBuffer<CB_dirLight>>(renderer, dirLightCB);
+
+    CB_spotLight spotLightCB;
+    spotLightCB.ambient = { 0.0f, 0.0f, 0.0f };
+    spotLightCB.diffuse = { 0.5f, 0.5f, 0.5f };
+    spotLightCB.specular = { 1.0f, 1.0f, 1.0f };
+    spotLightCB.attenuation = { 1.0f, 0.09f, 0.032f };
+    spotLightCB.cutOff = { std::cosf(DirectX::XMConvertToRadians(12.5f)), std::cosf(DirectX::XMConvertToRadians(15.0f)) };
+    m_pSpotLightCB = std::make_unique<ConstantBuffer<CB_spotLight>>(renderer, spotLightCB);
 }
 
 void Scene::SetupGrass() {
@@ -285,14 +285,14 @@ void Scene::SetupFloor()
     const auto& renderer = app->GetRenderer();
 
     // create vertex buffer
-    const std::vector<Vertex> vertices =
+    const std::vector<Vertex3> vertices =
     {
-        {{ -20.0f, 0.0f, -20.0f }, {0.0f,  10.0f}},
-        {{  20.0f, 0.0f, -20.0f }, {10.0f, 10.0f}},
-        {{ -20.0f, 0.0f,  20.0f }, {0.0f,  0.0f}},
-        {{  20.0f, 0.0f,  20.0f }, {10.0f, 0.0f}},
+        {{ -20.0f, 0.0f, -20.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f,  10.0f }},
+        {{  20.0f, 0.0f, -20.0f }, { 0.0f, 1.0f, 0.0f }, { 10.0f, 10.0f }},
+        {{ -20.0f, 0.0f,  20.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f,  0.0f }},
+        {{  20.0f, 0.0f,  20.0f }, { 0.0f, 1.0f, 0.0f }, { 10.0f, 0.0f }},
     };
-    m_pFloorVertexBuffer = std::make_unique<VertexBuffer<Vertex>>(renderer, vertices);
+    m_pFloorVertexBuffer = std::make_unique<VertexBuffer<Vertex3>>(renderer, vertices);
 
     // create index buffer
     const std::vector<unsigned short> indices =
@@ -302,19 +302,21 @@ void Scene::SetupFloor()
     m_pFloorIndexBuffer = std::make_unique<IndexBuffer>(renderer, indices);
 
     // create shaders
-    m_pFloorVertexShader = std::make_unique<VertexShader>(renderer, L"texture.vs.cso");
-    m_pFloorPixelShader = std::make_unique<PixelShader>(renderer, L"texture.ps.cso");
+    m_pFloorVertexShader = std::make_unique<VertexShader>(renderer, L"phong.vs.cso");
+    m_pFloorPixelShader = std::make_unique<PixelShader>(renderer, L"phong.ps.cso");
 
     // create input (vertex) layout
     const std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
     m_pFloorInputLayout = std::make_unique<InputLayout>(app->GetRenderer(), inputLayoutDesc, m_pFloorVertexShader->GetBytecode());
 
     // create textures
-    m_pFloorTexture = std::make_unique<Texture>(renderer, L"marble.jpg");
+    m_pFloorDiffuseTexture = std::make_unique<Texture>(renderer, L"wood.png");
+    m_pFloorSpecularTexture = std::make_unique<Texture>(renderer, L"wood_specular.png");
 
     // create texture sampler
     m_pFloorSampler = std::make_unique<Sampler>(renderer);
@@ -322,6 +324,10 @@ void Scene::SetupFloor()
     // create constant buffers
     CB_transform transformCB;
     m_pFloorTransformCB = std::make_unique<ConstantBuffer<CB_transform>>(renderer, transformCB);
+
+    CB_material materialCB;
+    materialCB.shiness = 32.0f;
+    m_pFloorMaterialCB = std::make_unique<ConstantBuffer<CB_material>>(renderer, materialCB);
 }
 
 void Scene::SimulateBox(float /* dt */)
@@ -359,16 +365,6 @@ void Scene::UpdateBox(float /* dt */)
     transformCB->projection = camera->getProjection();
     transformCB->viewPosition = camera->getPosition();
     m_pBoxTransformCB->Update(renderer);
-
-    const auto& posLightCB = m_pBoxPosLightCB->GetData();
-    posLightCB->position = m_lightPosition;
-    m_pBoxPosLightCB->Update(renderer);
-
-    const auto& spotLightCB = m_pBoxSpotLightCB->GetData();
-    spotLightCB->position = camera->getPosition();
-    spotLightCB->direction = camera->getDirection();
-    spotLightCB->enabled = GetKeyState('F') < 0 ? 1 : 0;  // Is "F" pressed
-    m_pBoxSpotLightCB->Update(renderer);
 }
 
 void Scene::UpdateLight(float dt)
@@ -383,6 +379,16 @@ void Scene::UpdateLight(float dt)
     transformCB->projection = camera->getProjection();
     transformCB->viewPosition = camera->getPosition();
     m_pLightTransformCB->Update(renderer);
+
+    const auto& posLightCB = m_pPosLightCB->GetData();
+    posLightCB->position = m_lightPosition;
+    m_pPosLightCB->Update(renderer);
+
+    const auto& spotLightCB = m_pSpotLightCB->GetData();
+    spotLightCB->position = camera->getPosition();
+    spotLightCB->direction = camera->getDirection();
+    spotLightCB->enabled = GetKeyState('F') < 0 ? 1 : 0;  // Is "F" pressed
+    m_pSpotLightCB->Update(renderer);
 }
 
 void Scene::UpdateGrass(float dt)
@@ -434,9 +440,9 @@ void Scene::DrawBox()
     // bind constant buffers
     m_pBoxTransformCB->VSBind(renderer, 0u);
     m_pBoxMaterialCB->PSBind(renderer, 0u);
-    m_pBoxPosLightCB->PSBind(renderer, 1u);
-    m_pBoxDirLightCB->PSBind(renderer, 2u);
-    m_pBoxSpotLightCB->PSBind(renderer, 3u);
+    m_pPosLightCB->PSBind(renderer, 1u);
+    m_pDirLightCB->PSBind(renderer, 2u);
+    m_pSpotLightCB->PSBind(renderer, 3u);
 
     // bind textures
     m_pBoxDiffuseTexture->Bind(renderer, 0u);
@@ -550,9 +556,11 @@ void Scene::DrawFloor()
 
     // bind constant buffers
     m_pFloorTransformCB->VSBind(renderer, 0u);
+    m_pFloorMaterialCB->PSBind(renderer, 0u);
 
     // bind textures
-    m_pFloorTexture->Bind(renderer, 0u);
+    m_pFloorDiffuseTexture->Bind(renderer, 0u);
+    m_pFloorSpecularTexture->Bind(renderer, 1u);
 
     // bind texture sampler
     m_pFloorSampler->Bind(renderer);

@@ -139,9 +139,6 @@ private:
 
     std::unique_ptr<RENDER::ConstantBuffer<CB_transform>> m_pBoxTransformCB;
     std::unique_ptr<RENDER::ConstantBuffer<CB_material>> m_pBoxMaterialCB;
-    std::unique_ptr<RENDER::ConstantBuffer<CB_posLight>> m_pBoxPosLightCB;
-    std::unique_ptr<RENDER::ConstantBuffer<CB_dirLight>> m_pBoxDirLightCB;
-    std::unique_ptr<RENDER::ConstantBuffer<CB_spotLight>> m_pBoxSpotLightCB;
 
     DirectX::XMFLOAT3 m_boxPosition = { 0.0f, 0.0f, 0.0f };
     DirectX::XMFLOAT3 m_boxRotation = { 0.0f, 0.0f, 0.0f };
@@ -156,6 +153,9 @@ private:
 
     std::unique_ptr<RENDER::ConstantBuffer<CB_transform>> m_pLightTransformCB;
     std::unique_ptr<RENDER::ConstantBuffer<CB_color>> m_pLightColorCB;
+    std::unique_ptr<RENDER::ConstantBuffer<CB_posLight>> m_pPosLightCB;
+    std::unique_ptr<RENDER::ConstantBuffer<CB_dirLight>> m_pDirLightCB;
+    std::unique_ptr<RENDER::ConstantBuffer<CB_spotLight>> m_pSpotLightCB;
 
     DirectX::XMFLOAT3 m_lightPosition = { 0.0f, 2.0f, 0.0f };
     DirectX::XMFLOAT3 m_lightRotation = { 0.0f, 0.0f, 0.0f };
@@ -182,15 +182,17 @@ private:
     DirectX::XMFLOAT3 m_grassScale = { 1.0f, 1.0f, 1.0f };
 
     // Floor
-    std::unique_ptr<RENDER::VertexBuffer<Vertex>> m_pFloorVertexBuffer;
+    std::unique_ptr<RENDER::VertexBuffer<Vertex3>> m_pFloorVertexBuffer;
     std::unique_ptr<RENDER::IndexBuffer> m_pFloorIndexBuffer;
     std::unique_ptr<RENDER::VertexShader> m_pFloorVertexShader;
     std::unique_ptr<RENDER::PixelShader> m_pFloorPixelShader;
     std::unique_ptr<RENDER::InputLayout> m_pFloorInputLayout;
-    std::unique_ptr<RENDER::Texture> m_pFloorTexture;
+    std::unique_ptr<RENDER::Texture> m_pFloorDiffuseTexture;
+    std::unique_ptr<RENDER::Texture> m_pFloorSpecularTexture;
     std::unique_ptr<RENDER::Sampler> m_pFloorSampler;
 
     std::unique_ptr<RENDER::ConstantBuffer<CB_transform>> m_pFloorTransformCB;
+    std::unique_ptr<RENDER::ConstantBuffer<CB_material>> m_pFloorMaterialCB;
 
     DirectX::XMFLOAT3 m_floorPosition = { 0.0f, -0.5f, 0.0f };
     DirectX::XMFLOAT3 m_floorRotation = { 0.0f, 0.0f, 0.0f };
