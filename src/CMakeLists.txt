@@ -67,12 +67,14 @@ set(RENDER_HEADERS
 source_group("render" FILES ${RENDER_SOURCES} ${RENDER_HEADERS})
 
 set(VERTEX_SHADERS
+    ${SHADERS_SOURCE_DIR}blinn_phong.vs.hlsl
     ${SHADERS_SOURCE_DIR}color.vs.hlsl
     ${SHADERS_SOURCE_DIR}light.vs.hlsl
     ${SHADERS_SOURCE_DIR}phong.vs.hlsl
     ${SHADERS_SOURCE_DIR}texture.vs.hlsl
 )
 set(PIXEL_SHADERS
+    ${SHADERS_SOURCE_DIR}blinn_phong.ps.hlsl
     ${SHADERS_SOURCE_DIR}color.ps.hlsl
     ${SHADERS_SOURCE_DIR}light.ps.hlsl
     ${SHADERS_SOURCE_DIR}phong.ps.hlsl
@@ -81,9 +83,9 @@ set(PIXEL_SHADERS
 source_group("shaders" FILES ${VERTEX_SHADERS} ${PIXEL_SHADERS})
 
 set_property(SOURCE ${VERTEX_SHADERS} PROPERTY VS_SHADER_TYPE Vertex)
-set_property(SOURCE ${VERTEX_SHADERS} PROPERTY VS_SHADER_MODEL 4.0_level_9_3)
+set_property(SOURCE ${VERTEX_SHADERS} PROPERTY VS_SHADER_MODEL 5.0)
 set_property(SOURCE ${PIXEL_SHADERS} PROPERTY VS_SHADER_TYPE Pixel)
-set_property(SOURCE ${PIXEL_SHADERS} PROPERTY VS_SHADER_MODEL 4.0_level_9_3)
+set_property(SOURCE ${PIXEL_SHADERS} PROPERTY VS_SHADER_MODEL 5.0)
 
 add_executable(${TARGET_NAME}
     ${SOURCES} ${HEADERS}

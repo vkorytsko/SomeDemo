@@ -127,8 +127,8 @@ void Scene::SetupBox() {
     m_pBoxIndexBuffer = std::make_unique<IndexBuffer>(renderer, indices);
 
     // create shaders
-    m_pBoxVertexShader = std::make_unique<VertexShader>(renderer, L"phong.vs.cso");
-    m_pBoxPixelShader = std::make_unique<PixelShader>(renderer, L"phong.ps.cso");
+    m_pBoxVertexShader = std::make_unique<VertexShader>(renderer, L"blinn_phong.vs.cso");
+    m_pBoxPixelShader = std::make_unique<PixelShader>(renderer, L"blinn_phong.ps.cso");
 
     // create input (vertex) layout
     const std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc =
@@ -302,8 +302,8 @@ void Scene::SetupFloor()
     m_pFloorIndexBuffer = std::make_unique<IndexBuffer>(renderer, indices);
 
     // create shaders
-    m_pFloorVertexShader = std::make_unique<VertexShader>(renderer, L"phong.vs.cso");
-    m_pFloorPixelShader = std::make_unique<PixelShader>(renderer, L"phong.ps.cso");
+    m_pFloorVertexShader = std::make_unique<VertexShader>(renderer, L"blinn_phong.vs.cso");
+    m_pFloorPixelShader = std::make_unique<PixelShader>(renderer, L"blinn_phong.ps.cso");
 
     // create input (vertex) layout
     const std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc =
