@@ -57,6 +57,9 @@ int Application::Run()
 		m_pScene->Update(dt);
 		m_pCamera->Update(dt);
 
+		m_pRenderer->BeginShadowMap();
+		m_pScene->ShadowMap();
+
 		m_pRenderer->BeginFrame();
 		m_pScene->Draw();
 		m_pRenderer->EndFrame();

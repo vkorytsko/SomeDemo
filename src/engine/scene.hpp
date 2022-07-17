@@ -43,6 +43,12 @@ public:
         DirectX::XMFLOAT2 uv;
     };
 
+    struct Vertex4
+    {
+        DirectX::XMFLOAT2 pos;
+        DirectX::XMFLOAT2 uv;
+    };
+
     struct CB_transform
     {
         DirectX::XMMATRIX model;
@@ -97,6 +103,7 @@ public:
 	void Setup();
 	void Simulate(float dt);
 	void Update(float dt);
+    void ShadowMap();
 	void Draw();
 
 private:
@@ -120,12 +127,36 @@ private:
     void DrawGrass();
     void DrawFloor();
 
+    void SetupShadowMap();
+    void UpdateShadowMap(float dt);
+    void DrawShadowMap();
+
+    void SetupShadowMapDebug();
+    void UpdateShadowMapDebug(float dt);
+    void DrawShadowMapDebug();
+
+    bool IsSpotLightEnabled();
+    bool IsShadowMapDebugEnabled();
+
     DirectX::XMMATRIX GetModelMatrix(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& rotation, const DirectX::XMFLOAT3& scale) const;
 
 private:
     // Common
     std::unique_ptr<Timer> m_pTimer;
     float m_simulationTime = 0.0f;
+
+    // Shadow Map
+    std::unique_ptr<RENDER::VertexShader> m_pSMVertexShader;
+    std::unique_ptr<RENDER::InputLayout> m_pSMInputLayout;
+    std::unique_ptr<RENDER::ConstantBuffer<CB_transform>> m_pSMBoxTransformCB;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_pSMRasterizer;
+    // Shadow Map debug
+    std::unique_ptr<RENDER::VertexBuffer<Vertex4>> m_pSMDebugVertexBuffer;
+    std::unique_ptr<RENDER::IndexBuffer> m_pSMDebugIndexBuffer;
+    std::unique_ptr<RENDER::InputLayout> m_pSMDebugInputLayout;
+    std::unique_ptr<RENDER::VertexShader> m_pSMDebugVertexShader;
+    std::unique_ptr<RENDER::PixelShader> m_pSMDebugPixelShader;
+    std::unique_ptr<RENDER::Sampler> m_pSMDebugSampler;
 
     // Box
     std::unique_ptr<RENDER::VertexBuffer<Vertex3>> m_pBoxVertexBuffer;

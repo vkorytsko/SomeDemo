@@ -43,6 +43,7 @@ cbuffer spotLight : register(b3)
 
 Texture2D diffuseTexture : TEXTURE : register(t0);
 Texture2D specularTexture : TEXTURE : register(t1);
+Texture2D shadowMap : TEXTURE : register(t2);
 SamplerState samplerState : SAMPLER : register(s0);
 
 

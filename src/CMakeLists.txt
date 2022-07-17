@@ -71,6 +71,8 @@ set(VERTEX_SHADERS
     ${SHADERS_SOURCE_DIR}color.vs.hlsl
     ${SHADERS_SOURCE_DIR}light.vs.hlsl
     ${SHADERS_SOURCE_DIR}phong.vs.hlsl
+    ${SHADERS_SOURCE_DIR}shadow_map.vs.hlsl
+    ${SHADERS_SOURCE_DIR}shadow_map_debug.vs.hlsl
     ${SHADERS_SOURCE_DIR}texture.vs.hlsl
 )
 set(PIXEL_SHADERS
@@ -78,6 +80,7 @@ set(PIXEL_SHADERS
     ${SHADERS_SOURCE_DIR}color.ps.hlsl
     ${SHADERS_SOURCE_DIR}light.ps.hlsl
     ${SHADERS_SOURCE_DIR}phong.ps.hlsl
+	${SHADERS_SOURCE_DIR}shadow_map_debug.ps.hlsl
     ${SHADERS_SOURCE_DIR}texture.ps.hlsl
 )
 source_group("shaders" FILES ${VERTEX_SHADERS} ${PIXEL_SHADERS})

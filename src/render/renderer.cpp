@@ -48,16 +48,16 @@ Renderer::Renderer()
         0,
         D3D11_SDK_VERSION,
         &sd,
-        &m_pSwapChain,
-        &m_pD3dDevice,
+        m_pSwapChain.GetAddressOf(),
+        m_pD3dDevice.GetAddressOf(),
         nullptr,
-        &m_pD3dContext
+        m_pD3dContext.GetAddressOf()
     ));
 
     // gain access to texture subresource in swap chain (back buffer)
     Microsoft::WRL::ComPtr<ID3D11Resource> pBackBuffer;
     D3D_THROW_INFO_EXCEPTION(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Resource), &pBackBuffer));
-    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &m_pRenderTargetView));
+    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, m_pRenderTargetView.GetAddressOf()));
 
     // create depth stensil state
     D3D11_DEPTH_STENCIL_DESC dsDesc = {};
@@ -65,7 +65,7 @@ Renderer::Renderer()
     dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
     dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
-    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateDepthStencilState(&dsDesc, &pDSState));
+    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateDepthStencilState(&dsDesc, pDSState.GetAddressOf()));
 
     // bind depth state
     D3D_THROW_IF_INFO(m_pD3dContext->OMSetDepthStencilState(pDSState.Get(), 1u));
@@ -82,17 +82,38 @@ Renderer::Renderer()
     descDepth.SampleDesc.Quality = 0u;
     descDepth.Usage = D3D11_USAGE_DEFAULT;
     descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateTexture2D(&descDepth, nullptr, &pDepthStencil));
+    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateTexture2D(&descDepth, nullptr, pDepthStencil.GetAddressOf()));
 
     // create view of depth stensil texture
     D3D11_DEPTH_STENCIL_VIEW_DESC descDSV = {};
     descDSV.Format = DXGI_FORMAT_D32_FLOAT;
     descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     descDSV.Texture2D.MipSlice = 0u;
-    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateDepthStencilView(pDepthStencil.Get(), &descDSV, &m_pDepthStencilView));
+    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateDepthStencilView(pDepthStencil.Get(), &descDSV, m_pDepthStencilView.GetAddressOf()));
 
-    // bind render target and depth stensil view to OM
-    D3D_THROW_IF_INFO(m_pD3dContext->OMSetRenderTargets(1u, m_pRenderTargetView.GetAddressOf(), m_pDepthStencilView.Get()));
+    // create shadow map texture
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> pShadowMap;
+    D3D11_TEXTURE2D_DESC shadowMap = {};
+    shadowMap.Width = static_cast<UINT>(width);
+    shadowMap.Height = static_cast<UINT>(height);
+    shadowMap.MipLevels = 1u;
+    shadowMap.ArraySize = 1u;
+    shadowMap.Format = DXGI_FORMAT_R32_TYPELESS;
+    shadowMap.SampleDesc.Count = 1u;
+    shadowMap.SampleDesc.Quality = 0u;
+    shadowMap.Usage = D3D11_USAGE_DEFAULT;
+    shadowMap.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateTexture2D(&shadowMap, nullptr, pShadowMap.GetAddressOf()));
+
+    // create view of shadow map
+    D3D11_DEPTH_STENCIL_VIEW_DESC descSMDSV = {};
+    descSMDSV.Format = DXGI_FORMAT_D32_FLOAT;
+    descSMDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    descSMDSV.Texture2D.MipSlice = 0u;
+    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateDepthStencilView(pShadowMap.Get(), &descSMDSV, m_pSMDepthStencilView.GetAddressOf()));
+
+    CD3D11_SHADER_RESOURCE_VIEW_DESC descSMSRV(D3D11_SRV_DIMENSION_TEXTURE2D, DXGI_FORMAT_R32_FLOAT, 0, 1);
+    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateShaderResourceView(pShadowMap.Get(), &descSMSRV, m_pShadowMapSRV.GetAddressOf()));
 
     // configure viewport
     D3D11_VIEWPORT vp;
@@ -102,7 +123,17 @@ Renderer::Renderer()
     vp.MaxDepth = 1;
     vp.TopLeftX = 0;
     vp.TopLeftY = 0;
-    m_pD3dContext->RSSetViewports(1u, &vp);
+    D3D_THROW_IF_INFO(m_pD3dContext->RSSetViewports(1u, &vp));
+}
+
+void Renderer::BeginShadowMap()
+{
+    D3D_DEBUG_LAYER(this);
+
+    D3D_THROW_IF_INFO(m_pD3dContext->ClearDepthStencilView(m_pSMDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
+
+    ID3D11RenderTargetView* nullRenderTarget = nullptr;
+    D3D_THROW_IF_INFO(m_pD3dContext->OMSetRenderTargets(1u, &nullRenderTarget, m_pSMDepthStencilView.Get()));
 }
 
 void Renderer::BeginFrame()
@@ -112,13 +143,15 @@ void Renderer::BeginFrame()
     const float color[] = { EMPTY_COLOR.x, EMPTY_COLOR.y, EMPTY_COLOR.z, 1.0f };
     D3D_THROW_IF_INFO(m_pD3dContext->ClearRenderTargetView(m_pRenderTargetView.Get(), color));
     D3D_THROW_IF_INFO(m_pD3dContext->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
+
+    D3D_THROW_IF_INFO(m_pD3dContext->OMSetRenderTargets(1u, m_pRenderTargetView.GetAddressOf(), m_pDepthStencilView.Get()));
 }
 
 void Renderer::EndFrame()
 {
     D3D_DEBUG_LAYER(this);
 
-    m_debugLayer->Set();
+    debugLayer->Set();
 
     HRESULT hr;
     // First argument for VSync

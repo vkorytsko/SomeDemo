@@ -28,6 +28,9 @@ Scene::~Scene()
 
 void Scene::Setup()
 {
+    SetupShadowMap();
+    SetupShadowMapDebug();
+
     SetupBox();
     SetupLight();
     SetupFloor();
@@ -47,6 +50,9 @@ void Scene::Simulate(float dt)
 
 void Scene::Update(float dt)
 {
+    UpdateShadowMap(dt);
+    UpdateShadowMapDebug(dt);
+
     UpdateBox(dt);
     UpdateLight(dt);
     UpdateGrass(dt);
@@ -55,11 +61,23 @@ void Scene::Update(float dt)
 
 void Scene::Draw()
 {
-    DrawBox();
-    DrawLight();
-    DrawFloor();
+    if (IsShadowMapDebugEnabled())  // Is "F" pressed
+    {
+        DrawShadowMapDebug();
+    }
+    else
+    {
+        DrawBox();
+        DrawLight();
+        DrawFloor();
 
-    DrawGrass(); // Alpha blending
+        DrawGrass();  // Alpha blending
+    }
+}
+
+void Scene::ShadowMap()
+{
+    DrawShadowMap();
 }
 
 void Scene::SetupBox() {
@@ -387,7 +405,7 @@ void Scene::UpdateLight(float dt)
     const auto& spotLightCB = m_pSpotLightCB->GetData();
     spotLightCB->position = camera->getPosition();
     spotLightCB->direction = camera->getDirection();
-    spotLightCB->enabled = GetKeyState('F') < 0 ? 1 : 0;  // Is "F" pressed
+    spotLightCB->enabled = IsSpotLightEnabled() ? 1 : 0;
     m_pSpotLightCB->Update(renderer);
 }
 
@@ -447,6 +465,7 @@ void Scene::DrawBox()
     // bind textures
     m_pBoxDiffuseTexture->Bind(renderer, 0u);
     m_pBoxSpecularTexture->Bind(renderer, 1u);
+    D3D_THROW_IF_INFO(context->PSSetShaderResources(2u, 1u, renderer->m_pShadowMapSRV.GetAddressOf()));
 
     // bind texture sampler
     m_pBoxSampler->Bind(renderer);
@@ -457,6 +476,10 @@ void Scene::DrawBox()
     // Draw
     D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
     D3D_THROW_IF_INFO(context->DrawIndexed(m_pBoxIndexBuffer->GetIndicesCount(), 0u, 0u));
+
+    // Unbind SRV
+    ID3D11ShaderResourceView* nullSRV = nullptr;
+    D3D_THROW_IF_INFO(context->PSSetShaderResources(2u, 1u, &nullSRV));
 }
 
 void Scene::DrawLight()
@@ -571,6 +594,181 @@ void Scene::DrawFloor()
     // Draw
     D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
     D3D_THROW_IF_INFO(context->DrawIndexed(m_pFloorIndexBuffer->GetIndicesCount(), 0u, 0u));
+}
+
+void Scene::SetupShadowMap()
+{
+    const auto& app = Application::GetApplication();
+    const auto& renderer = app->GetRenderer();
+    const auto& device = renderer->GetDevice();
+
+    // create shaders
+    m_pSMVertexShader = std::make_unique<VertexShader>(renderer, L"shadow_map.vs.cso");
+
+    // create input (vertex) layout
+    const std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    };
+    m_pSMInputLayout = std::make_unique<InputLayout>(renderer, inputLayoutDesc, m_pSMVertexShader->GetBytecode());
+
+    // create constant buffers
+    CB_transform transformCB;
+    m_pSMBoxTransformCB = std::make_unique<ConstantBuffer<CB_transform>>(renderer, transformCB);
+
+    CD3D11_RASTERIZER_DESC drd(
+        D3D11_FILL_SOLID,  // FillMode
+        D3D11_CULL_NONE,  // CullMode
+        FALSE,  // FrontCounterClockwise
+        0,  // DepthBias
+        0.f,  // DepthBiasClamp
+        0.f,  // SlopeScaledDepthBias
+        FALSE,  // DepthClipEnable
+        FALSE,  // ScissorEnable
+        FALSE,  // MultisampleEnable
+        FALSE  // AntialiasedLineEnable
+    );
+
+    device->CreateRasterizerState(&drd, m_pSMRasterizer.GetAddressOf());
+}
+
+void Scene::SetupShadowMapDebug()
+{
+    const auto& app = Application::GetApplication();
+    const auto& renderer = app->GetRenderer();
+
+    // create vertex buffer
+    const std::vector<Vertex4> vertices =
+    {
+        {{ -1.0f, -1.0f }, { 0.0f, 1.0f }},
+        {{  1.0f, -1.0f }, { 1.0f, 1.0f }},
+        {{ -1.0f,  1.0f }, { 0.0f, 0.0f }},
+        {{  1.0f,  1.0f }, { 1.0f, 0.0f }},
+    };
+    m_pSMDebugVertexBuffer = std::make_unique<VertexBuffer<Vertex4>>(renderer, vertices);
+
+    // create index buffer
+    const std::vector<unsigned short> indices =
+    {
+        0, 2, 1,  2, 3, 1,
+    };
+    m_pSMDebugIndexBuffer = std::make_unique<IndexBuffer>(renderer, indices);
+
+    // create shaders
+    m_pSMDebugVertexShader = std::make_unique<VertexShader>(renderer, L"shadow_map_debug.vs.cso");
+    m_pSMDebugPixelShader = std::make_unique<PixelShader>(renderer, L"shadow_map_debug.ps.cso");
+
+    // create input (vertex) layout
+    const std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    };
+    m_pSMDebugInputLayout = std::make_unique<InputLayout>(renderer, inputLayoutDesc, m_pSMDebugVertexShader->GetBytecode());
+
+    // create texture sampler
+    m_pSMDebugSampler = std::make_unique<Sampler>(renderer);
+}
+
+void Scene::UpdateShadowMap(float /* dt */)
+{
+    const auto& app = Application::GetApplication();
+    const auto& camera = app->GetCamera();
+    const auto& renderer = app->GetRenderer();
+
+    const auto& transformCB = m_pSMBoxTransformCB->GetData();
+    transformCB->model = GetModelMatrix(m_boxPosition, m_boxRotation, m_boxScale);
+    transformCB->view = DirectX::XMMatrixLookAtLH(XMLoadFloat3(&m_lightPosition), XMLoadFloat3(&m_boxPosition), { 0.0f, 1.0f, 0.0f, 0.0f });  // fixme
+    //transformCB->view = camera->getView();
+    transformCB->projection = camera->getProjection();  // fixme
+    transformCB->viewPosition = m_lightPosition;
+    m_pSMBoxTransformCB->Update(renderer);
+}
+
+void Scene::UpdateShadowMapDebug(float /* dt */)
+{
+
+}
+
+void Scene::DrawShadowMap()
+{
+    const auto& app = Application::GetApplication();
+    const auto& renderer = app->GetRenderer();
+    const auto& context = renderer->GetContext();
+
+    D3D_DEBUG_LAYER(renderer);
+
+    // Bind vertex buffer
+    m_pBoxVertexBuffer->Bind(renderer);
+
+    // Bind index buffer
+    m_pBoxIndexBuffer->Bind(renderer);
+
+    // bind shaders
+    m_pSMVertexShader->Bind(renderer);
+    D3D_THROW_IF_INFO(context->PSSetShader(nullptr, nullptr, 0u));
+
+    // bind vertex layout
+    m_pSMInputLayout->Bind(renderer);
+
+    // bind constant buffers
+    m_pSMBoxTransformCB->VSBind(renderer, 0u);
+
+    // Set rasterizer
+    D3D_THROW_IF_INFO(context->RSSetState(m_pSMRasterizer.Get()));
+
+    // Draw
+    D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
+    D3D_THROW_IF_INFO(context->DrawIndexed(m_pBoxIndexBuffer->GetIndicesCount(), 0u, 0u));
+
+    // Reset rasterizer
+    m_pRasterizerCull->Bind(renderer);
+}
+
+void Scene::DrawShadowMapDebug()
+{
+    const auto& app = Application::GetApplication();
+    const auto& renderer = app->GetRenderer();
+    const auto& context = renderer->GetContext();
+
+    D3D_DEBUG_LAYER(renderer);
+
+    // Bind vertex buffer
+    m_pSMDebugVertexBuffer->Bind(renderer);
+
+    // Bind index buffer
+    m_pSMDebugIndexBuffer->Bind(renderer);
+
+    // bind shaders
+    m_pSMDebugVertexShader->Bind(renderer);
+    m_pSMDebugPixelShader->Bind(renderer);
+
+    // bind vertex layout
+    m_pSMDebugInputLayout->Bind(renderer);
+
+    // bind textures
+    D3D_THROW_IF_INFO(context->PSSetShaderResources(0u, 1u, renderer->m_pShadowMapSRV.GetAddressOf()));
+
+    // bind texture sampler
+    m_pSMDebugSampler->Bind(renderer);
+
+    // Draw
+    D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
+    D3D_THROW_IF_INFO(context->DrawIndexed(m_pSMDebugIndexBuffer->GetIndicesCount(), 0u, 0u));
+
+    // Unbind SRV
+    ID3D11ShaderResourceView* nullSRV = nullptr;
+    D3D_THROW_IF_INFO(context->PSSetShaderResources(0u, 1u, &nullSRV));
+}
+
+bool Scene::IsSpotLightEnabled()
+{
+    return GetKeyState('F') < 0;
+}
+
+bool Scene::IsShadowMapDebugEnabled()
+{
+    return GetKeyState('G') < 0;
 }
 
 DirectX::XMMATRIX Scene::GetModelMatrix(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& rotation, const DirectX::XMFLOAT3& scale) const

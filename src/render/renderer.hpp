@@ -29,6 +29,7 @@ public:
     Renderer(Renderer const&) = delete;
     Renderer& operator= (Renderer const&) = delete;
 
+    void BeginShadowMap();
     void BeginFrame();
     void EndFrame();
 
@@ -36,12 +37,17 @@ public:
     ID3D11DeviceContext* GetContext() const;
     DebugLayer* GetDebugLayer() const;
 
+public:
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pShadowMapSRV;
+
 private:
     Microsoft::WRL::ComPtr<ID3D11Device> m_pD3dDevice;
     Microsoft::WRL::ComPtr<IDXGISwapChain> m_pSwapChain;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_pD3dContext;
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_pDepthStencilView;
+
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_pSMDepthStencilView;
 
     std::unique_ptr<DebugLayer> m_debugLayer;
 
