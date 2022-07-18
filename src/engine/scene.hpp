@@ -76,6 +76,12 @@ public:
         alignas(16) DirectX::XMFLOAT3 attenuation;  // {constant, linear, quadratic}
     };
 
+    struct CB_posLightTransform
+    {
+        DirectX::XMMATRIX view;
+        DirectX::XMMATRIX projection;
+    };
+
     struct CB_dirLight
     {
         alignas(16) DirectX::XMFLOAT3 direction;
@@ -149,6 +155,7 @@ private:
     std::unique_ptr<RENDER::VertexShader> m_pSMVertexShader;
     std::unique_ptr<RENDER::InputLayout> m_pSMInputLayout;
     std::unique_ptr<RENDER::ConstantBuffer<CB_transform>> m_pSMBoxTransformCB;
+    std::unique_ptr<RENDER::ConstantBuffer<CB_posLightTransform>> m_pSMPosLightTransformCB;
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_pSMRasterizer;
     // Shadow Map debug
     std::unique_ptr<RENDER::VertexBuffer<Vertex4>> m_pSMDebugVertexBuffer;

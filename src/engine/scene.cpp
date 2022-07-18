@@ -457,6 +457,8 @@ void Scene::DrawBox()
 
     // bind constant buffers
     m_pBoxTransformCB->VSBind(renderer, 0u);
+    m_pSMPosLightTransformCB->VSBind(renderer, 1u);
+
     m_pBoxMaterialCB->PSBind(renderer, 0u);
     m_pPosLightCB->PSBind(renderer, 1u);
     m_pDirLightCB->PSBind(renderer, 2u);
@@ -579,11 +581,17 @@ void Scene::DrawFloor()
 
     // bind constant buffers
     m_pFloorTransformCB->VSBind(renderer, 0u);
+    m_pSMPosLightTransformCB->VSBind(renderer, 1u);
+
     m_pFloorMaterialCB->PSBind(renderer, 0u);
+    m_pPosLightCB->PSBind(renderer, 1u);
+    m_pDirLightCB->PSBind(renderer, 2u);
+    m_pSpotLightCB->PSBind(renderer, 3u);
 
     // bind textures
     m_pFloorDiffuseTexture->Bind(renderer, 0u);
     m_pFloorSpecularTexture->Bind(renderer, 1u);
+    D3D_THROW_IF_INFO(context->PSSetShaderResources(2u, 1u, renderer->m_pShadowMapSRV.GetAddressOf()));
 
     // bind texture sampler
     m_pFloorSampler->Bind(renderer);
@@ -594,6 +602,10 @@ void Scene::DrawFloor()
     // Draw
     D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
     D3D_THROW_IF_INFO(context->DrawIndexed(m_pFloorIndexBuffer->GetIndicesCount(), 0u, 0u));
+
+    // Unbind SRV
+    ID3D11ShaderResourceView* nullSRV = nullptr;
+    D3D_THROW_IF_INFO(context->PSSetShaderResources(2u, 1u, &nullSRV));
 }
 
 void Scene::SetupShadowMap()
@@ -615,6 +627,9 @@ void Scene::SetupShadowMap()
     // create constant buffers
     CB_transform transformCB;
     m_pSMBoxTransformCB = std::make_unique<ConstantBuffer<CB_transform>>(renderer, transformCB);
+
+    CB_posLightTransform posLightTransformCB;
+    m_pSMPosLightTransformCB = std::make_unique<ConstantBuffer<CB_posLightTransform>>(renderer, posLightTransformCB);
 
     CD3D11_RASTERIZER_DESC drd(
         D3D11_FILL_SOLID,  // FillMode
@@ -679,10 +694,14 @@ void Scene::UpdateShadowMap(float /* dt */)
     const auto& transformCB = m_pSMBoxTransformCB->GetData();
     transformCB->model = GetModelMatrix(m_boxPosition, m_boxRotation, m_boxScale);
     transformCB->view = DirectX::XMMatrixLookAtLH(XMLoadFloat3(&m_lightPosition), XMLoadFloat3(&m_boxPosition), { 0.0f, 1.0f, 0.0f, 0.0f });  // fixme
-    //transformCB->view = camera->getView();
     transformCB->projection = camera->getProjection();  // fixme
     transformCB->viewPosition = m_lightPosition;
     m_pSMBoxTransformCB->Update(renderer);
+
+    const auto& posLightTransformCB = m_pSMPosLightTransformCB->GetData();
+    posLightTransformCB->view = DirectX::XMMatrixLookAtLH(XMLoadFloat3(&m_lightPosition), XMLoadFloat3(&m_boxPosition), { 0.0f, 1.0f, 0.0f, 0.0f });
+    posLightTransformCB->projection = camera->getProjection();
+    m_pSMPosLightTransformCB->Update(renderer);
 }
 
 void Scene::UpdateShadowMapDebug(float /* dt */)
@@ -698,12 +717,6 @@ void Scene::DrawShadowMap()
 
     D3D_DEBUG_LAYER(renderer);
 
-    // Bind vertex buffer
-    m_pBoxVertexBuffer->Bind(renderer);
-
-    // Bind index buffer
-    m_pBoxIndexBuffer->Bind(renderer);
-
     // bind shaders
     m_pSMVertexShader->Bind(renderer);
     D3D_THROW_IF_INFO(context->PSSetShader(nullptr, nullptr, 0u));
@@ -711,11 +724,17 @@ void Scene::DrawShadowMap()
     // bind vertex layout
     m_pSMInputLayout->Bind(renderer);
 
-    // bind constant buffers
-    m_pSMBoxTransformCB->VSBind(renderer, 0u);
-
     // Set rasterizer
     D3D_THROW_IF_INFO(context->RSSetState(m_pSMRasterizer.Get()));
+
+    // Bind vertex buffer
+    m_pBoxVertexBuffer->Bind(renderer);
+
+    // Bind index buffer
+    m_pBoxIndexBuffer->Bind(renderer);
+
+    // bind constant buffers
+    m_pSMBoxTransformCB->VSBind(renderer, 0u);
 
     // Draw
     D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));

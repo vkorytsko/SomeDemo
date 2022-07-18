@@ -1,7 +1,8 @@
 struct PS_INPUIT
 {
     float4 pos : SV_POSITION;
-    float3 fragPos : FRAGPOS;
+    float4 fragPos : FRAGPOS_WS;
+    float4 fragPosLightSpace : FRAGPOS_LS;
     float3 viewPos : VIEWPOS;
     float3 normal : NORMAL;
     float2 uv : TEXCOORD;
@@ -48,20 +49,24 @@ SamplerState samplerState : SAMPLER : register(s0);
 
 
 float3 calcDirLight(float3 normal, float3 viewDir, float2 uv);
-float3 calcPointLight(float3 normal, float3 viewDir, float2 uv, float3 fragPos);
+float3 calcPointLight(float3 normal, float3 viewDir, float2 uv, float3 fragPos, float3 fragPosLightSpace);
 float3 calcSpotLight(float3 normal, float3 viewDir, float2 uv, float3 fragPos);
+float calcShadow(float3 fragPosLightSpace);
 
 
 float4 main(PS_INPUIT input) : SV_TARGET
 {
+    float3 fragPos = input.fragPos.xyz / input.fragPos.w;
+    float3 fragPosLightSpace = input.fragPosLightSpace.xyz / input.fragPosLightSpace.w;
+    
     float3 normal = normalize(input.normal);
-    float3 viewDir = normalize(input.viewPos - input.fragPos);
+    float3 viewDir = normalize(input.viewPos - fragPos);
 
     float3 color = calcDirLight(normal, viewDir, input.uv);
-    color += calcPointLight(normal, viewDir, input.uv, input.fragPos);
+    color += calcPointLight(normal, viewDir, input.uv, fragPos, fragPosLightSpace);
     if (slEnabled > 0)
     {
-        color += calcSpotLight(normal, viewDir, input.uv, input.fragPos);
+        color += calcSpotLight(normal, viewDir, input.uv, fragPos);
     }
     
     return float4(color, 1.0f);
@@ -90,7 +95,7 @@ float3 calcDirLight(float3 normal, float3 viewDir, float2 uv)
 }
 
 
-float3 calcPointLight(float3 normal, float3 viewDir, float2 uv, float3 fragPos)
+float3 calcPointLight(float3 normal, float3 viewDir, float2 uv, float3 fragPos, float3 fragPosLightSpace)
 {
     float3 lightDir = normalize(plPosition - fragPos);
     float3 halfwayDir = normalize(lightDir + viewDir);
@@ -106,10 +111,13 @@ float3 calcPointLight(float3 normal, float3 viewDir, float2 uv, float3 fragPos)
     float distance = length(plPosition - fragPos);
     float attenuation = 1.0 / (plAttenuation.x + plAttenuation.y * distance + plAttenuation.z * (distance * distance));
     
+    // shadow
+    float shadow = 1.0f - calcShadow(fragPosLightSpace);
+    
     // results
     float3 ambient = plAmbient * (float3) diffuseTexture.Sample(samplerState, uv) * attenuation;
-    float3 diffuse = plDiffuse * diff * (float3) diffuseTexture.Sample(samplerState, uv) * attenuation;
-    float3 specular = plSpecular * spec * (float3) specularTexture.Sample(samplerState, uv) * attenuation;
+    float3 diffuse = plDiffuse * diff * (float3) diffuseTexture.Sample(samplerState, uv) * attenuation * shadow;
+    float3 specular = plSpecular * spec * (float3) specularTexture.Sample(samplerState, uv) * attenuation * shadow;
 
     float3 color = ambient + diffuse + specular;
     
@@ -146,4 +154,20 @@ float3 calcSpotLight(float3 normal, float3 viewDir, float2 uv, float3 fragPos)
 
     return color;
 }
+
+float calcShadow(float3 fragPosLightSpace)
+{
+    if ((fragPosLightSpace.x > 1.0f || fragPosLightSpace.x < -1.0f) || (fragPosLightSpace.y > 1.0f || fragPosLightSpace.y < -1.0f) || (fragPosLightSpace.z > 1.0f || fragPosLightSpace.z < 0.0f))
+    {
+        return 0.0f;
+    }
+    
+    // back to NDC and flip y for texture mapping
+    float2 shadowDepthUV = fragPosLightSpace.xy * float2(0.5f, -0.5f) + float2(0.5f, 0.5f);
+    float shadowDepth = shadowMap.Sample(samplerState, shadowDepthUV).r;
+    float fragDepth = fragPosLightSpace.z;
+
+    return shadowDepth > fragDepth ? 0.0 : 1.0;
+}
+
 
