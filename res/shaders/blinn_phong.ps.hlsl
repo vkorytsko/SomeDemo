@@ -157,6 +157,8 @@ float3 calcSpotLight(float3 normal, float3 viewDir, float2 uv, float3 fragPos)
 
 float calcShadow(float3 fragPosLightSpace)
 {
+    float bias = 0.0005f;
+    fragPosLightSpace.z -= bias;
     if ((fragPosLightSpace.x > 1.0f || fragPosLightSpace.x < -1.0f) || (fragPosLightSpace.y > 1.0f || fragPosLightSpace.y < -1.0f) || (fragPosLightSpace.z > 1.0f || fragPosLightSpace.z < 0.0f))
     {
         return 0.0f;
