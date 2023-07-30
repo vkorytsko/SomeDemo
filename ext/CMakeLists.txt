@@ -8,3 +8,7 @@ set(BUILD_DX11 OFF)
 set(BUILD_DX12 OFF)
 set(BC_USE_OPENMP OFF)
 add_subdirectory(DirectXTex)
+
+set(TINYGLTF_HEADER_ONLY ON CACHE INTERNAL "" FORCE)
+set(TINYGLTF_INSTALL OFF CACHE INTERNAL "" FORCE)
+add_subdirectory(tinygltf)

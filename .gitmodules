@@ -4,3 +4,6 @@
 [submodule "ext/DirectXTex"]
 	path = ext/DirectXTex
 	url = https://github.com/microsoft/DirectXTex.git
+[submodule "ext/tinygltf"]
+	path = ext/tinygltf
+	url = https://github.com/syoyo/tinygltf.git

@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include "scene.hpp"
 
 #include <iostream>
@@ -6,8 +8,43 @@
 #include "application.hpp"
 #include "exceptions.hpp"
 
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STBI_MSC_SECURE_CRT 
+
+#include "tiny_gltf.h"
+
 
 namespace SD::ENGINE {
+
+namespace
+{
+void testModelLoading()
+{
+    tinygltf::Model model;
+    tinygltf::TinyGLTF loader;
+    std::string err;
+    std::string warn;
+
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "..\\ext\\tinygltf\\models\\Cube\\Cube.gltf");
+
+    if (!warn.empty())
+    {
+        std::clog << "TinyGLTF Warning: " << warn << std::endl;
+    }
+
+    if (!err.empty())
+    {
+        std::clog << "TinyGLTF Error: " << err << std::endl;
+    }
+
+    if (!ret)
+    {
+        std::clog << "Failed to parse glTF" << std::endl;
+    }
+}
+}
 
 using namespace RENDER;
 
@@ -36,6 +73,8 @@ void Scene::Setup()
     SetupFloor();
 
     SetupGrass();
+
+    testModelLoading();
 }
 
 void Scene::Simulate(float dt)

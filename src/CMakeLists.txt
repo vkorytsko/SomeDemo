@@ -129,6 +129,7 @@ target_include_directories(
     PRIVATE
     ${PROJECT_SOURCE_DIR}/ext/DirectXMath/Inc/
     ${PROJECT_SOURCE_DIR}/ext/DirectXTex/DirectXTex/
+	${PROJECT_SOURCE_DIR}/ext/tinygltf/
 
     ${ENGINE_SOURCE_DIR}
     ${RENDER_SOURCE_DIR}
