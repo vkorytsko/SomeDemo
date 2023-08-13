@@ -10,7 +10,7 @@
 
 namespace SD::RENDER {
 
-#ifndef NDEBUG
+#ifndef NDEBUG 
 const std::wstring VS_PATH = L"Debug\\";
 #else
 const std::wstring VS_PATH = L"Release\\";

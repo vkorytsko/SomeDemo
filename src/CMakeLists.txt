@@ -22,24 +22,29 @@ source_group(" " FILES ${SOURCES} ${HEADERS})
 set(ENGINE_SOURCES
     ${ENGINE_SOURCE_DIR}application.cpp
     ${ENGINE_SOURCE_DIR}camera.cpp
+    ${ENGINE_SOURCE_DIR}debug_world.cpp
     ${ENGINE_SOURCE_DIR}exceptions.cpp
-    ${ENGINE_SOURCE_DIR}scene.cpp
+    ${ENGINE_SOURCE_DIR}space.cpp
     ${ENGINE_SOURCE_DIR}timer.cpp
     ${ENGINE_SOURCE_DIR}window.cpp
+    ${ENGINE_SOURCE_DIR}world.cpp
 )
 set(ENGINE_HEADERS
     ${ENGINE_SOURCE_DIR}application.hpp
     ${ENGINE_SOURCE_DIR}camera.hpp
+    ${ENGINE_SOURCE_DIR}debug_world.hpp
     ${ENGINE_SOURCE_DIR}exceptions.hpp
-    ${ENGINE_SOURCE_DIR}scene.hpp
+    ${ENGINE_SOURCE_DIR}space.hpp
     ${ENGINE_SOURCE_DIR}timer.hpp
     ${ENGINE_SOURCE_DIR}utils.hpp
     ${ENGINE_SOURCE_DIR}window.hpp
+    ${ENGINE_SOURCE_DIR}world.hpp
 )
 source_group("engine" FILES ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 
 set(RENDER_SOURCES
     ${RENDER_SOURCE_DIR}blender.cpp
+    ${RENDER_SOURCE_DIR}buffer.cpp
     ${RENDER_SOURCE_DIR}debug_layer.cpp
     ${RENDER_SOURCE_DIR}index_buffer.cpp
     ${RENDER_SOURCE_DIR}input_layout.cpp
@@ -48,10 +53,12 @@ set(RENDER_SOURCES
     ${RENDER_SOURCE_DIR}renderer.cpp
     ${RENDER_SOURCE_DIR}sampler.cpp
     ${RENDER_SOURCE_DIR}texture.cpp
+    ${RENDER_SOURCE_DIR}vertex_buffer.cpp
     ${RENDER_SOURCE_DIR}vertex_shader.cpp
 )
 set(RENDER_HEADERS
     ${RENDER_SOURCE_DIR}blender.hpp
+    ${RENDER_SOURCE_DIR}buffer.hpp
     ${RENDER_SOURCE_DIR}constant_buffer.hpp
     ${RENDER_SOURCE_DIR}debug_layer.hpp
     ${RENDER_SOURCE_DIR}index_buffer.hpp
@@ -80,7 +87,7 @@ set(PIXEL_SHADERS
     ${SHADERS_SOURCE_DIR}color.ps.hlsl
     ${SHADERS_SOURCE_DIR}light.ps.hlsl
     ${SHADERS_SOURCE_DIR}phong.ps.hlsl
-	${SHADERS_SOURCE_DIR}shadow_map_debug.ps.hlsl
+    ${SHADERS_SOURCE_DIR}shadow_map_debug.ps.hlsl
     ${SHADERS_SOURCE_DIR}texture.ps.hlsl
 )
 source_group("shaders" FILES ${VERTEX_SHADERS} ${PIXEL_SHADERS})
@@ -129,7 +136,7 @@ target_include_directories(
     PRIVATE
     ${PROJECT_SOURCE_DIR}/ext/DirectXMath/Inc/
     ${PROJECT_SOURCE_DIR}/ext/DirectXTex/DirectXTex/
-	${PROJECT_SOURCE_DIR}/ext/tinygltf/
+    ${PROJECT_SOURCE_DIR}/ext/tinygltf/
 
     ${ENGINE_SOURCE_DIR}
     ${RENDER_SOURCE_DIR}

@@ -5,35 +5,23 @@
 
 namespace SD::RENDER {
 
-IndexBuffer::IndexBuffer(Renderer* renderer, const std::vector<unsigned short>& indices)
-	: m_count(static_cast<UINT>(indices.size()))
+void IndexBuffer::Bind(Renderer* renderer, UINT slot, UINT stride, UINT offset) const
 {
 	D3D_DEBUG_LAYER(renderer);
 
-	D3D11_BUFFER_DESC indexBufferDesc = {};
-	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.CPUAccessFlags = 0u;
-	indexBufferDesc.MiscFlags = 0u;
-	indexBufferDesc.ByteWidth = UINT(sizeof(unsigned short) * m_count);
-	indexBufferDesc.StructureByteStride = sizeof(unsigned short);
-
-	D3D11_SUBRESOURCE_DATA indexBufferData = {};
-	indexBufferData.pSysMem = indices.data();
-
-	D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateBuffer(&indexBufferDesc, &indexBufferData, m_pIndexBuffer.GetAddressOf()));
+	D3D_THROW_IF_INFO(renderer->GetContext()->IASetIndexBuffer(m_pBuffer.Get(), DXGI_FORMAT_R16_UINT, offset));
 }
 
-void IndexBuffer::Bind(Renderer* renderer) const
+D3D11_BUFFER_DESC IndexBuffer::getDescriptor(const size_t byteLength) const
 {
-	D3D_DEBUG_LAYER(renderer);
+	D3D11_BUFFER_DESC bufferDesc = {};
+	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.CPUAccessFlags = 0u;
+	bufferDesc.MiscFlags = 0u;
+	bufferDesc.ByteWidth = static_cast<UINT>(byteLength);
 
-	D3D_THROW_IF_INFO(renderer->GetContext()->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u));
-}
-
-UINT IndexBuffer::GetIndicesCount() const
-{
-	return m_count;
+	return bufferDesc;
 }
 
 }  // end namespace SD::RENDER

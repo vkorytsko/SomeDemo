@@ -126,16 +126,6 @@ Renderer::Renderer()
     D3D_THROW_IF_INFO(m_pD3dContext->RSSetViewports(1u, &vp));
 }
 
-void Renderer::BeginShadowMap()
-{
-    D3D_DEBUG_LAYER(this);
-
-    D3D_THROW_IF_INFO(m_pD3dContext->ClearDepthStencilView(m_pSMDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
-
-    ID3D11RenderTargetView* nullRenderTarget = nullptr;
-    D3D_THROW_IF_INFO(m_pD3dContext->OMSetRenderTargets(1u, &nullRenderTarget, m_pSMDepthStencilView.Get()));
-}
-
 void Renderer::BeginFrame()
 {
     D3D_DEBUG_LAYER(this);

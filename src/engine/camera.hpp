@@ -9,8 +9,8 @@ namespace SD::ENGINE {
 const float FOV = DirectX::XM_PIDIV2;
 const float NEAR_Z = 0.05f;
 const float FAR_Z = 100.0f;
-const float ROTATION_SPEED = 5.0f;
-const float MOVEMENT_SPEED = 5.0f;
+const float ROTATION_SPEED = 3.0f;
+const float MOVEMENT_SPEED = 3.0f;
 
 
 class Camera
@@ -36,7 +36,7 @@ private:
 	void updateProjection();
 
 private:
-	DirectX::XMFLOAT3 m_position = {0.0f, 1.0f, -4.0f};
+	DirectX::XMFLOAT3 m_position = {-4.0f, 1.0f, 0.0f};
 	DirectX::XMFLOAT3 m_rotation = {0.0f, 0.0f, 0.0f};
 
 	DirectX::XMMATRIX m_view = DirectX::XMMatrixIdentity();

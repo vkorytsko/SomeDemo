@@ -5,11 +5,11 @@
 
 namespace SD::RENDER {
 
-Texture::Texture(Renderer* renderer, const std::wstring& name)
+Texture::Texture(Renderer* renderer, const std::wstring& path)
 {
     D3D_DEBUG_LAYER(renderer);
 
-    DirectX::ScratchImage scratch = Load(TEXTURES_PATH + name);
+    DirectX::ScratchImage scratch = Load(path);
     const auto width = static_cast<UINT>(scratch.GetMetadata().width);
     const auto height = static_cast<UINT>(scratch.GetMetadata().height);
     const auto rowPitch = static_cast<UINT>(scratch.GetImage(0, 0, 0)->rowPitch);
@@ -42,17 +42,17 @@ Texture::Texture(Renderer* renderer, const std::wstring& name)
     D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateShaderResourceView(pDiffuseTexture.Get(), &textureSRVDesc, m_pTextureView.GetAddressOf()));
 }
 
-void Texture::Bind(Renderer* renderer, UINT slot)
+void Texture::Bind(Renderer* renderer, UINT slot) const
 {
     D3D_DEBUG_LAYER(renderer);
 
     D3D_THROW_IF_INFO(renderer->GetContext()->PSSetShaderResources(slot, 1u, m_pTextureView.GetAddressOf()));
 }
 
-DirectX::ScratchImage Texture::Load(const std::wstring& name)
+DirectX::ScratchImage Texture::Load(const std::wstring& path)
 {
     DirectX::ScratchImage scratch;
-    WIN_THROW_IF_FAILED(DirectX::LoadFromWICFile(name.c_str(), DirectX::WIC_FLAGS_IGNORE_SRGB, nullptr, scratch));
+    WIN_THROW_IF_FAILED(DirectX::LoadFromWICFile(path.c_str(), DirectX::WIC_FLAGS_IGNORE_SRGB, nullptr, scratch));
 
     if (scratch.GetImage(0, 0, 0)->format != DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM)
     {

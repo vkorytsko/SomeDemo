@@ -28,7 +28,7 @@ Application::Application()
 
 	m_pRenderer = std::make_unique<RENDER::Renderer>();
 	m_pCamera = std::make_unique<Camera>();
-	m_pScene = std::make_unique<Scene>();
+	m_pSpace = std::make_unique<Space>();
 	m_pTimer = std::make_unique<Timer>();
 }
 
@@ -41,8 +41,13 @@ Application::~Application()
 
 int Application::Run()
 {
+	m_pSpace->Init();
+
 	while (true) {
-		if (const auto exitcode = m_pWindow->ProcessMessages()) {
+		if (const auto exitcode = m_pWindow->ProcessMessages())
+		{
+			m_pSpace->Destroy();
+
 			return *exitcode;
 		}
 
@@ -51,17 +56,14 @@ int Application::Run()
 
 		if (!IsPaused())
 		{
-			m_pScene->Simulate(dt);
+			m_pSpace->Simulate(dt);
 		}
 
-		m_pScene->Update(dt);
+		m_pSpace->Update(dt);
 		m_pCamera->Update(dt);
 
-		m_pRenderer->BeginShadowMap();
-		m_pScene->ShadowMap();
-
 		m_pRenderer->BeginFrame();
-		m_pScene->Draw();
+		m_pSpace->Draw();
 		m_pRenderer->EndFrame();
 	}
 }

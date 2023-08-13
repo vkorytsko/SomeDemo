@@ -1,26 +1,20 @@
 #pragma once
 
-#include <d3d11.h>
-#include <wrl/client.h>
-
-#include <vector>
-
-#include "renderer.hpp"
+#include "buffer.hpp"
 
 
 namespace SD::RENDER {
 
-class IndexBuffer
+class IndexBuffer : public Buffer
 {
 public:
-	IndexBuffer(Renderer* renderer, const std::vector<unsigned short>& indices);
+	IndexBuffer() = default;
+	~IndexBuffer() override = default;
 
-	void Bind(Renderer* renderer) const;
-	UINT GetIndicesCount() const;
+	void Bind(Renderer* renderer, UINT slot, UINT stride, UINT offset) const override;
 
-private:
-	UINT m_count;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pIndexBuffer;
+protected:
+	D3D11_BUFFER_DESC getDescriptor(const size_t byteLength) const override;
 };
 
 }  // end namespace SD::RENDER

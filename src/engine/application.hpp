@@ -4,7 +4,7 @@
 
 #include "camera.hpp"
 #include "renderer.hpp"
-#include "scene.hpp"
+#include "space.hpp"
 #include "timer.hpp"
 #include "window.hpp"
 
@@ -40,7 +40,7 @@ private:
 	std::unique_ptr<Window> m_pWindow;
 	std::unique_ptr<RENDER::Renderer> m_pRenderer;
 	std::unique_ptr<Camera> m_pCamera;
-	std::unique_ptr<Scene> m_pScene;
+	std::unique_ptr<Space> m_pSpace;
 	std::unique_ptr<Timer> m_pTimer;
 
 	using FrameStatsCollector = std::pair<float, int>;  // <time delta, frames count>

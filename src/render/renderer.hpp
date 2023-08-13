@@ -29,7 +29,6 @@ public:
     Renderer(Renderer const&) = delete;
     Renderer& operator= (Renderer const&) = delete;
 
-    void BeginShadowMap();
     void BeginFrame();
     void EndFrame();
 
