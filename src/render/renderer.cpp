@@ -3,6 +3,10 @@
 #include "application.hpp"
 #include "exceptions.hpp"
 
+#include <imgui.h>
+#include <backends/imgui_impl_dx11.h>
+#include <backends/imgui_impl_win32.h>
+
 
 namespace SD::RENDER {
 
@@ -126,6 +130,80 @@ Renderer::Renderer()
     D3D_THROW_IF_INFO(m_pD3dContext->RSSetViewports(1u, &vp));
 }
 
+Renderer::~Renderer()
+{
+    FiniImgui();
+}
+
+void Renderer::InitImgui(const HWND hWnd) const
+{
+    // ImGUI initialization
+    {
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
+
+        // Setup Dear ImGui style
+        ImGui::StyleColorsDark();
+
+        // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+        ImGuiStyle& style = ImGui::GetStyle();
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            style.WindowRounding = 0.0f;
+            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+        }
+
+        // Setup Platform/Renderer backends
+        ImGui_ImplWin32_Init(hWnd);
+        ImGui_ImplDX11_Init(m_pD3dDevice.Get(), m_pD3dContext.Get());
+    }
+}
+
+void Renderer::BeginImgui() const
+{
+    // Start the Dear ImGui frame
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+}
+
+void Renderer::DrawImgui() const
+{
+    bool show_demo_window = true;
+    if (show_demo_window)
+    {
+        ImGui::ShowDemoWindow(&show_demo_window);
+    }
+}
+
+void Renderer::EndImgui() const
+{
+    // Rendering
+    ImGui::Render();
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+    // Update and Render additional Platform Windows
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+    }
+}
+
+void Renderer::FiniImgui() const
+{
+    // Cleanup
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
+}
+
 void Renderer::BeginFrame()
 {
     D3D_DEBUG_LAYER(this);
@@ -135,6 +213,8 @@ void Renderer::BeginFrame()
     D3D_THROW_IF_INFO(m_pD3dContext->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
 
     D3D_THROW_IF_INFO(m_pD3dContext->OMSetRenderTargets(1u, m_pRenderTargetView.GetAddressOf(), m_pDepthStencilView.Get()));
+
+    BeginImgui();
 }
 
 void Renderer::EndFrame()
@@ -142,6 +222,8 @@ void Renderer::EndFrame()
     D3D_DEBUG_LAYER(this);
 
     debugLayer->Set();
+
+    EndImgui();
 
     HRESULT hr;
     // First argument for VSync

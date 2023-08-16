@@ -21,13 +21,19 @@ class Renderer
 {
 public:
     Renderer();
-    ~Renderer() = default;
+    ~Renderer();
 
     Renderer(Renderer&&) = default;
     Renderer& operator= (Renderer&&) = default;
 
     Renderer(Renderer const&) = delete;
     Renderer& operator= (Renderer const&) = delete;
+
+    void InitImgui(const HWND hWnd) const;
+    void BeginImgui() const;
+    void DrawImgui() const;
+    void EndImgui() const;
+    void FiniImgui() const;
 
     void BeginFrame();
     void EndFrame();

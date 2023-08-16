@@ -3,7 +3,13 @@
 #include <iostream>
 #include <stdint.h>
 
+#include <backends/imgui_impl_win32.h>
+
 #include "exceptions.hpp"
+
+
+// Forward declare message handler from imgui_impl_win32.cpp
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 
 namespace SD::ENGINE {
@@ -30,6 +36,8 @@ Application::Application()
 	m_pCamera = std::make_unique<Camera>();
 	m_pSpace = std::make_unique<Space>();
 	m_pTimer = std::make_unique<Timer>();
+
+	m_pRenderer->InitImgui(s_hWnd);
 }
 
 Application::~Application()
@@ -64,6 +72,7 @@ int Application::Run()
 
 		m_pRenderer->BeginFrame();
 		m_pSpace->Draw();
+		m_pRenderer->DrawImgui();
 		m_pRenderer->EndFrame();
 	}
 }
@@ -105,6 +114,9 @@ bool Application::IsActive() const
 
 LRESULT Application::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
+		return true;
+
 	switch (uMsg)
 	{
 		case WM_KEYDOWN:

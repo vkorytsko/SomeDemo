@@ -127,6 +127,7 @@ set(LIBS
 
     DirectXMath
     DirectXTex
+	imgui
 )
 
 target_link_libraries(${TARGET_NAME} PRIVATE ${LIBS})
@@ -137,6 +138,7 @@ target_include_directories(
     ${PROJECT_SOURCE_DIR}/ext/DirectXMath/Inc/
     ${PROJECT_SOURCE_DIR}/ext/DirectXTex/DirectXTex/
     ${PROJECT_SOURCE_DIR}/ext/tinygltf/
+    ${PROJECT_SOURCE_DIR}/ext/imgui/
 
     ${ENGINE_SOURCE_DIR}
     ${RENDER_SOURCE_DIR}
