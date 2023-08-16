@@ -22,3 +22,4 @@ Small graphics demo using DirectX 11 backend.
 - [DirectXMath](https://github.com/microsoft/DirectXMath) - an all inline SIMD C++ linear algebra library for use in games and graphics apps.
 - [DirectXTex](https://github.com/microsoft/DirectXTex) - a shared source library for reading and writing .DDS files, and performing various texture content processing operations including resizing, format conversion, mip-map generation, block compression for Direct3D runtime texture resources, and height-map to normal-map conversion.
 - [tinygltf](https://github.com/syoyo/tinygltf) - a header only C++11 glTF 2.0 https://github.com/KhronosGroup/glTF library.
+- [ImGui](https://github.com/ocornut/imgui) - Dear ImGui is a bloat-free graphical user interface library for C++.
