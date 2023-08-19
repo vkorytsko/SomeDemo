@@ -2,11 +2,19 @@
 
 #include <iostream>
 
+#include "world.hpp"
+#include "debug_world.hpp"
+#include "space_settings_panel.hpp"
+
 
 namespace SD::ENGINE {
 
 Space::Space()
 	: m_pTimer(std::make_unique<Timer>())
+{
+}
+
+Space::~Space()
 {
 }
 
@@ -16,8 +24,12 @@ void Space::Init()
 
     m_pTimer->GetDelta();
 
-    m_pWorld = std::make_unique<World>("..\\res\\scenes\\Sponza\\glTF\\Sponza.gltf");
-    m_pDebugWorld = std::make_unique<DebugWorld>();
+    m_pWorld = std::make_unique<World>(this);
+    m_pWorld->Setup("..\\res\\scenes\\Sponza\\glTF\\Sponza.gltf");
+
+    m_pDebugWorld = std::make_unique<DebugWorld>(this);
+
+    m_spaceSettingsPanel = std::make_unique<SpaceSettingsPanel>();
 
     std::clog << "Space loaded: " << m_pTimer->GetDelta() << " s." << std::endl;
 }
@@ -27,13 +39,21 @@ void Space::Destroy()
     std::clog << "Space destroying!" << std::endl;
 
     m_pTimer->GetDelta();
-    m_pWorld.release();
+
+    m_pWorld.reset();
+    m_pDebugWorld.reset();
 
     std::clog << "Space destroyed: " << m_pTimer->GetDelta() << " s." << std::endl;
 }
 
 void Space::Simulate(float dt)
 {
+    if (m_simulationPaused)
+    {
+        return;
+    }
+
+    dt *= m_simulationFactor;
     m_simulationTime += dt;
 
     m_pWorld->Simulate(dt);
@@ -52,5 +72,7 @@ void Space::Draw()
     m_pWorld->Draw();
 
     m_pDebugWorld->Draw();
+
+    m_spaceSettingsPanel->Draw(this);
 }
 }  // end namespace SD::ENGINE

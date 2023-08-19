@@ -62,10 +62,7 @@ int Application::Run()
 		const auto dt = m_pTimer->GetDelta();
 		UpdateFrameStats(dt);
 
-		if (!IsPaused())
-		{
-			m_pSpace->Simulate(dt);
-		}
+		m_pSpace->Simulate(dt);
 
 		m_pSpace->Update(dt);
 		m_pCamera->Update(dt);
@@ -117,11 +114,18 @@ LRESULT Application::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
 		return true;
 
+	auto* io = ImGui::GetCurrentContext() ? &ImGui::GetIO() : nullptr;
+
 	switch (uMsg)
 	{
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
 		{
+			if (io && io->WantCaptureKeyboard)
+			{
+				return true;
+			}
+
 			const bool repeat = static_cast<bool>(lParam & 0x40000000);
 			if (!repeat)
 			{
@@ -143,6 +147,11 @@ LRESULT Application::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
 		{
+			if (io && io->WantCaptureKeyboard)
+			{
+				return true;
+			}
+
 			const auto keycode = static_cast<unsigned char>(wParam);
 			if (keycode == VK_CONTROL)
 			{
@@ -186,11 +195,6 @@ void Application::Activate(bool active)
 			m_pWindow->CenterCursor();
 		}
 	}
-}
-
-bool Application::IsPaused() const
-{
-	return IsActive() && (GetKeyState(VK_SPACE) < 0);
 }
 
 void Application::UpdateFrameStats(float dt)

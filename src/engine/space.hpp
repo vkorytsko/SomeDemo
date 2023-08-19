@@ -4,17 +4,20 @@
 
 #include "timer.hpp"
 
-#include "world.hpp"
-#include "debug_world.hpp"
-
 
 namespace SD::ENGINE {
 
+class World;
+class DebugWorld;
+
 class Space
 {
+private:
+    friend class SpaceSettingsPanel;
+
 public:
 	Space();
-	~Space() = default;
+	~Space();
 
 	void Init();
     void Destroy();
@@ -22,14 +25,22 @@ public:
 	void Simulate(float dt);
 	void Update(float dt);
 	void Draw();
+
+    float simulationTime() const { return m_simulationTime; }
     
 private:
     // Common
     std::unique_ptr<Timer> m_pTimer;
+
     float m_simulationTime = 0.0f;
+    float m_simulationFactor = 1.0f;
+    bool m_simulationPaused = false;
 
     // Worlds
-    std::unique_ptr<World> m_pWorld;
-    std::unique_ptr<DebugWorld> m_pDebugWorld;
+    std::unique_ptr<World> m_pWorld = nullptr;
+    std::unique_ptr<DebugWorld> m_pDebugWorld = nullptr;
+
+    // Panels
+    std::unique_ptr<SpaceSettingsPanel> m_spaceSettingsPanel = nullptr;
 };
 }  // end namespace SD::ENGINE

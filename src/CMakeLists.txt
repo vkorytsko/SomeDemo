@@ -28,6 +28,10 @@ set(ENGINE_SOURCES
     ${ENGINE_SOURCE_DIR}timer.cpp
     ${ENGINE_SOURCE_DIR}window.cpp
     ${ENGINE_SOURCE_DIR}world.cpp
+
+    ${ENGINE_SOURCE_DIR}node_properties_panel.cpp
+    ${ENGINE_SOURCE_DIR}scene_browser_panel.cpp
+    ${ENGINE_SOURCE_DIR}space_settings_panel.cpp
 )
 set(ENGINE_HEADERS
     ${ENGINE_SOURCE_DIR}application.hpp
@@ -39,6 +43,10 @@ set(ENGINE_HEADERS
     ${ENGINE_SOURCE_DIR}utils.hpp
     ${ENGINE_SOURCE_DIR}window.hpp
     ${ENGINE_SOURCE_DIR}world.hpp
+
+    ${ENGINE_SOURCE_DIR}node_properties_panel.hpp
+    ${ENGINE_SOURCE_DIR}scene_browser_panel.hpp
+    ${ENGINE_SOURCE_DIR}space_settings_panel.hpp
 )
 source_group("engine" FILES ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 

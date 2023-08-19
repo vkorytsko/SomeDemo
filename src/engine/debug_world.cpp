@@ -1,6 +1,6 @@
 #include "debug_world.hpp"
 
-#include <math.h>
+#include <cmath>
 
 #include "application.hpp"
 #include "exceptions.hpp"
@@ -18,7 +18,8 @@ DirectX::XMMATRIX GetModelMatrix(const DirectX::XMFLOAT3& position, const Direct
 
 namespace SD::ENGINE {
 
-DebugWorld::DebugWorld()
+DebugWorld::DebugWorld(const Space* space)
+	: m_space(space)
 {
     Setup();
 }
@@ -30,8 +31,6 @@ void DebugWorld::Setup()
 
 void DebugWorld::Simulate(float dt)
 {
-    m_simulationTime += dt;
-
     SimulateLight(dt);
 }
 
@@ -126,7 +125,7 @@ void DebugWorld::SimulateLight(float dt)
 {
     m_lightRotation.x += dt;
     m_lightRotation.y += dt;
-    m_lightPosition.x = std::sinf(m_simulationTime) * 6.0f;
+    m_lightPosition.x = std::sinf(m_space->simulationTime()) * 6.0f;
 }
 
 void DebugWorld::UpdateLight(float dt)

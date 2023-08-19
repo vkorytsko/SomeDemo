@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <string>
 
+#include "space.hpp"
+
 #include "buffer.hpp"
 #include "constant_buffer.hpp"
 #include "index_buffer.hpp"
@@ -32,6 +34,9 @@ namespace SD::ENGINE {
 class World
 {
 private:
+    friend class SceneBrowserPanel;
+    friend class NodePropertiesPanel;
+
     class Node;
     class Mesh;
     class Primitive;
@@ -39,8 +44,10 @@ private:
     class Scene;
 
 public:
-    World(const std::string& path, const DirectX::XMMATRIX& transform = DirectX::XMMatrixIdentity());
-    ~World() = default;
+    World(const Space* space);
+    ~World();
+
+    void Setup(const std::string& path, const DirectX::XMMATRIX& transform = DirectX::XMMatrixIdentity());
 
     void Simulate(float dt);
     void Update(float dt);
@@ -57,7 +64,11 @@ private:
     void createNodes(const tinygltf::Model& model);
     void createScenes(const tinygltf::Model& model);
 
+    void DrawPanels();
+
 private:
+    const Space* m_space;
+
     std::vector<std::shared_ptr<RENDER::Texture>> m_textures = {};
     std::vector<std::shared_ptr<RENDER::Sampler>> m_samplers = {};
     std::vector<std::shared_ptr<RENDER::Buffer>> m_buffers = {};
@@ -67,19 +78,27 @@ private:
     std::vector<std::shared_ptr<Scene>> m_scenes = {};
 
     DirectX::XMMATRIX m_transform = DirectX::XMMatrixIdentity();
+
+    uint32_t m_selectedScene = 0;
+
+    std::unique_ptr<SceneBrowserPanel> m_sceneBrowserPanel = nullptr;
+    std::unique_ptr<NodePropertiesPanel> m_nodePropertiesPanel = nullptr;
 };
 
 class World::Scene
 {
+private:
+    friend class SceneBrowserPanel;
+
 public:
-    Scene(const World* world, const tinygltf::Model& model, const tinygltf::Scene& scene);
+    Scene(const std::string& name, const uint32_t id);
     ~Scene() = default;
+
+    void Setup(const World* world, const tinygltf::Model& model, const tinygltf::Scene& scene);
 
     void Simulate(float dt);
     void Update(float dt);
     void Draw();
-
-    std::shared_ptr<Node> m_root = nullptr;
 
 private:
     void buildHierarchy(
@@ -90,12 +109,20 @@ private:
     const std::vector<std::shared_ptr<Node>> getChildren(
         const World* world,
         const std::vector<int>& children) const;
+
+private:
+    const std::string m_name;
+    const std::uint32_t m_id;
+
+    std::shared_ptr<Node> m_root = nullptr;
 };
 
 class World::Node
 {
 private:
     friend class Scene;
+    friend class SceneBrowserPanel;
+    friend class NodePropertiesPanel;
 
     struct CB_transform
     {
@@ -106,17 +133,25 @@ private:
     };
 
 public:
-    Node(const DirectX::XMMATRIX& transform);
-    Node(const World* world, const tinygltf::Node& node);
+    Node(const std::string& name, const uint32_t id, const DirectX::XMMATRIX& transform = DirectX::XMMatrixIdentity());
     ~Node() = default;
+
+    void Setup(const World* world, const tinygltf::Node& node);
 
     void Simulate(float dt);
     void Update(float dt);
     void Draw();
 
 private:
+    const std::string m_name;
+    const std::uint32_t m_id;
+
     DirectX::XMMATRIX m_localTransform = DirectX::XMMatrixIdentity();
     DirectX::XMMATRIX m_worldTransform = DirectX::XMMatrixIdentity();
+
+    DirectX::XMVECTOR m_originalScale = {};
+    DirectX::XMVECTOR m_originalRotation = {};
+    DirectX::XMVECTOR m_originalTranslation = {};
 
     std::shared_ptr<Mesh> m_mesh = nullptr;
 
@@ -129,20 +164,26 @@ private:
 class World::Material
 {
 private:
+    friend class Primitive;
+    friend class NodePropertiesPanel;
+
     struct CB_material
     {
         alignas(16) float shiness;
     };
 
 public:
-    friend class Primitive;
-
-    Material(const World* world, const tinygltf::Model& model, const tinygltf::Material& material);
+    Material(const std::string& name, const uint32_t id);
     ~Material() = default;
+
+    void Setup(const World* world, const tinygltf::Model& model, const tinygltf::Material& material);
 
     void Bind();
 
 private:
+    const std::string m_name;
+    const std::uint32_t m_id;
+
     std::unique_ptr<RENDER::PixelShader> m_pPixelShader = nullptr;
     std::unique_ptr<RENDER::VertexShader> m_pVertexShader = nullptr;
 
@@ -156,19 +197,29 @@ private:
 
 class World::Mesh
 {
+private:
+    friend class NodePropertiesPanel;
+
 public:
-    Mesh(const World* world, const tinygltf::Model& model, const tinygltf::Mesh& mesh);
+    Mesh(const std::string& name, const uint32_t id);
     ~Mesh() = default;
+
+    void Setup(const World* world, const tinygltf::Model& model, const tinygltf::Mesh& mesh);
 
     void Draw();
 
 private:
+    const std::string m_name;
+    const std::uint32_t m_id;
+
     std::vector<std::unique_ptr<Primitive>> m_primitives = {};
 };
 
 class World::Primitive
 {
 private:
+    friend class NodePropertiesPanel;
+
     struct Attribute
     {
         Attribute(const std::string& name);

@@ -4,6 +4,8 @@
 
 #include <memory>
 
+#include "space.hpp"
+
 #include "constant_buffer.hpp"
 #include "index_buffer.hpp"
 #include "input_layout.hpp"
@@ -65,7 +67,7 @@ private:
     };
 
 public:
-    DebugWorld();
+    DebugWorld(const Space* space);
 	~DebugWorld() = default;
 
 	void Setup();
@@ -85,8 +87,7 @@ private:
     bool IsSpotLightEnabled();
 
 private:
-    // Common
-    float m_simulationTime = 0.0f;
+    const Space* m_space;
 
     // Light
     std::unique_ptr<RENDER::VertexBuffer> m_pLightVertexBuffer;

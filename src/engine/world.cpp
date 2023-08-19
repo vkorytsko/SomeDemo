@@ -9,6 +9,10 @@
 #include "application.hpp"
 #include "utils.hpp"
 
+#include "scene_browser_panel.hpp"
+#include "node_properties_panel.hpp"
+#include "space_settings_panel.hpp"
+
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -36,9 +40,19 @@ const std::unordered_map<const BufferFormat, DXGI_FORMAT, buffer_format_hasher> 
 
 namespace SD::ENGINE {
 
-World::World(const std::string& path, const DirectX::XMMATRIX& transform)
-	: m_transform(transform)
+World::World(const Space* space)
+	: m_space(space)
 {
+}
+
+World::~World()
+{
+}
+
+void World::Setup(const std::string& path, const DirectX::XMMATRIX& transform)
+{
+	m_transform = transform;
+
 	const auto& model = load(path);
 
 	createBuffers(model);
@@ -48,6 +62,11 @@ World::World(const std::string& path, const DirectX::XMMATRIX& transform)
 	createMeshes(model);
 	createNodes(model);
 	createScenes(model);
+
+	m_selectedScene = model.defaultScene;
+
+	m_sceneBrowserPanel = std::make_unique<SceneBrowserPanel>();
+	m_nodePropertiesPanel = std::make_unique<NodePropertiesPanel>();
 }
 
 void World::Simulate(float dt)
@@ -68,10 +87,9 @@ void World::Update(float dt)
 
 void World::Draw()
 {
-	for (auto& scene : m_scenes)
-	{
-		scene->Draw();
-	}
+	m_scenes[m_selectedScene]->Draw();
+
+	DrawPanels();
 }
 
 tinygltf::Model World::load(const std::string& path) const
@@ -151,7 +169,9 @@ void World::createMaterials(const tinygltf::Model& model)
 {
 	for (const auto& material : model.materials)
 	{
-		m_materials.emplace_back(std::make_shared<Material>(this, model, material));
+		const auto id = static_cast<uint32_t>(m_materials.size());
+		const std::string name = material.name.empty() ? "Material " + std::to_string(id) : material.name;
+		m_materials.emplace_back(std::make_shared<Material>(name, id))->Setup(this, model, material);
 	}
 }
 
@@ -159,7 +179,9 @@ void World::createMeshes(const tinygltf::Model& model)
 {
 	for (const auto& mesh : model.meshes)
 	{
-		m_meshes.emplace_back(std::make_shared<Mesh>(this, model, mesh));
+		const auto id = static_cast<uint32_t>(m_meshes.size());
+		const std::string name = mesh.name.empty() ? "Mesh " + std::to_string(id) : mesh.name;
+		m_meshes.emplace_back(std::make_shared<Mesh>(name, id))->Setup(this, model, mesh);
 	}
 }
 
@@ -167,7 +189,9 @@ void World::createNodes(const tinygltf::Model& model)
 {
 	for (const auto& node : model.nodes)
 	{
-		m_nodes.emplace_back(std::make_shared<Node>(this, node));
+		const auto id = static_cast<uint32_t>(m_nodes.size());
+		const std::string name = node.name.empty() ? "Node " + std::to_string(id) : node.name;
+		m_nodes.emplace_back(std::make_shared<Node>(name, id))->Setup(this, node);
 	}
 }
 
@@ -175,13 +199,31 @@ void World::createScenes(const tinygltf::Model& model)
 {
 	for (const auto& scene : model.scenes)
 	{
-		m_scenes.emplace_back(std::make_shared<Scene>(this, model, scene));
+		const auto id = static_cast<uint32_t>(m_scenes.size());
+		const std::string name = scene.name.empty() ? "Scene " + std::to_string(id) : scene.name;
+		m_scenes.emplace_back(std::make_shared<Scene>(name, id))->Setup(this, model, scene);
 	}
 }
 
-World::Scene::Scene(const World* world, const tinygltf::Model& model, const tinygltf::Scene& scene)
+void World::DrawPanels()
 {
-	m_root = std::make_shared<Node>(world->m_transform);
+	m_sceneBrowserPanel->Draw(this);
+
+	auto* selectedNode = m_sceneBrowserPanel->selectedNode();
+	m_nodePropertiesPanel->Draw(selectedNode);
+}
+
+World::Scene::Scene(const std::string& name, const uint32_t id)
+	: m_name(name)
+	, m_id(id)
+{
+}
+
+void World::Scene::Setup(const World* world, const tinygltf::Model& model, const tinygltf::Scene& scene)
+{
+	constexpr auto id = std::numeric_limits<uint32_t>::max();
+	const std::string name = "root";
+	m_root = std::make_shared<Node>(name, id, world->m_transform);
 	m_root->m_children = getChildren(world, scene.nodes);
 
 	for (const auto nodeIdx : scene.nodes)
@@ -237,14 +279,17 @@ void World::Scene::Draw()
 	m_root->Draw();
 }
 
-World::Node::Node(const DirectX::XMMATRIX& transform)
+World::Node::Node(const std::string& name, const uint32_t id, const DirectX::XMMATRIX& transform)
+	: m_name(name)
+	, m_id(id)
+	, m_localTransform(transform)
 {
-	m_localTransform = transform;
+	DirectX::XMMatrixDecompose(&m_originalScale, &m_originalRotation, &m_originalTranslation, m_localTransform);
 }
 
 #pragma warning( push )
 #pragma warning( disable : 4244 )
-World::Node::Node(const World* world, const tinygltf::Node& node)
+void World::Node::Setup(const World* world, const tinygltf::Node& node)
 {
 	if (node.mesh >= 0)
 	{
@@ -277,6 +322,8 @@ World::Node::Node(const World* world, const tinygltf::Node& node)
 		const auto translation = DirectX::XMFLOAT3(tmp.data());
 		m_localTransform *= DirectX::XMMatrixTranslationFromVector(DirectX::XMLoadFloat3(&translation));
 	}
+
+	DirectX::XMMatrixDecompose(&m_originalScale, &m_originalRotation, &m_originalTranslation, m_localTransform);
 
 	const auto& app = Application::GetApplication();
 	const auto& renderer = app->GetRenderer();
@@ -348,7 +395,13 @@ void World::Node::Draw()
 	}
 }
 
-World::Material::Material(const World* world, const tinygltf::Model& model, const tinygltf::Material& material)
+World::Material::Material(const std::string& name, const uint32_t id)
+	: m_name(name)
+	, m_id(id)
+{
+}
+
+void World::Material::Setup(const World* world, const tinygltf::Model& model, const tinygltf::Material& material)
 {
 	const auto& app = Application::GetApplication();
 	const auto& renderer = app->GetRenderer();
@@ -404,7 +457,13 @@ void World::Material::Bind()
 	m_pSampler->Bind(renderer);
 }
 
-World::Mesh::Mesh(const World* world, const tinygltf::Model& model, const tinygltf::Mesh& mesh)
+World::Mesh::Mesh(const std::string& name, const uint32_t id)
+	: m_name(name)
+	, m_id(id)
+{
+}
+
+void World::Mesh::Setup(const World* world, const tinygltf::Model& model, const tinygltf::Mesh& mesh)
 {
 	m_primitives.reserve(mesh.primitives.size());
 
