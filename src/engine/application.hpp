@@ -23,7 +23,8 @@ public:
 	RENDER::Renderer* GetRenderer() const;
 	Camera* GetCamera() const;
 
-	bool IsActive() const;
+	bool IsActive() const { return m_isActive; };
+	bool IsCameraActive() const { return m_isCameraActive; };
 
 	LRESULT WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -31,10 +32,12 @@ public:
 
 private:
 	void Activate(bool active);
+	void ActivateCamera(bool active);
 	void UpdateFrameStats(float dt);
 
 private:
 	bool m_isActive = false;
+	bool m_isCameraActive = false;
 
 	std::unique_ptr<Window> m_pWindow;
 	std::unique_ptr<RENDER::Renderer> m_pRenderer;

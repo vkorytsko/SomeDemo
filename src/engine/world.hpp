@@ -52,6 +52,7 @@ public:
     void Simulate(float dt);
     void Update(float dt);
     void Draw();
+    void DrawImGui();
 
 private:
     tinygltf::Model load(const std::string& path) const;
@@ -63,8 +64,6 @@ private:
     void createMeshes(const tinygltf::Model& model);
     void createNodes(const tinygltf::Model& model);
     void createScenes(const tinygltf::Model& model);
-
-    void DrawPanels();
 
 private:
     const Space* m_space;

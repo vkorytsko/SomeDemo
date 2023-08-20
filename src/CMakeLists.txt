@@ -32,6 +32,7 @@ set(ENGINE_SOURCES
     ${ENGINE_SOURCE_DIR}node_properties_panel.cpp
     ${ENGINE_SOURCE_DIR}scene_browser_panel.cpp
     ${ENGINE_SOURCE_DIR}space_settings_panel.cpp
+    ${ENGINE_SOURCE_DIR}viewport_panel.cpp
 )
 set(ENGINE_HEADERS
     ${ENGINE_SOURCE_DIR}application.hpp
@@ -47,6 +48,7 @@ set(ENGINE_HEADERS
     ${ENGINE_SOURCE_DIR}node_properties_panel.hpp
     ${ENGINE_SOURCE_DIR}scene_browser_panel.hpp
     ${ENGINE_SOURCE_DIR}space_settings_panel.hpp
+    ${ENGINE_SOURCE_DIR}viewport_panel.hpp
 )
 source_group("engine" FILES ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 
@@ -54,6 +56,7 @@ set(RENDER_SOURCES
     ${RENDER_SOURCE_DIR}blender.cpp
     ${RENDER_SOURCE_DIR}buffer.cpp
     ${RENDER_SOURCE_DIR}debug_layer.cpp
+    ${RENDER_SOURCE_DIR}frame_buffer.cpp
     ${RENDER_SOURCE_DIR}index_buffer.cpp
     ${RENDER_SOURCE_DIR}input_layout.cpp
     ${RENDER_SOURCE_DIR}pixel_shader.cpp
@@ -69,6 +72,7 @@ set(RENDER_HEADERS
     ${RENDER_SOURCE_DIR}buffer.hpp
     ${RENDER_SOURCE_DIR}constant_buffer.hpp
     ${RENDER_SOURCE_DIR}debug_layer.hpp
+    ${RENDER_SOURCE_DIR}frame_buffer.hpp
     ${RENDER_SOURCE_DIR}index_buffer.hpp
     ${RENDER_SOURCE_DIR}input_layout.hpp
     ${RENDER_SOURCE_DIR}pixel_shader.hpp

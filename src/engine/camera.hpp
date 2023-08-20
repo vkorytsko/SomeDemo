@@ -28,6 +28,8 @@ public:
 	const DirectX::XMMATRIX getView() const;
 	const DirectX::XMMATRIX getProjection() const;
 
+	void onSpaceViewportResize();
+
 private:
 	void Rotate(float yaw, float pitch);
 	void Translate(float x, float y, float z);

@@ -5,6 +5,14 @@
 #include <imgui.h>
 
 
+namespace
+{
+enum NodeID : uint64_t
+{
+	SimulationSettings = 0
+};
+} // end namespace
+
 namespace SD::ENGINE {
 
 void SpaceSettingsPanel::Draw(Space* space)
@@ -23,8 +31,7 @@ void SpaceSettingsPanel::DrawSimulationSettings(Space* space)
 	flags |= ImGuiTreeNodeFlags_DefaultOpen;
 	flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
-	const uint64_t id = 0;
-	if (ImGui::TreeNodeEx((void*)id, flags, "Simulation"))
+	if (ImGui::TreeNodeEx((void*)NodeID::SimulationSettings, flags, "Simulation"))
 	{
 		const std::string simulationTime = "Simulation Time: " + std::to_string(space->m_simulationTime);
 		ImGui::Text(simulationTime.c_str());

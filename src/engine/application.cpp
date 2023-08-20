@@ -37,7 +37,7 @@ Application::Application()
 	m_pSpace = std::make_unique<Space>();
 	m_pTimer = std::make_unique<Timer>();
 
-	m_pRenderer->InitImgui(s_hWnd);
+
 }
 
 Application::~Application()
@@ -62,15 +62,37 @@ int Application::Run()
 		const auto dt = m_pTimer->GetDelta();
 		UpdateFrameStats(dt);
 
-		m_pSpace->Simulate(dt);
+		// Simulate
+		{
+			m_pSpace->Simulate(dt);
+		}
 
-		m_pSpace->Update(dt);
-		m_pCamera->Update(dt);
+		// Update
+		{
+			m_pSpace->Update(dt);
+			m_pCamera->Update(dt);
+		}
 
-		m_pRenderer->BeginFrame();
-		m_pSpace->Draw();
-		m_pRenderer->DrawImgui();
-		m_pRenderer->EndFrame();
+		// Draw
+		{
+			m_pRenderer->Begin();
+
+			// Space
+			{
+				m_pRenderer->BeginFrame();
+				m_pSpace->DrawFrame();
+				m_pRenderer->EndFrame();
+			}
+			
+			// ImGui
+			{
+				m_pRenderer->BeginImGui();
+				m_pSpace->DrawImGui();
+				m_pRenderer->EndImGui();
+			}
+
+			m_pRenderer->End();
+		}
 	}
 }
 
@@ -104,11 +126,6 @@ Camera* Application::GetCamera() const
 	return m_pCamera.get();
 }
 
-bool Application::IsActive() const
-{
-	return m_isActive;
-}
-
 LRESULT Application::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
@@ -126,22 +143,6 @@ LRESULT Application::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 				return true;
 			}
 
-			const bool repeat = static_cast<bool>(lParam & 0x40000000);
-			if (!repeat)
-			{
-				const auto keycode = static_cast<unsigned char>(wParam);
-				if (keycode == VK_ESCAPE)
-				{
-					PostQuitMessage(0);
-				}
-				if (keycode == VK_CONTROL)
-				{
-					if (IsActive())
-					{
-						m_pWindow->ShowCursor(true);
-					}
-				}
-			}
 			break;
 		}
 		case WM_KEYUP:
@@ -153,24 +154,45 @@ LRESULT Application::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 			}
 
 			const auto keycode = static_cast<unsigned char>(wParam);
-			if (keycode == VK_CONTROL)
+			if (keycode == 'C')
 			{
 				if (IsActive())
 				{
-					m_pWindow->CenterCursor();
-					m_pWindow->ShowCursor(false);
+					ActivateCamera(!m_isCameraActive);
 				}
 			}
 			if (keycode == VK_MENU)
 			{
 				return 0; // Why does it stuck?!?!
 			}
+
 			break;
 		}
 		case WM_ACTIVATE:
 		{
 			const auto active = static_cast<bool>(wParam & (WA_ACTIVE | WA_CLICKACTIVE));
 			Activate(active);
+
+			break;
+		}
+		case WM_SIZE:
+		{
+			const uint16_t width = LOWORD(lParam);
+			const uint16_t height = HIWORD(lParam);
+
+			if (width > 0 && height > 0)
+			{
+				if (m_pWindow)
+				{
+					m_pWindow->Resize(width, height);
+				}
+
+				if (m_pRenderer)
+				{
+					m_pRenderer->OnWindowResize();
+				}
+			}
+
 			break;
 		}
 	}
@@ -187,9 +209,16 @@ void Application::Activate(bool active)
 {
 	m_isActive = active;
 
+	ActivateCamera(m_isCameraActive);
+}
+
+void Application::ActivateCamera(bool active)
+{
+	m_isCameraActive = active;
+
 	if (m_pWindow)
 	{
-		m_pWindow->ShowCursor(!active);
+		m_pWindow->ShowCursor(!m_isCameraActive);
 		if (active)
 		{
 			m_pWindow->CenterCursor();

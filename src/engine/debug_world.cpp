@@ -5,6 +5,8 @@
 #include "application.hpp"
 #include "exceptions.hpp"
 
+#include <imgui.h>
+
 
 namespace
 {
@@ -42,6 +44,15 @@ void DebugWorld::Update(float dt)
 void DebugWorld::Draw()
 {
     DrawLight();
+}
+
+void DebugWorld::DrawImGui()
+{
+    bool show_demo_window = true;
+    if (show_demo_window)
+    {
+        ImGui::ShowDemoWindow(&show_demo_window);
+    }
 }
 
 void DebugWorld::SetupLight() {

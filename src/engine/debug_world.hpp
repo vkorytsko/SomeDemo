@@ -75,6 +75,7 @@ public:
 	void Simulate(float dt);
 	void Update(float dt);
 	void Draw();
+	void DrawImGui();
 
 	void BindLights();
 

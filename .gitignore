@@ -374,9 +374,3 @@ _deps
 *.sln
 *.vcxproj
 *.vcxproj.filters
-
-
-
-## Ignore application specific files
-
-src/imgui.ini

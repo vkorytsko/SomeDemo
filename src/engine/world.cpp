@@ -88,8 +88,14 @@ void World::Update(float dt)
 void World::Draw()
 {
 	m_scenes[m_selectedScene]->Draw();
+}
 
-	DrawPanels();
+void World::DrawImGui()
+{
+	m_sceneBrowserPanel->Draw(this);
+
+	auto* selectedNode = m_sceneBrowserPanel->selectedNode();
+	m_nodePropertiesPanel->Draw(selectedNode);
 }
 
 tinygltf::Model World::load(const std::string& path) const
@@ -203,14 +209,6 @@ void World::createScenes(const tinygltf::Model& model)
 		const std::string name = scene.name.empty() ? "Scene " + std::to_string(id) : scene.name;
 		m_scenes.emplace_back(std::make_shared<Scene>(name, id))->Setup(this, model, scene);
 	}
-}
-
-void World::DrawPanels()
-{
-	m_sceneBrowserPanel->Draw(this);
-
-	auto* selectedNode = m_sceneBrowserPanel->selectedNode();
-	m_nodePropertiesPanel->Draw(selectedNode);
 }
 
 World::Scene::Scene(const std::string& name, const uint32_t id)
@@ -451,7 +449,6 @@ void World::Material::Bind()
 	// bind textures
 	m_pDiffuseTexture->Bind(renderer, 0u);
 	m_pSpecularTexture->Bind(renderer, 1u);
-	D3D_THROW_IF_INFO(context->PSSetShaderResources(2u, 1u, renderer->m_pShadowMapSRV.GetAddressOf()));
 
 	// bind texture sampler
 	m_pSampler->Bind(renderer);

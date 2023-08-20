@@ -4,7 +4,9 @@
 
 #include "world.hpp"
 #include "debug_world.hpp"
+
 #include "space_settings_panel.hpp"
+#include "viewport_panel.hpp"
 
 
 namespace SD::ENGINE {
@@ -30,6 +32,7 @@ void Space::Init()
     m_pDebugWorld = std::make_unique<DebugWorld>(this);
 
     m_spaceSettingsPanel = std::make_unique<SpaceSettingsPanel>();
+    m_viewportPanel = std::make_unique<ViewportPanel>();
 
     std::clog << "Space loaded: " << m_pTimer->GetDelta() << " s." << std::endl;
 }
@@ -66,13 +69,19 @@ void Space::Update(float dt)
     m_pDebugWorld->Update(dt);
 }
 
-void Space::Draw()
+void Space::DrawFrame()
 {
     m_pDebugWorld->BindLights();
     m_pWorld->Draw();
 
     m_pDebugWorld->Draw();
+}
+void Space::DrawImGui()
+{
+    m_pWorld->DrawImGui();
+    m_pDebugWorld->DrawImGui();
 
     m_spaceSettingsPanel->Draw(this);
+    m_viewportPanel->Draw();
 }
 }  // end namespace SD::ENGINE

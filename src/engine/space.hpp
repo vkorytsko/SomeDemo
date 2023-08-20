@@ -9,6 +9,7 @@ namespace SD::ENGINE {
 
 class World;
 class DebugWorld;
+class ViewportPanel;
 
 class Space
 {
@@ -24,7 +25,8 @@ public:
 
 	void Simulate(float dt);
 	void Update(float dt);
-	void Draw();
+	void DrawFrame();
+	void DrawImGui();
 
     float simulationTime() const { return m_simulationTime; }
     
@@ -42,5 +44,6 @@ private:
 
     // Panels
     std::unique_ptr<SpaceSettingsPanel> m_spaceSettingsPanel = nullptr;
+    std::unique_ptr<ViewportPanel> m_viewportPanel = nullptr;
 };
 }  // end namespace SD::ENGINE

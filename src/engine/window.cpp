@@ -65,9 +65,6 @@ Window::Window(Application* pApp, uint16_t width, uint16_t height, const std::ws
     rid.dwFlags = 0;
     rid.hwndTarget = nullptr;
     WIN_THROW_IF_FAILED(RegisterRawInputDevices(&rid, 1, sizeof(rid)));
-
-    ShowCursor(false);
-    CenterCursor();
 }
 
 Window::~Window()
@@ -97,7 +94,7 @@ HWND Window::GetHandle() const
     return m_hWnd;
 }
 
-float Window::GetWidht() const
+float Window::GetWidth() const
 {
     RECT rect;
     WIN_THROW_IF_FAILED(GetClientRect(m_hWnd, &rect));
@@ -137,8 +134,19 @@ void Window::ShowCursor(bool show) const
 
 void Window::CenterCursor() const
 {
-    const auto [x, y] = GetCenter();
-    SetCursorPos(static_cast<int>(x), static_cast<int>(y));
+    const auto& app = Application::GetApplication();
+
+    if (app->IsCameraActive())
+    {
+        const auto [x, y] = GetCenter();
+        SetCursorPos(static_cast<int>(x), static_cast<int>(y));
+    }
+}
+
+void Window::Resize(uint16_t width, uint16_t height)
+{
+    m_width = width;
+    m_height = height;
 }
 
 LRESULT CALLBACK Window::WindowSetupProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)

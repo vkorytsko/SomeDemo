@@ -4,6 +4,16 @@
 #include <imgui_internal.h>
 
 
+namespace
+{
+enum NodeID : uint64_t
+{
+	Transform = 0,
+	Mesh,
+	Material
+};
+} // end namespace
+
 namespace SD::ENGINE {
 
 DirectX::XMFLOAT3 ToEulerAngles(const DirectX::XMFLOAT4 quaternion)
@@ -148,8 +158,7 @@ void NodePropertiesPanel::DrawTransform(World::Node* node)
 	flags |= ImGuiTreeNodeFlags_DefaultOpen;
 	flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
-	const uint64_t id = 0;
-	if (ImGui::TreeNodeEx((void*)id, flags, "Transform"))
+	if (ImGui::TreeNodeEx((void*)NodeID::Transform, flags, "Transform"))
 	{
 		DirectX::XMVECTOR scale;
 		DirectX::XMVECTOR rotation;
@@ -208,8 +217,7 @@ void NodePropertiesPanel::DrawMesh(const World::Mesh* mesh)
 	flags |= ImGuiTreeNodeFlags_DefaultOpen;
 	flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
-	const uint64_t id = 1;
-	if (ImGui::TreeNodeEx((void*)id, flags, "Mesh"))
+	if (ImGui::TreeNodeEx((void*)NodeID::Mesh, flags, "Mesh"))
 	{
 		ImGui::Text(mesh->m_name.c_str());
 
@@ -261,9 +269,7 @@ void NodePropertiesPanel::DrawMaterial(const World::Material* material)
 	flags |= ImGuiTreeNodeFlags_DefaultOpen;
 	flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
-	const std::string name = "Material";
-	const uint64_t id = 0;
-	if (ImGui::TreeNodeEx((void*)id, flags, "Material"))
+	if (ImGui::TreeNodeEx((void*)NodeID::Material, flags, "Material"))
 	{
 		// TODO
 		ImGui::Text("Material properties");

@@ -16,6 +16,7 @@ namespace SD::RENDER {
 
 const DirectX::XMFLOAT3 EMPTY_COLOR = { 0.1f, 0.1f, 0.2f };
 
+class FrameBuffer;
 
 class Renderer
 {
@@ -29,33 +30,36 @@ public:
     Renderer(Renderer const&) = delete;
     Renderer& operator= (Renderer const&) = delete;
 
-    void InitImgui(const HWND hWnd) const;
-    void BeginImgui() const;
-    void DrawImgui() const;
-    void EndImgui() const;
-    void FiniImgui() const;
+    void Begin();
+    void End();
 
     void BeginFrame();
     void EndFrame();
 
+    void BeginImGui() const;
+    void EndImGui() const;
+
+    void OnWindowResize();
+    void OnSpaceViewportResize(const float width, const float height);
+
     ID3D11Device* GetDevice() const;
     ID3D11DeviceContext* GetContext() const;
     DebugLayer* GetDebugLayer() const;
+    FrameBuffer* GetFrameBuffer() const;
 
-public:
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pShadowMapSRV;
+private:
+    void InitImGui() const;
+    void FiniImGui() const;
 
 private:
     Microsoft::WRL::ComPtr<ID3D11Device> m_pD3dDevice;
     Microsoft::WRL::ComPtr<IDXGISwapChain> m_pSwapChain;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_pD3dContext;
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;
-    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_pDepthStencilView;
-
-    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_pSMDepthStencilView;
 
     std::unique_ptr<DebugLayer> m_debugLayer;
 
+    std::unique_ptr<FrameBuffer> m_frameBuffer = nullptr;
 };
 
 }  // end namespace SD::RENDER

@@ -3,6 +3,8 @@
 #include "application.hpp"
 #include "exceptions.hpp"
 
+#include "frame_buffer.hpp"
+
 #include <imgui.h>
 #include <backends/imgui_impl_dx11.h>
 #include <backends/imgui_impl_win32.h>
@@ -16,7 +18,7 @@ Renderer::Renderer()
     D3D_DEBUG_LAYER(this);
 
     const auto& window = ENGINE::Application::GetApplication()->GetWindow();
-    const auto width = window->GetWidht();
+    const auto width = window->GetWidth();
     const auto height = window->GetHeight();
 
     DXGI_SWAP_CHAIN_DESC sd = {};
@@ -58,71 +60,102 @@ Renderer::Renderer()
         m_pD3dContext.GetAddressOf()
     ));
 
+    m_frameBuffer = std::make_unique<FrameBuffer>(this, width, height);
+
     // gain access to texture subresource in swap chain (back buffer)
     Microsoft::WRL::ComPtr<ID3D11Resource> pBackBuffer;
     D3D_THROW_INFO_EXCEPTION(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Resource), &pBackBuffer));
     D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, m_pRenderTargetView.GetAddressOf()));
 
-    // create depth stensil state
-    D3D11_DEPTH_STENCIL_DESC dsDesc = {};
-    dsDesc.DepthEnable = TRUE;
-    dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-    dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
-    Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
-    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateDepthStencilState(&dsDesc, pDSState.GetAddressOf()));
+    InitImGui();
+}
 
-    // bind depth state
-    D3D_THROW_IF_INFO(m_pD3dContext->OMSetDepthStencilState(pDSState.Get(), 1u));
+Renderer::~Renderer()
+{
+    FiniImGui();
+}
 
-    // create depth stensil texture
-    Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;
-    D3D11_TEXTURE2D_DESC descDepth = {};
-    descDepth.Width = static_cast<UINT>(width);
-    descDepth.Height = static_cast<UINT>(height);
-    descDepth.MipLevels = 1u;
-    descDepth.ArraySize = 1u;
-    descDepth.Format = DXGI_FORMAT_D32_FLOAT;
-    descDepth.SampleDesc.Count = 1u;
-    descDepth.SampleDesc.Quality = 0u;
-    descDepth.Usage = D3D11_USAGE_DEFAULT;
-    descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateTexture2D(&descDepth, nullptr, pDepthStencil.GetAddressOf()));
+void Renderer::InitImGui() const
+{
+    const auto& window = ENGINE::Application::GetApplication()->GetWindow();
 
-    // create view of depth stensil texture
-    D3D11_DEPTH_STENCIL_VIEW_DESC descDSV = {};
-    descDSV.Format = DXGI_FORMAT_D32_FLOAT;
-    descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-    descDSV.Texture2D.MipSlice = 0u;
-    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateDepthStencilView(pDepthStencil.Get(), &descDSV, m_pDepthStencilView.GetAddressOf()));
+    IMGUI_CHECKVERSION();
 
-    // create shadow map texture
-    Microsoft::WRL::ComPtr<ID3D11Texture2D> pShadowMap;
-    D3D11_TEXTURE2D_DESC shadowMap = {};
-    shadowMap.Width = static_cast<UINT>(width);
-    shadowMap.Height = static_cast<UINT>(height);
-    shadowMap.MipLevels = 1u;
-    shadowMap.ArraySize = 1u;
-    shadowMap.Format = DXGI_FORMAT_R32_TYPELESS;
-    shadowMap.SampleDesc.Count = 1u;
-    shadowMap.SampleDesc.Quality = 0u;
-    shadowMap.Usage = D3D11_USAGE_DEFAULT;
-    shadowMap.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateTexture2D(&shadowMap, nullptr, pShadowMap.GetAddressOf()));
+    ImGui::CreateContext();
 
-    // create view of shadow map
-    D3D11_DEPTH_STENCIL_VIEW_DESC descSMDSV = {};
-    descSMDSV.Format = DXGI_FORMAT_D32_FLOAT;
-    descSMDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-    descSMDSV.Texture2D.MipSlice = 0u;
-    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateDepthStencilView(pShadowMap.Get(), &descSMDSV, m_pSMDepthStencilView.GetAddressOf()));
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
 
-    CD3D11_SHADER_RESOURCE_VIEW_DESC descSMSRV(D3D11_SRV_DIMENSION_TEXTURE2D, DXGI_FORMAT_R32_FLOAT, 0, 1);
-    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateShaderResourceView(pShadowMap.Get(), &descSMSRV, m_pShadowMapSRV.GetAddressOf()));
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
 
+    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.WindowRounding = 0.0f;
+    style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplWin32_Init(window->GetHandle());
+    ImGui_ImplDX11_Init(m_pD3dDevice.Get(), m_pD3dContext.Get());
+}
+
+void Renderer::FiniImGui() const
+{
+    // Destroy backends
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+
+    ImGui::DestroyContext();
+}
+
+void Renderer::BeginImGui() const
+{
+    D3D_DEBUG_LAYER(this);
+
+    D3D_THROW_IF_INFO(m_pD3dContext->OMSetRenderTargets(1u, m_pRenderTargetView.GetAddressOf(), nullptr));
+
+
+    // Start the Dear ImGui frame
+    {
+        ImGui_ImplDX11_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+        ImGui::NewFrame();
+    }
+    
+    // Start Docking
+    {
+        bool open = true;
+
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+        ImGui::SetNextWindowViewport(viewport->ID);
+
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+        windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+        windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+        ImGui::Begin("DockSpace", &open, windowFlags);
+
+    	ImGui::PopStyleVar(2);
+
+        // Submit the DockSpace
+        const ImGuiID dockSpaceId = ImGui::GetID("DockSpace");
+        const ImGuiDockNodeFlags dockSpaceFlags = ImGuiDockNodeFlags_None;
+        ImGui::DockSpace(dockSpaceId, ImVec2(0.0f, 0.0f), dockSpaceFlags);
+    }
+
+    const auto& window = ENGINE::Application::GetApplication()->GetWindow();
     // configure viewport
     D3D11_VIEWPORT vp;
-    vp.Width = width;
-    vp.Height = height;
+    vp.Width = window->GetWidth();
+    vp.Height = window->GetHeight();
     vp.MinDepth = 0;
     vp.MaxDepth = 1;
     vp.TopLeftX = 0;
@@ -130,59 +163,13 @@ Renderer::Renderer()
     D3D_THROW_IF_INFO(m_pD3dContext->RSSetViewports(1u, &vp));
 }
 
-Renderer::~Renderer()
+void Renderer::EndImGui() const
 {
-    FiniImgui();
-}
-
-void Renderer::InitImgui(const HWND hWnd) const
-{
-    // ImGUI initialization
+    // End docking
     {
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO(); (void)io;
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
-
-        // Setup Dear ImGui style
-        ImGui::StyleColorsDark();
-
-        // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-        ImGuiStyle& style = ImGui::GetStyle();
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        {
-            style.WindowRounding = 0.0f;
-            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-        }
-
-        // Setup Platform/Renderer backends
-        ImGui_ImplWin32_Init(hWnd);
-        ImGui_ImplDX11_Init(m_pD3dDevice.Get(), m_pD3dContext.Get());
+        ImGui::End();
     }
-}
 
-void Renderer::BeginImgui() const
-{
-    // Start the Dear ImGui frame
-    ImGui_ImplDX11_NewFrame();
-    ImGui_ImplWin32_NewFrame();
-    ImGui::NewFrame();
-}
-
-void Renderer::DrawImgui() const
-{
-    bool show_demo_window = true;
-    if (show_demo_window)
-    {
-        ImGui::ShowDemoWindow(&show_demo_window);
-    }
-}
-
-void Renderer::EndImgui() const
-{
     // Rendering
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -196,34 +183,53 @@ void Renderer::EndImgui() const
     }
 }
 
-void Renderer::FiniImgui() const
-{
-    // Cleanup
-    ImGui_ImplDX11_Shutdown();
-    ImGui_ImplWin32_Shutdown();
-    ImGui::DestroyContext();
-}
-
-void Renderer::BeginFrame()
+void Renderer::OnWindowResize()
 {
     D3D_DEBUG_LAYER(this);
 
-    const float color[] = { EMPTY_COLOR.x, EMPTY_COLOR.y, EMPTY_COLOR.z, 1.0f };
-    D3D_THROW_IF_INFO(m_pD3dContext->ClearRenderTargetView(m_pRenderTargetView.Get(), color));
-    D3D_THROW_IF_INFO(m_pD3dContext->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
+    const auto& window = ENGINE::Application::GetApplication()->GetWindow();
+    const auto width = window->GetWidth();
+    const auto height = window->GetHeight();
 
-    D3D_THROW_IF_INFO(m_pD3dContext->OMSetRenderTargets(1u, m_pRenderTargetView.GetAddressOf(), m_pDepthStencilView.Get()));
+    D3D_THROW_IF_INFO(m_pD3dContext->OMSetRenderTargets(0, nullptr, nullptr));
 
-    BeginImgui();
+    m_pRenderTargetView->Release();
+
+    // Preserve the existing buffer count and format.
+    // Automatically choose the width and height to match the client rect for HWNDs.
+    D3D_THROW_IF_INFO(m_pSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0));
+
+    // Get buffer and create a render-target-view.
+    Microsoft::WRL::ComPtr<ID3D11Resource> pBackBuffer;
+    D3D_THROW_INFO_EXCEPTION(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Resource), &pBackBuffer));
+    D3D_THROW_INFO_EXCEPTION(m_pD3dDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, m_pRenderTargetView.GetAddressOf()));
 }
 
-void Renderer::EndFrame()
+void Renderer::OnSpaceViewportResize(const float width, const float height)
+{
+    const auto& camera = ENGINE::Application::GetApplication()->GetCamera();
+
+    m_frameBuffer->resize(this, static_cast<UINT>(width), static_cast<UINT>(height));
+    camera->onSpaceViewportResize();
+}
+
+void Renderer::Begin()
+{
+    D3D_DEBUG_LAYER(this);
+
+    const float color1[] = { EMPTY_COLOR.x, EMPTY_COLOR.y, EMPTY_COLOR.z, 1.0f };
+    D3D_THROW_IF_INFO(m_pD3dContext->ClearRenderTargetView(m_frameBuffer->getRTV().Get(), color1));
+    D3D_THROW_IF_INFO(m_pD3dContext->ClearDepthStencilView(m_frameBuffer->getDSV().Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
+
+    const float color2[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    D3D_THROW_IF_INFO(m_pD3dContext->ClearRenderTargetView(m_pRenderTargetView.Get(), color2));
+}
+
+void Renderer::End()
 {
     D3D_DEBUG_LAYER(this);
 
     debugLayer->Set();
-
-    EndImgui();
 
     HRESULT hr;
     // First argument for VSync
@@ -240,6 +246,27 @@ void Renderer::EndFrame()
     }
 }
 
+void Renderer::BeginFrame()
+{
+    D3D_DEBUG_LAYER(this);
+
+    D3D_THROW_IF_INFO(m_pD3dContext->OMSetRenderTargets(1u, m_frameBuffer->getRTV().GetAddressOf(), m_frameBuffer->getDSV().Get()));
+
+    // configure viewport
+    D3D11_VIEWPORT vp;
+    vp.Width = static_cast<float>(m_frameBuffer->width());
+    vp.Height = static_cast<float>(m_frameBuffer->height());
+    vp.MinDepth = 0;
+    vp.MaxDepth = 1;
+    vp.TopLeftX = 0;
+    vp.TopLeftY = 0;
+    D3D_THROW_IF_INFO(m_pD3dContext->RSSetViewports(1u, &vp));
+}
+
+void Renderer::EndFrame()
+{
+}
+
 ID3D11Device* Renderer::GetDevice() const
 {
     return m_pD3dDevice.Get();
@@ -253,6 +280,11 @@ ID3D11DeviceContext* Renderer::GetContext() const
 DebugLayer* Renderer::GetDebugLayer() const
 {
     return m_debugLayer.get();
+}
+
+FrameBuffer* Renderer::GetFrameBuffer() const
+{
+    return m_frameBuffer.get();
 }
 
 }  // end namespace SD::RENDER

@@ -3,6 +3,15 @@
 #include <imgui.h>
 
 
+namespace
+{
+enum NodeID : uint64_t
+{
+	SceneOverview = 0,
+	Hierarchy
+};
+} // end namespace
+
 namespace SD::ENGINE {
 
 void SceneBrowserPanel::Draw(World* world)
@@ -22,8 +31,7 @@ void SceneBrowserPanel::DrawScenesOverview(World* world)
 	flags |= ImGuiTreeNodeFlags_DefaultOpen;
 	flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
-	const uint64_t id = 0;
-	if (ImGui::TreeNodeEx((void*)id, flags, "Scenes"))
+	if (ImGui::TreeNodeEx((void*)NodeID::SceneOverview, flags, "Scenes"))
 	{
 		const auto& selectedScene = world->m_scenes[world->m_selectedScene];
 
@@ -57,8 +65,7 @@ void SceneBrowserPanel::DrawHierarchy(const World::Scene* scene)
 	flags |= ImGuiTreeNodeFlags_DefaultOpen;
 	flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
-	const uint64_t id = 1;
-	if (ImGui::TreeNodeEx((void*)id, flags, "Hierarchy"))
+	if (ImGui::TreeNodeEx((void*)NodeID::Hierarchy, flags, "Hierarchy"))
 	{
 		DrawNode(scene->m_root.get());
 
@@ -74,6 +81,7 @@ void SceneBrowserPanel::DrawHierarchy(const World::Scene* scene)
 void SceneBrowserPanel::DrawNode(World::Node* node)
 {
 	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
+	flags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 	flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
 	if (node->m_children.empty())
@@ -85,14 +93,14 @@ void SceneBrowserPanel::DrawNode(World::Node* node)
 		flags |= ImGuiTreeNodeFlags_Selected;
 	}
 
-	const bool exposed = ImGui::TreeNodeEx((void*)(uint64_t)node->m_id, flags, node->m_name.c_str());
+	const bool expanded = ImGui::TreeNodeEx((void*)(uint64_t)node->m_id, flags, node->m_name.c_str());
 
-	if (ImGui::IsItemClicked())
+	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 	{
 		m_selectedNode = node;
 	}
 
-	if (exposed)
+	if (expanded)
 	{
 		for (const auto& child : node->m_children)
 		{

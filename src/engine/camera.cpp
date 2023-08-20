@@ -6,6 +6,7 @@
 #include <cmath>
 
 #include "application.hpp"
+#include "frame_buffer.hpp"
 
 
 namespace SD::ENGINE {
@@ -21,7 +22,7 @@ Camera::Camera()
 void Camera::Update(float dt)
 {
 	const auto& app = Application::GetApplication();
-	if (!app->IsActive() || (GetKeyState(VK_CONTROL) < 0))
+	if (!app->IsActive() || !app->IsCameraActive())
 	{
 		return;
 	}
@@ -111,9 +112,14 @@ const XMMATRIX Camera::getProjection() const
 	return m_projection;
 }
 
+void Camera::onSpaceViewportResize()
+{
+	updateProjection();
+}
+
 void Camera::updateView()
 {
-	XMMATRIX camRotationMatrix = XMMatrixRotationRollPitchYaw(m_rotation.y, m_rotation.x, m_rotation.z);
+	const XMMATRIX camRotationMatrix = XMMatrixRotationRollPitchYaw(m_rotation.y, m_rotation.x, m_rotation.z);
 
 	const XMVECTOR position = XMLoadFloat3(&m_position);
 	const XMVECTOR target = position + XMVector3TransformCoord(FORWARD, camRotationMatrix);
@@ -123,8 +129,11 @@ void Camera::updateView()
 
 void Camera::updateProjection()
 {
-	const auto& window = Application::GetApplication()->GetWindow();
-	const float aspect = window->GetWidht() / window->GetHeight();
+	const auto& app = Application::GetApplication();
+	const auto& renderer = app->GetRenderer();
+	const auto& frameBuffer = renderer->GetFrameBuffer();
+
+	const float aspect = static_cast<float>(frameBuffer->width()) / static_cast<float>(frameBuffer->height());
 	m_projection = XMMatrixPerspectiveFovLH(FOV, aspect, NEAR_Z, FAR_Z);
 }
 

@@ -41,12 +41,14 @@ public:
 
     std::optional<int> ProcessMessages();
     HWND GetHandle() const;
-    float GetWidht() const;
+    float GetWidth() const;
     float GetHeight() const;
     POINT GetCenter() const;
 
     void ShowCursor(bool show) const;
     void CenterCursor() const;
+
+    void Resize(uint16_t width, uint16_t height);
 
 private:
     static LRESULT CALLBACK WindowSetupProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
