@@ -18,8 +18,8 @@ Blender::Blender(Renderer* renderer, bool enabled)
         blendDescRT.SrcBlend = D3D11_BLEND_SRC_ALPHA;
         blendDescRT.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
         blendDescRT.BlendOp = D3D11_BLEND_OP_ADD;
-        blendDescRT.SrcBlendAlpha = D3D11_BLEND_ZERO;
-        blendDescRT.DestBlendAlpha = D3D11_BLEND_ZERO;
+        blendDescRT.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+        blendDescRT.DestBlendAlpha = D3D11_BLEND_DEST_ALPHA;
         blendDescRT.BlendOpAlpha = D3D11_BLEND_OP_ADD;
         blendDescRT.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
     }

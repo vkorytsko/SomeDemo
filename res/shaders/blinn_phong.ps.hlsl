@@ -56,6 +56,9 @@ float calcShadow(float3 fragPosLightSpace);
 
 float4 main(PS_INPUIT input) : SV_TARGET
 {
+    float alpha = diffuseTexture.Sample(samplerState, input.uv).a;
+	clip(alpha < 0.1 ? -1 : 1);
+
     float3 fragPos = input.fragPos.xyz / input.fragPos.w;
     float3 fragPosLightSpace = input.fragPosLightSpace.xyz / input.fragPosLightSpace.w;
     
@@ -69,7 +72,7 @@ float4 main(PS_INPUIT input) : SV_TARGET
         color += calcSpotLight(normal, viewDir, input.uv, fragPos);
     }
     
-    return float4(color, 1.0f);
+    return float4(color, alpha);
 }
 
 float3 calcDirLight(float3 normal, float3 viewDir, float2 uv)

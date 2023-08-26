@@ -28,7 +28,13 @@ DebugWorld::DebugWorld(const Space* space)
 
 void DebugWorld::Setup()
 {
+    const auto& app = Application::GetApplication();
+    const auto& renderer = app->GetRenderer();
+
     SetupLight();
+
+    m_pRasterizer = std::make_unique<RENDER::Rasterizer>(renderer, true);
+    m_pBlender = std::make_unique<RENDER::Blender>(renderer, false);
 }
 
 void DebugWorld::Simulate(float dt)
@@ -43,6 +49,12 @@ void DebugWorld::Update(float dt)
 
 void DebugWorld::Draw()
 {
+    const auto& app = Application::GetApplication();
+    const auto& renderer = app->GetRenderer();
+
+    m_pRasterizer->Bind(renderer);
+    m_pBlender->Bind(renderer);
+
     DrawLight();
 }
 

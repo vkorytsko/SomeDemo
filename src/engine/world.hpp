@@ -8,11 +8,13 @@
 
 #include "space.hpp"
 
+#include "blender.hpp"
 #include "buffer.hpp"
 #include "constant_buffer.hpp"
 #include "index_buffer.hpp"
 #include "input_layout.hpp"
 #include "pixel_shader.hpp"
+#include "rasterizer.hpp"
 #include "sampler.hpp"
 #include "texture.hpp"
 #include "vertex_buffer.hpp"
@@ -190,6 +192,8 @@ private:
     std::unique_ptr<RENDER::Texture> m_pSpecularTexture = nullptr;
 
     std::shared_ptr<RENDER::Sampler> m_pSampler = nullptr;
+    std::shared_ptr<RENDER::Rasterizer> m_pRasterizer = nullptr;
+    std::shared_ptr<RENDER::Blender> m_pBlender = nullptr;
 
     std::unique_ptr<RENDER::ConstantBuffer<CB_material>> m_pMaterialCB = nullptr;
 };

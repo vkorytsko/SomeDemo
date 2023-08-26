@@ -407,6 +407,12 @@ void World::Material::Setup(const World* world, const tinygltf::Model& model, co
 	m_pVertexShader = std::make_unique<SD::RENDER::VertexShader>(renderer, L"blinn_phong.vs.cso");
 	m_pPixelShader = std::make_unique<SD::RENDER::PixelShader>(renderer, L"blinn_phong.ps.cso");
 
+	m_pRasterizer = std::make_unique<RENDER::Rasterizer>(renderer, !material.doubleSided);
+
+	// MASK blending is not supported yet
+	const bool blendEnabled = material.alphaMode != "OPAQUE";
+	m_pBlender = std::make_unique<SD::RENDER::Blender>(renderer, blendEnabled);
+
 	// create textures
 	{
 		const auto textureIndex = material.pbrMetallicRoughness.baseColorTexture.index;
@@ -452,6 +458,12 @@ void World::Material::Bind()
 
 	// bind texture sampler
 	m_pSampler->Bind(renderer);
+
+	// bind rasterizer state
+	m_pRasterizer->Bind(renderer);
+
+	// bind Blend State
+	m_pBlender->Bind(renderer);
 }
 
 World::Mesh::Mesh(const std::string& name, const uint32_t id)

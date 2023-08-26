@@ -6,10 +6,12 @@
 
 #include "space.hpp"
 
+#include "blender.hpp"
 #include "constant_buffer.hpp"
 #include "index_buffer.hpp"
 #include "input_layout.hpp"
 #include "pixel_shader.hpp"
+#include "rasterizer.hpp"
 #include "vertex_buffer.hpp"
 #include "vertex_shader.hpp"
 
@@ -99,6 +101,9 @@ private:
     std::unique_ptr<RENDER::VertexShader> m_pLightVertexShader;
     std::unique_ptr<RENDER::PixelShader> m_pLightPixelShader;
     std::unique_ptr<RENDER::InputLayout> m_pLightInputLayout;
+
+    std::unique_ptr<RENDER::Rasterizer> m_pRasterizer;
+    std::unique_ptr<RENDER::Blender> m_pBlender;
 
     std::unique_ptr<RENDER::ConstantBuffer<CB_transform>> m_pLightTransformCB;
     std::unique_ptr<RENDER::ConstantBuffer<CB_color>> m_pLightColorCB;
