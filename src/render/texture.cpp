@@ -10,15 +10,12 @@ Texture::Texture(Renderer* renderer, const std::wstring& path)
     D3D_DEBUG_LAYER(renderer);
 
     DirectX::ScratchImage scratch = Load(path);
-    const auto width = static_cast<UINT>(scratch.GetMetadata().width);
-    const auto height = static_cast<UINT>(scratch.GetMetadata().height);
-    const auto rowPitch = static_cast<UINT>(scratch.GetImage(0, 0, 0)->rowPitch);
 
     D3D11_TEXTURE2D_DESC textureDesc = {};
-    textureDesc.Width = width;
-    textureDesc.Height = height;
-    textureDesc.MipLevels = 1;
-    textureDesc.ArraySize = 1;
+    textureDesc.Width = static_cast<UINT>(scratch.GetMetadata().width);
+    textureDesc.Height = static_cast<UINT>(scratch.GetMetadata().height);
+    textureDesc.MipLevels = static_cast<UINT>(scratch.GetMetadata().mipLevels);
+    textureDesc.ArraySize = static_cast<UINT>(scratch.GetMetadata().arraySize);
     textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
     textureDesc.SampleDesc.Count = 1;
     textureDesc.SampleDesc.Quality = 0;
@@ -27,18 +24,24 @@ Texture::Texture(Renderer* renderer, const std::wstring& path)
     textureDesc.CPUAccessFlags = 0;
     textureDesc.MiscFlags = 0;
 
-    D3D11_SUBRESOURCE_DATA textureData = {};
-    textureData.pSysMem = scratch.GetPixels();
-    textureData.SysMemPitch = rowPitch;
+    std::vector<D3D11_SUBRESOURCE_DATA> initialData;
+    initialData.reserve(textureDesc.MipLevels);
+    for (auto mip = 0; mip < initialData.capacity(); mip++)
+    {
+        const auto& i = scratch.GetImage(mip, 0, 0);
+        auto& data = initialData.emplace_back();
+        data.pSysMem = i->pixels;
+        data.SysMemPitch = i->rowPitch;
+    }
 
     Microsoft::WRL::ComPtr<ID3D11Texture2D> pDiffuseTexture;
-    D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateTexture2D(&textureDesc, &textureData, pDiffuseTexture.GetAddressOf()));
+    D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateTexture2D(&textureDesc, initialData.data(), pDiffuseTexture.GetAddressOf()));
 
     D3D11_SHADER_RESOURCE_VIEW_DESC textureSRVDesc = {};
     textureSRVDesc.Format = textureDesc.Format;
     textureSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     textureSRVDesc.Texture2D.MostDetailedMip = 0;
-    textureSRVDesc.Texture2D.MipLevels = 1;
+    textureSRVDesc.Texture2D.MipLevels = -1;
     D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateShaderResourceView(pDiffuseTexture.Get(), &textureSRVDesc, m_pTextureView.GetAddressOf()));
 }
 
@@ -51,25 +54,33 @@ void Texture::Bind(Renderer* renderer, UINT slot) const
 
 DirectX::ScratchImage Texture::Load(const std::wstring& path)
 {
-    DirectX::ScratchImage scratch;
-    WIN_THROW_IF_FAILED(DirectX::LoadFromWICFile(path.c_str(), DirectX::WIC_FLAGS_IGNORE_SRGB, nullptr, scratch));
+    DirectX::ScratchImage image, convert;
+    WIN_THROW_IF_FAILED(DirectX::LoadFromWICFile(path.c_str(), DirectX::WIC_FLAGS_IGNORE_SRGB, nullptr, image));
 
-    if (scratch.GetImage(0, 0, 0)->format != DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM)
+    if (image.GetImage(0, 0, 0)->format != DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM)
     {
-        DirectX::ScratchImage converted;
-
         WIN_THROW_IF_FAILED(DirectX::Convert(
-            *scratch.GetImage(0, 0, 0),
+            *image.GetImage(0, 0, 0),
             DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM,
             DirectX::TEX_FILTER_DEFAULT,
             DirectX::TEX_THRESHOLD_DEFAULT,
-            converted
+            convert
         ));
 
-        return converted;
+        image = std::move(convert);
     }
 
-    return scratch;
+    // Generate mips
+    {
+        WIN_THROW_IF_FAILED(DirectX::GenerateMipMaps(
+            image.GetImages(), image.GetImageCount(), image.GetMetadata(),
+            DirectX::TEX_FILTER_DEFAULT, 0, convert
+        ));
+
+        image = std::move(convert);
+    }
+
+    return image;
 }
 
 }  // end namespace SD::RENDER
