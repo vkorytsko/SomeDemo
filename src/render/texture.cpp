@@ -16,7 +16,7 @@ Texture::Texture(Renderer* renderer, const std::wstring& path)
     textureDesc.Height = static_cast<UINT>(scratch.GetMetadata().height);
     textureDesc.MipLevels = static_cast<UINT>(scratch.GetMetadata().mipLevels);
     textureDesc.ArraySize = static_cast<UINT>(scratch.GetMetadata().arraySize);
-    textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    textureDesc.Format = scratch.GetMetadata().format;
     textureDesc.SampleDesc.Count = 1;
     textureDesc.SampleDesc.Quality = 0;
     textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -55,8 +55,9 @@ void Texture::Bind(Renderer* renderer, UINT slot) const
 DirectX::ScratchImage Texture::Load(const std::wstring& path)
 {
     DirectX::ScratchImage image, convert;
-    WIN_THROW_IF_FAILED(DirectX::LoadFromWICFile(path.c_str(), DirectX::WIC_FLAGS_IGNORE_SRGB, nullptr, image));
+    WIN_THROW_IF_FAILED(DirectX::LoadFromDDSFile(path.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, image));
 
+    /*
     if (image.GetImage(0, 0, 0)->format != DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM)
     {
         WIN_THROW_IF_FAILED(DirectX::Convert(
@@ -79,6 +80,7 @@ DirectX::ScratchImage Texture::Load(const std::wstring& path)
 
         image = std::move(convert);
     }
+    */
 
     return image;
 }

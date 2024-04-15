@@ -454,11 +454,11 @@ void World::Material::Setup(const World* world, const tinygltf::Model& model, co
 		}
 		else
 		{
-			m_pDiffuseTexture = std::make_shared<SD::RENDER::Texture>(renderer, L"..\\res\\textures\\base_color.png");
+			m_pDiffuseTexture = std::make_shared<SD::RENDER::Texture>(renderer, L"..\\res\\textures\\base_color.dds");
 			m_pSampler = std::make_shared<SD::RENDER::Sampler>(renderer);
 		}
 
-		m_pSpecularTexture = std::make_unique<SD::RENDER::Texture>(renderer, L"..\\res\\textures\\specular.png");
+		m_pSpecularTexture = std::make_unique<SD::RENDER::Texture>(renderer, L"..\\res\\textures\\specular.dds");
 	}
 
 	CB_material materialCB;

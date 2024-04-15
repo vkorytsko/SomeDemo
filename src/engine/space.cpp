@@ -27,7 +27,7 @@ void Space::Init()
     m_pTimer->GetDelta();
 
     m_pWorld = std::make_unique<World>(this);
-    m_pWorld->Create("..\\res\\scenes\\Sponza\\glTF\\Sponza.gltf");
+    m_pWorld->Create("..\\res\\scenes\\Sponza\\main\\main.gltf");
 
     m_pDebugWorld = std::make_unique<DebugWorld>(this);
 
