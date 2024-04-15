@@ -14,10 +14,10 @@
 #include "space_settings_panel.hpp"
 
 #define TINYGLTF_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#define STBI_MSC_SECURE_CRT 
-
+#define TINYGLTF_NO_STB_IMAGE 
+#define TINYGLTF_NO_STB_IMAGE_WRITE 
+#define TINYGLTF_NO_EXTERNAL_IMAGE  
+#define TINYGLTF_USE_CPP14
 #include "tiny_gltf.h"
 
 
@@ -41,7 +41,8 @@ const std::unordered_map<const BufferFormat, DXGI_FORMAT, buffer_format_hasher> 
 namespace SD::ENGINE {
 
 World::World(const Space* space)
-	: m_space(space)
+	: m_pTimer(std::make_unique<Timer>())
+	, m_space(space)
 {
 }
 
@@ -49,7 +50,7 @@ World::~World()
 {
 }
 
-void World::Setup(const std::string& path, const DirectX::XMMATRIX& transform)
+void World::Create(const std::string& path, const DirectX::XMMATRIX& transform)
 {
 	m_transform = transform;
 
@@ -127,6 +128,8 @@ tinygltf::Model World::load(const std::string& path) const
 
 void World::createBuffers(const tinygltf::Model& model)
 {
+	std::clog << "Create buffers!" << std::endl;
+
 	const auto& app = Application::GetApplication();
 	const auto& renderer = app->GetRenderer();
 
@@ -146,10 +149,14 @@ void World::createBuffers(const tinygltf::Model& model)
 		const auto buffer = model.buffers[bufferView.buffer];
 		m_buffers.back()->create(renderer, buffer.data.data() + bufferView.byteOffset, bufferView.byteLength);
 	}
+
+	std::clog << "Buffers created: " << m_pTimer->GetDelta() << " s." << std::endl;
 }
 
 void World::createTextures(const tinygltf::Model& model, const std::filesystem::path& dir)
 {
+	std::clog << "Create textures!" << std::endl;
+
 	const auto& app = Application::GetApplication();
 	const auto& renderer = app->GetRenderer();
 
@@ -158,10 +165,14 @@ void World::createTextures(const tinygltf::Model& model, const std::filesystem::
 		const auto path = dir.string() + image.uri;
 		m_textures.emplace_back(std::make_shared<RENDER::Texture>(renderer, AToWstring(path)));
 	}
+
+	std::clog << "Textures created: " << m_pTimer->GetDelta() << " s." << std::endl;
 }
 
 void World::createSamplers(const tinygltf::Model& model)
 {
+	std::clog << "Create samplers!" << std::endl;
+
 	const auto& app = Application::GetApplication();
 	const auto& renderer = app->GetRenderer();
 
@@ -169,46 +180,64 @@ void World::createSamplers(const tinygltf::Model& model)
 	{
 		m_samplers.emplace_back(std::make_shared<RENDER::Sampler>(renderer));
 	}
+
+	std::clog << "Samplers created: " << m_pTimer->GetDelta() << " s." << std::endl;
 }
 
 void World::createMaterials(const tinygltf::Model& model)
 {
+	std::clog << "Create materials!" << std::endl;
+
 	for (const auto& material : model.materials)
 	{
 		const auto id = static_cast<uint32_t>(m_materials.size());
 		const std::string name = material.name.empty() ? "Material " + std::to_string(id) : material.name;
 		m_materials.emplace_back(std::make_shared<Material>(name, id))->Setup(this, model, material);
 	}
+
+	std::clog << "Materials created: " << m_pTimer->GetDelta() << " s." << std::endl;
 }
 
 void World::createMeshes(const tinygltf::Model& model)
 {
+	std::clog << "Create meshes!" << std::endl;
+
 	for (const auto& mesh : model.meshes)
 	{
 		const auto id = static_cast<uint32_t>(m_meshes.size());
 		const std::string name = mesh.name.empty() ? "Mesh " + std::to_string(id) : mesh.name;
 		m_meshes.emplace_back(std::make_shared<Mesh>(name, id))->Setup(this, model, mesh);
 	}
+
+	std::clog << "Meshes created: " << m_pTimer->GetDelta() << " s." << std::endl;
 }
 
 void World::createNodes(const tinygltf::Model& model)
 {
+	std::clog << "Create nodes!" << std::endl;
+
 	for (const auto& node : model.nodes)
 	{
 		const auto id = static_cast<uint32_t>(m_nodes.size());
 		const std::string name = node.name.empty() ? "Node " + std::to_string(id) : node.name;
 		m_nodes.emplace_back(std::make_shared<Node>(name, id))->Setup(this, node);
 	}
+
+	std::clog << "Nodes created: " << m_pTimer->GetDelta() << " s." << std::endl;
 }
 
 void World::createScenes(const tinygltf::Model& model)
 {
+	std::clog << "Create scenes!" << std::endl;
+
 	for (const auto& scene : model.scenes)
 	{
 		const auto id = static_cast<uint32_t>(m_scenes.size());
 		const std::string name = scene.name.empty() ? "Scene " + std::to_string(id) : scene.name;
 		m_scenes.emplace_back(std::make_shared<Scene>(name, id))->Setup(this, model, scene);
 	}
+
+	std::clog << "Scenes created: " << m_pTimer->GetDelta() << " s." << std::endl;
 }
 
 World::Scene::Scene(const std::string& name, const uint32_t id)

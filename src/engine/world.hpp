@@ -49,7 +49,7 @@ public:
     World(const Space* space);
     ~World();
 
-    void Setup(const std::string& path, const DirectX::XMMATRIX& transform = DirectX::XMMatrixIdentity());
+    void Create(const std::string& path, const DirectX::XMMATRIX& transform = DirectX::XMMatrixIdentity());
 
     void Simulate(float dt);
     void Update(float dt);
@@ -68,6 +68,8 @@ private:
     void createScenes(const tinygltf::Model& model);
 
 private:
+    std::unique_ptr<Timer> m_pTimer;
+
     const Space* m_space;
 
     std::vector<std::shared_ptr<RENDER::Texture>> m_textures = {};
