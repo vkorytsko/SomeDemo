@@ -4,7 +4,7 @@
 #include <memory>
 #include <iostream>
 
-#include "exceptions.hpp"
+#include <exceptions.hpp>
 
 
 namespace SD::RENDER {

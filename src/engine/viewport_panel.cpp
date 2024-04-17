@@ -11,9 +11,8 @@ namespace SD::ENGINE {
 void ViewportPanel::Draw()
 {
 	const auto& app = Application::GetApplication();
-	const auto& renderer = app->GetRenderer();
-	const auto& camera = app->GetCamera();
-	const auto& frameBuffer = renderer->GetFrameBuffer();
+	const auto& rendererSystem = app->GetRenderSystem();
+	const auto& frameBuffer = rendererSystem->GetFrameBuffer();
 
 	ImGuiWindowFlags flags = ImGuiWindowFlags_None;
 	flags |= ImGuiWindowFlags_NoNavInputs;
@@ -28,7 +27,7 @@ void ViewportPanel::Draw()
 	const auto height = static_cast<UINT>(viewportSize.y);
 	if (frameBuffer->width() != width || frameBuffer->height() != height)
 	{
-		renderer->OnSpaceViewportResize(viewportSize.x, viewportSize.y);
+		rendererSystem->OnSpaceViewportResize(viewportSize.x, viewportSize.y);
 	}
 
 	ImGui::Image((void*)frameBuffer->getSRV().Get(), viewportSize);

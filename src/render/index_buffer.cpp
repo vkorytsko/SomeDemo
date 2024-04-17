@@ -1,11 +1,13 @@
 #include "index_buffer.hpp"
 
-#include "exceptions.hpp"
+#include "renderer.hpp"
+#include "debug_layer.hpp"
+#include <exceptions.hpp>
 
 
 namespace SD::RENDER {
 
-void IndexBuffer::Bind(Renderer* renderer, UINT slot, UINT stride, UINT offset) const
+void IndexBuffer::Bind(Renderer* renderer, UINT, UINT, UINT offset) const
 {
 	D3D_DEBUG_LAYER(renderer);
 

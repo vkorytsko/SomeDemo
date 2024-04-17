@@ -1,6 +1,5 @@
 #include "camera.hpp"
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <algorithm>
 #include <cmath>
@@ -130,8 +129,8 @@ void Camera::updateView()
 void Camera::updateProjection()
 {
 	const auto& app = Application::GetApplication();
-	const auto& renderer = app->GetRenderer();
-	const auto& frameBuffer = renderer->GetFrameBuffer();
+	const auto& renderSystem = app->GetRenderSystem();
+	const auto& frameBuffer = renderSystem->GetFrameBuffer();
 
 	const float aspect = static_cast<float>(frameBuffer->width()) / static_cast<float>(frameBuffer->height());
 	m_projection = XMMatrixPerspectiveFovLH(FOV, aspect, NEAR_Z, FAR_Z);

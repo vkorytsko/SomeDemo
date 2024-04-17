@@ -25,10 +25,10 @@ namespace tinygltf
 {
 class Model;
 class Node;
-class Mesh;
-class Primitive;
-class Scene;
-class Material;
+struct Mesh;
+struct Primitive;
+struct Scene;
+struct Material;
 }
 
 namespace SD::ENGINE {

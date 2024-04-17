@@ -1,27 +1,21 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #include <wrl.h>
 #include <d3d11.h>
-#include <DirectXMath.h>
 
 #include <memory>
-
-#include "debug_layer.hpp"
 
 
 namespace SD::RENDER {
 
-const DirectX::XMFLOAT3 EMPTY_COLOR = { 0.1f, 0.1f, 0.2f };
-
-class FrameBuffer;
+class DebugLayer;
 
 class Renderer
 {
 public:
-    Renderer();
+    Renderer(const float width, const float height, const HWND handle);
     ~Renderer();
 
     Renderer(Renderer&&) = default;
@@ -30,26 +24,12 @@ public:
     Renderer(Renderer const&) = delete;
     Renderer& operator= (Renderer const&) = delete;
 
-    void Begin();
-    void End();
+    ID3D11Device* GetDevice() const { return m_pD3dDevice.Get(); }
+    IDXGISwapChain* GetSwapChain() const { return m_pSwapChain.Get(); }
+    ID3D11DeviceContext* GetContext() const { return m_pD3dContext.Get(); }
+    ID3D11RenderTargetView* GetRenderTargetView() const { return m_pRenderTargetView.Get(); }
 
-    void BeginFrame();
-    void EndFrame();
-
-    void BeginImGui() const;
-    void EndImGui() const;
-
-    void OnWindowResize();
-    void OnSpaceViewportResize(const float width, const float height);
-
-    ID3D11Device* GetDevice() const;
-    ID3D11DeviceContext* GetContext() const;
-    DebugLayer* GetDebugLayer() const;
-    FrameBuffer* GetFrameBuffer() const;
-
-private:
-    void InitImGui() const;
-    void FiniImGui() const;
+    DebugLayer* GetDebugLayer() const { return m_debugLayer.get(); }
 
 private:
     Microsoft::WRL::ComPtr<ID3D11Device> m_pD3dDevice;
@@ -58,8 +38,6 @@ private:
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;
 
     std::unique_ptr<DebugLayer> m_debugLayer;
-
-    std::unique_ptr<FrameBuffer> m_frameBuffer = nullptr;
 };
 
 }  // end namespace SD::RENDER

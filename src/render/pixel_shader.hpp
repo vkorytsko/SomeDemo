@@ -1,18 +1,16 @@
 #pragma once
 
-#include <string>
+#include <d3d11.h>
+#include <wrl.h>
 
-#include "renderer.hpp"
+#include <string>
 
 
 namespace SD::RENDER {
 
-#ifndef NDEBUG
-const std::wstring PS_PATH = L"Debug\\";
-#else
-const std::wstring PS_PATH = L"Release\\";
-#endif
+const std::wstring PS_PATH = L"src\\shaders\\";
 
+class Renderer;
 
 class PixelShader
 {

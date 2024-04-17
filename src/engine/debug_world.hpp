@@ -21,6 +21,8 @@ namespace SD::ENGINE {
 class DebugWorld
 {
 private:
+#pragma warning( push )
+#pragma warning( disable : 4324 )  // structure was padded due to alignment specifier
     struct Vertex
     {
         DirectX::XMFLOAT3 pos;
@@ -67,6 +69,7 @@ private:
         alignas(16) DirectX::XMFLOAT2 cutOff;  // {inner, outer}
         int enabled;
     };
+#pragma warning( pop )
 
 public:
     DebugWorld(const Space* space);

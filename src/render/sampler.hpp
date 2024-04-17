@@ -3,10 +3,10 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 
-#include "renderer.hpp"
-
 
 namespace SD::RENDER {
+
+	class Renderer;
 
 class Sampler
 {

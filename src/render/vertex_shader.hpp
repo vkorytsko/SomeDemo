@@ -5,20 +5,15 @@
 
 #include <string>
 
-#include "renderer.hpp"
-
 
 namespace SD::RENDER {
 
-#ifndef NDEBUG 
-const std::wstring VS_PATH = L"Debug\\";
-#else
-const std::wstring VS_PATH = L"Release\\";
-#endif
+const std::wstring VS_PATH = L"src\\shaders\\";
 
+class Renderer;
 
 class VertexShader
-{
+{ 
 public:
 	VertexShader(Renderer* renderer, const std::wstring& name);
 

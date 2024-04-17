@@ -32,12 +32,10 @@ Application::Application()
 	m_pWindow = std::make_unique<Window>(this, WIDTH, HEIGHT, NAME);
 	s_hWnd = m_pWindow->GetHandle();
 
-	m_pRenderer = std::make_unique<RENDER::Renderer>();
+	m_pRenderSystem = std::make_unique<RenderSystem>();
 	m_pCamera = std::make_unique<Camera>();
 	m_pSpace = std::make_unique<Space>();
 	m_pTimer = std::make_unique<Timer>();
-
-
 }
 
 Application::~Application()
@@ -75,23 +73,23 @@ int Application::Run()
 
 		// Draw
 		{
-			m_pRenderer->Begin();
+			m_pRenderSystem->Begin();
 
 			// Space
 			{
-				m_pRenderer->BeginFrame();
+				m_pRenderSystem->BeginFrame();
 				m_pSpace->DrawFrame();
-				m_pRenderer->EndFrame();
+				m_pRenderSystem->EndFrame();
 			}
 			
 			// ImGui
 			{
-				m_pRenderer->BeginImGui();
+				m_pRenderSystem->BeginImGui();
 				m_pSpace->DrawImGui();
-				m_pRenderer->EndImGui();
+				m_pRenderSystem->EndImGui();
 			}
 
-			m_pRenderer->End();
+			m_pRenderSystem->End();
 		}
 	}
 }
@@ -106,14 +104,14 @@ Window* Application::GetWindow() const
 	return m_pWindow.get();
 }
 
-RENDER::Renderer* Application::GetRenderer() const
+RenderSystem* Application::GetRenderSystem() const
 {
-	if (!m_pRenderer)
+	if (!m_pRenderSystem)
 	{
-		THROW_SOME_EXCEPTION(L"MISSING RENDERER!");
+		THROW_SOME_EXCEPTION(L"MISSING RENDER SYSTEM!");
 	}
 
-	return m_pRenderer.get();
+	return m_pRenderSystem.get();
 }
 
 Camera* Application::GetCamera() const
@@ -187,9 +185,9 @@ LRESULT Application::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 					m_pWindow->Resize(width, height);
 				}
 
-				if (m_pRenderer)
+				if (m_pRenderSystem)
 				{
-					m_pRenderer->OnWindowResize();
+					m_pRenderSystem->OnWindowResize();
 				}
 			}
 

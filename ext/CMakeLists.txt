@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.12.0)
 
+set(EXTERNALS_DIR ${PROJECT_SOURCE_DIR}/ext/)
+set(EXTERNALS_BIN_DIR ${PROJECT_SOURCE_DIR}/bin/$<CONFIG>/ext/)
+set(EXTERNALS_FOLDER external)
+
+
 # DirectXMath
 add_subdirectory(DirectXMath)
 
@@ -11,48 +16,67 @@ set(BUILD_DX11 OFF)
 set(BUILD_DX12 OFF)
 set(BC_USE_OPENMP OFF)
 add_subdirectory(DirectXTex)
+set_target_properties(
+	DirectXTex
+	PROPERTIES
+	FOLDER ${EXTERNALS_FOLDER}
+	ARCHIVE_OUTPUT_DIRECTORY ${EXTERNALS_BIN_DIR}
+	LIBRARY_OUTPUT_DIRECTORY ${EXTERNALS_BIN_DIR}
+	RUNTIME_OUTPUT_DIRECTORY ${EXTERNALS_BIN_DIR}
+)
 
 
 # TinyGLTF
-# set(TINYGLTF_HEADER_ONLY ON CACHE INTERNAL "" FORCE)
-# set(TINYGLTF_INSTALL OFF CACHE INTERNAL "" FORCE)
-# add_subdirectory(tinygltf)
+set(TINYGLTF_BUILD_LOADER_EXAMPLE OFF CACHE INTERNAL "" FORCE)
+set(TINYGLTF_INSTALL OFF CACHE INTERNAL "" FORCE)
+set(TINYGLTF_HEADER_ONLY ON CACHE INTERNAL "" FORCE)
+add_subdirectory(tinygltf)
 
 
 # ImGUI
 set(IMGUI_TARGET_NAME imgui)
-set(IMGUI_SUBMODULE_DIR "${PROJECT_SOURCE_DIR}/ext/imgui/")
+set(IMGUI_SUBMODULE_DIR ${EXTERNALS_DIR}/imgui/)
 
 set(IMGUI_SOURCES
-    ${IMGUI_SUBMODULE_DIR}imgui.cpp
-    ${IMGUI_SUBMODULE_DIR}imgui_demo.cpp
-    ${IMGUI_SUBMODULE_DIR}imgui_draw.cpp
-    ${IMGUI_SUBMODULE_DIR}imgui_tables.cpp
-    ${IMGUI_SUBMODULE_DIR}imgui_widgets.cpp
-    ${IMGUI_SUBMODULE_DIR}backends/imgui_impl_dx11.cpp
-    ${IMGUI_SUBMODULE_DIR}backends/imgui_impl_win32.cpp
+	${IMGUI_SUBMODULE_DIR}imgui.cpp
+	${IMGUI_SUBMODULE_DIR}imgui_demo.cpp
+	${IMGUI_SUBMODULE_DIR}imgui_draw.cpp
+	${IMGUI_SUBMODULE_DIR}imgui_tables.cpp
+	${IMGUI_SUBMODULE_DIR}imgui_widgets.cpp
+	${IMGUI_SUBMODULE_DIR}backends/imgui_impl_dx11.cpp
+	${IMGUI_SUBMODULE_DIR}backends/imgui_impl_win32.cpp
 )
 set(IMGUI_HEADERS
-    ${IMGUI_SUBMODULE_DIR}imconfig.h
-    ${IMGUI_SUBMODULE_DIR}imgui.h
-    ${IMGUI_SUBMODULE_DIR}imgui_internal.h
-    ${IMGUI_SUBMODULE_DIR}imstb_rectpack.h
-    ${IMGUI_SUBMODULE_DIR}imstb_textedit.h
-    ${IMGUI_SUBMODULE_DIR}imstb_truetype.h
-    ${IMGUI_SUBMODULE_DIR}backends/imgui_impl_dx11.h
-    ${IMGUI_SUBMODULE_DIR}backends/imgui_impl_win32.h
+	${IMGUI_SUBMODULE_DIR}imconfig.h
+	${IMGUI_SUBMODULE_DIR}imgui.h
+	${IMGUI_SUBMODULE_DIR}imgui_internal.h
+	${IMGUI_SUBMODULE_DIR}imstb_rectpack.h
+	${IMGUI_SUBMODULE_DIR}imstb_textedit.h
+	${IMGUI_SUBMODULE_DIR}imstb_truetype.h
+	${IMGUI_SUBMODULE_DIR}backends/imgui_impl_dx11.h
+	${IMGUI_SUBMODULE_DIR}backends/imgui_impl_win32.h
 )
 
-add_library(${IMGUI_TARGET_NAME} STATIC ${IMGUI_SOURCES} ${IMGUI_HEADERS})
+add_library(
+	${IMGUI_TARGET_NAME}
+	STATIC
+	${IMGUI_SOURCES} ${IMGUI_HEADERS})
 
 set_target_properties(
-    ${IMGUI_TARGET_NAME} PROPERTIES
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED ON
+	${IMGUI_TARGET_NAME}
+	PROPERTIES
+	CXX_STANDARD 17
+	CXX_STANDARD_REQUIRED ON
+	FOLDER ${EXTERNALS_FOLDER}
+	ARCHIVE_OUTPUT_DIRECTORY ${EXTERNALS_BIN_DIR}
+	LIBRARY_OUTPUT_DIRECTORY ${EXTERNALS_BIN_DIR}
+	RUNTIME_OUTPUT_DIRECTORY ${EXTERNALS_BIN_DIR}
 )
 
 target_include_directories(
-    ${IMGUI_TARGET_NAME}
-    PUBLIC
-    ${IMGUI_SUBMODULE_DIR}
+	${IMGUI_TARGET_NAME}
+	PRIVATE
+	${IMGUI_SUBMODULE_DIR}
+	INTERFACE
+	$<BUILD_INTERFACE:${IMGUI_SUBMODULE_DIR}>
 )

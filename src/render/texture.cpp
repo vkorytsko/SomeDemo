@@ -1,6 +1,10 @@
 #include "texture.hpp"
 
+#include "renderer.hpp"
+#include "debug_layer.hpp"
 #include "exceptions.hpp"
+
+#include <DirectXTex.h>
 
 
 namespace SD::RENDER {
@@ -31,7 +35,7 @@ Texture::Texture(Renderer* renderer, const std::wstring& path)
         const auto& i = scratch.GetImage(mip, 0, 0);
         auto& data = initialData.emplace_back();
         data.pSysMem = i->pixels;
-        data.SysMemPitch = i->rowPitch;
+        data.SysMemPitch = static_cast<UINT>(i->rowPitch);
     }
 
     Microsoft::WRL::ComPtr<ID3D11Texture2D> pDiffuseTexture;
@@ -41,7 +45,7 @@ Texture::Texture(Renderer* renderer, const std::wstring& path)
     textureSRVDesc.Format = textureDesc.Format;
     textureSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     textureSRVDesc.Texture2D.MostDetailedMip = 0;
-    textureSRVDesc.Texture2D.MipLevels = -1;
+    textureSRVDesc.Texture2D.MipLevels = static_cast<UINT>(-1);
     D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateShaderResourceView(pDiffuseTexture.Get(), &textureSRVDesc, m_pTextureView.GetAddressOf()));
 }
 

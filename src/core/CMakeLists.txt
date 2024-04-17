@@ -1,0 +1,42 @@
+cmake_minimum_required(VERSION 3.12.0)
+
+set(TARGET_NAME core)
+
+set(SOURCES
+	exceptions.cpp
+)
+set(HEADERS
+	exceptions.hpp
+	utils.hpp
+)
+source_group("" FILES ${SOURCES} ${HEADERS})
+
+add_library(
+	${TARGET_NAME}
+	STATIC
+	${SOURCES} ${HEADERS}
+)
+
+set_target_properties(
+${TARGET_NAME}
+	PROPERTIES
+	CXX_STANDARD 17
+	CXX_STANDARD_REQUIRED ON
+	FOLDER ${INTERNALS_FOLDER}
+	ARCHIVE_OUTPUT_DIRECTORY ${INTERNALS_BIN_DIR}
+	LIBRARY_OUTPUT_DIRECTORY ${INTERNALS_BIN_DIR}
+	RUNTIME_OUTPUT_DIRECTORY ${INTERNALS_BIN_DIR}
+)
+
+target_compile_options(
+	${TARGET_NAME}
+	PRIVATE
+	/W4
+	/WX
+	/MP
+)
+
+target_include_directories(${TARGET_NAME}
+	INTERFACE
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)

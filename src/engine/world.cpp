@@ -1,5 +1,3 @@
-#define NOMINMAX
-
 #include "world.hpp"
 
 #include <filesystem>
@@ -18,7 +16,9 @@
 #define TINYGLTF_NO_STB_IMAGE_WRITE 
 #define TINYGLTF_NO_EXTERNAL_IMAGE  
 #define TINYGLTF_USE_CPP14
+#pragma warning( push, 0 )
 #include "tiny_gltf.h"
+#pragma warning( pop )
 
 
 namespace
@@ -131,7 +131,7 @@ void World::createBuffers(const tinygltf::Model& model)
 	std::clog << "Create buffers!" << std::endl;
 
 	const auto& app = Application::GetApplication();
-	const auto& renderer = app->GetRenderer();
+	const auto& renderSystem = app->GetRenderSystem();
 
 	m_buffers.reserve(model.bufferViews.size());
 
@@ -147,7 +147,7 @@ void World::createBuffers(const tinygltf::Model& model)
 		}
 
 		const auto buffer = model.buffers[bufferView.buffer];
-		m_buffers.back()->create(renderer, buffer.data.data() + bufferView.byteOffset, bufferView.byteLength);
+		m_buffers.back()->create(renderSystem->GetRenderer(), buffer.data.data() + bufferView.byteOffset, bufferView.byteLength);
 	}
 
 	std::clog << "Buffers created: " << m_pTimer->GetDelta() << " s." << std::endl;
@@ -158,12 +158,12 @@ void World::createTextures(const tinygltf::Model& model, const std::filesystem::
 	std::clog << "Create textures!" << std::endl;
 
 	const auto& app = Application::GetApplication();
-	const auto& renderer = app->GetRenderer();
+	const auto& renderSystem = app->GetRenderSystem();
 
 	for (const auto& image : model.images)
 	{
 		const auto path = dir.string() + image.uri;
-		m_textures.emplace_back(std::make_shared<RENDER::Texture>(renderer, AToWstring(path)));
+		m_textures.emplace_back(std::make_shared<RENDER::Texture>(renderSystem->GetRenderer(), AToWstring(path)));
 	}
 
 	std::clog << "Textures created: " << m_pTimer->GetDelta() << " s." << std::endl;
@@ -174,12 +174,14 @@ void World::createSamplers(const tinygltf::Model& model)
 	std::clog << "Create samplers!" << std::endl;
 
 	const auto& app = Application::GetApplication();
-	const auto& renderer = app->GetRenderer();
+	const auto& renderSystem = app->GetRenderSystem();
 
+#pragma warning(disable:4189)  // local variable is initialized but not referenced
 	for (const auto& sampler : model.samplers)
 	{
-		m_samplers.emplace_back(std::make_shared<RENDER::Sampler>(renderer));
+		m_samplers.emplace_back(std::make_shared<RENDER::Sampler>(renderSystem->GetRenderer()));
 	}
+#pragma warning(default:4189)
 
 	std::clog << "Samplers created: " << m_pTimer->GetDelta() << " s." << std::endl;
 }
@@ -353,11 +355,11 @@ void World::Node::Setup(const World* world, const tinygltf::Node& node)
 	DirectX::XMMatrixDecompose(&m_originalScale, &m_originalRotation, &m_originalTranslation, m_localTransform);
 
 	const auto& app = Application::GetApplication();
-	const auto& renderer = app->GetRenderer();
+	const auto& renderSystem = app->GetRenderSystem();
 
 	// create constant buffers
 	CB_transform transformCB;
-	m_pTransformCB = std::make_unique<SD::RENDER::ConstantBuffer<CB_transform>>(renderer, transformCB);
+	m_pTransformCB = std::make_unique<SD::RENDER::ConstantBuffer<CB_transform>>(renderSystem->GetRenderer(), transformCB);
 }
 #pragma warning( pop )
 
@@ -383,7 +385,7 @@ void World::Node::Update(float dt)
 {
 	const auto& app = Application::GetApplication();
 	const auto& camera = app->GetCamera();
-	const auto& renderer = app->GetRenderer();
+	const auto& renderSystem = app->GetRenderSystem();
 
 	if (m_mesh)
 	{
@@ -394,7 +396,7 @@ void World::Node::Update(float dt)
 			transformCB->view = camera->getView();
 			transformCB->projection = camera->getProjection();
 			transformCB->viewPosition = camera->getPosition();
-			m_pTransformCB->Update(renderer);
+			m_pTransformCB->Update(renderSystem->GetRenderer());
 		}
 	}
 
@@ -407,11 +409,11 @@ void World::Node::Update(float dt)
 void World::Node::Draw()
 {
 	const auto& app = Application::GetApplication();
-	const auto& renderer = app->GetRenderer();
+	const auto& renderSystem = app->GetRenderSystem();
 
 	if (m_mesh)
 	{
-		m_pTransformCB->VSBind(renderer, 0u);
+		m_pTransformCB->VSBind(renderSystem->GetRenderer(), 0u);
 
 		m_mesh->Draw();
 	}
@@ -431,16 +433,16 @@ World::Material::Material(const std::string& name, const uint32_t id)
 void World::Material::Setup(const World* world, const tinygltf::Model& model, const tinygltf::Material& material)
 {
 	const auto& app = Application::GetApplication();
-	const auto& renderer = app->GetRenderer();
+	const auto& renderSystem = app->GetRenderSystem();
 
-	m_pVertexShader = std::make_unique<SD::RENDER::VertexShader>(renderer, L"blinn_phong.vs.cso");
-	m_pPixelShader = std::make_unique<SD::RENDER::PixelShader>(renderer, L"blinn_phong.ps.cso");
+	m_pVertexShader = std::make_unique<SD::RENDER::VertexShader>(renderSystem->GetRenderer(), L"blinn_phong.vs.cso");
+	m_pPixelShader = std::make_unique<SD::RENDER::PixelShader>(renderSystem->GetRenderer(), L"blinn_phong.ps.cso");
 
-	m_pRasterizer = std::make_unique<RENDER::Rasterizer>(renderer, !material.doubleSided);
+	m_pRasterizer = std::make_unique<RENDER::Rasterizer>(renderSystem->GetRenderer(), !material.doubleSided);
 
 	// MASK blending is not supported yet
 	const bool blendEnabled = material.alphaMode != "OPAQUE";
-	m_pBlender = std::make_unique<SD::RENDER::Blender>(renderer, blendEnabled);
+	m_pBlender = std::make_unique<SD::RENDER::Blender>(renderSystem->GetRenderer(), blendEnabled);
 
 	// create textures
 	{
@@ -454,45 +456,44 @@ void World::Material::Setup(const World* world, const tinygltf::Model& model, co
 		}
 		else
 		{
-			m_pDiffuseTexture = std::make_shared<SD::RENDER::Texture>(renderer, L"..\\res\\textures\\base_color.dds");
-			m_pSampler = std::make_shared<SD::RENDER::Sampler>(renderer);
+			static const std::string baseColor = SD_RES_DIR + std::string("textures\\base_color.dds");
+			m_pDiffuseTexture = std::make_shared<SD::RENDER::Texture>(renderSystem->GetRenderer(), AToWstring(baseColor));
+			m_pSampler = std::make_shared<SD::RENDER::Sampler>(renderSystem->GetRenderer());
 		}
 
-		m_pSpecularTexture = std::make_unique<SD::RENDER::Texture>(renderer, L"..\\res\\textures\\specular.dds");
+		static const std::string specular = SD_RES_DIR + std::string("textures\\specular.dds");
+		m_pSpecularTexture = std::make_unique<SD::RENDER::Texture>(renderSystem->GetRenderer(), AToWstring(specular));
 	}
 
 	CB_material materialCB;
 	materialCB.shiness = 32.0f;
-	m_pMaterialCB = std::make_unique<SD::RENDER::ConstantBuffer<CB_material>>(renderer, materialCB);
+	m_pMaterialCB = std::make_unique<SD::RENDER::ConstantBuffer<CB_material>>(renderSystem->GetRenderer(), materialCB);
 }
 
 void World::Material::Bind()
 {
 	const auto& app = Application::GetApplication();
-	const auto& renderer = app->GetRenderer();
-	const auto& context = renderer->GetContext();
-
-	D3D_DEBUG_LAYER(renderer);
+	const auto& renderSystem = app->GetRenderSystem();
 
 	// bind shaders
-	m_pVertexShader->Bind(renderer);
-	m_pPixelShader->Bind(renderer);
+	m_pVertexShader->Bind(renderSystem->GetRenderer());
+	m_pPixelShader->Bind(renderSystem->GetRenderer());
 
 	// bind constant buffer
-	m_pMaterialCB->PSBind(renderer, 0u);
+	m_pMaterialCB->PSBind(renderSystem->GetRenderer(), 0u);
 
 	// bind textures
-	m_pDiffuseTexture->Bind(renderer, 0u);
-	m_pSpecularTexture->Bind(renderer, 1u);
+	m_pDiffuseTexture->Bind(renderSystem->GetRenderer(), 0u);
+	m_pSpecularTexture->Bind(renderSystem->GetRenderer(), 1u);
 
 	// bind texture sampler
-	m_pSampler->Bind(renderer);
+	m_pSampler->Bind(renderSystem->GetRenderer());
 
 	// bind rasterizer state
-	m_pRasterizer->Bind(renderer);
+	m_pRasterizer->Bind(renderSystem->GetRenderer());
 
 	// bind Blend State
-	m_pBlender->Bind(renderer);
+	m_pBlender->Bind(renderSystem->GetRenderer());
 }
 
 World::Mesh::Mesh(const std::string& name, const uint32_t id)
@@ -538,7 +539,7 @@ World::Primitive::Attribute::Attribute(const std::string& name)
 World::Primitive::Primitive(const World* world, const tinygltf::Model& model, const tinygltf::Primitive& primitive)
 {
 	const auto& app = Application::GetApplication();
-	const auto& renderer = app->GetRenderer();
+	const auto& renderSystem = app->GetRenderSystem();
 
 	m_material = world->m_materials[primitive.material];
 
@@ -554,8 +555,6 @@ World::Primitive::Primitive(const World* world, const tinygltf::Model& model, co
 
 	// setup input layout and vertex buffers
 	{
-		D3D_DEBUG_LAYER(renderer);
-
 		std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc;
 
 		m_attributes.reserve(primitive.attributes.size());
@@ -585,7 +584,8 @@ World::Primitive::Primitive(const World* world, const tinygltf::Model& model, co
 			const auto& attribute = m_attributes.emplace_back(name);
 
 			inputLayoutDesc.push_back(
-				{ attribute.m_name.c_str(), static_cast<UINT>(attribute.m_semanticIdx), BUFFER_FORMATS.at({accessor.componentType, accessor.type}), inputSlot++, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+				{ attribute.m_name.c_str(), static_cast<UINT>(attribute.m_semanticIdx),
+				BUFFER_FORMATS.at({accessor.componentType, accessor.type}), inputSlot++, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 			);
 
 			m_vertexBuffers.push_back(std::static_pointer_cast<const RENDER::VertexBuffer>(world->m_buffers[accessor.bufferView]));
@@ -594,17 +594,17 @@ World::Primitive::Primitive(const World* world, const tinygltf::Model& model, co
 		}
 
 		// create input (vertex) layout
-		m_pInputLayout = std::make_unique<SD::RENDER::InputLayout>(renderer, inputLayoutDesc, m_material->m_pVertexShader->GetBytecode());
+		m_pInputLayout = std::make_unique<SD::RENDER::InputLayout>(renderSystem->GetRenderer(), inputLayoutDesc, m_material->m_pVertexShader->GetBytecode());
 	}
 }
 
 void World::Primitive::Draw()
 {
 	const auto& app = Application::GetApplication();
-	const auto& renderer = app->GetRenderer();
-	const auto& context = renderer->GetContext();
+	const auto& renderSystem = app->GetRenderSystem();
+	const auto& context = renderSystem->GetRenderer()->GetContext();
 
-	D3D_DEBUG_LAYER(renderer);
+	D3D_DEBUG_LAYER(renderSystem->GetRenderer());
 
 	m_material->Bind();
 
@@ -612,19 +612,19 @@ void World::Primitive::Draw()
 	UINT slot = 0;
 	for (const auto& vertexBuffer : m_vertexBuffers)
 	{
-		vertexBuffer->Bind(renderer, slot, m_vertexStrides[slot], m_vertexOffsets[slot]);
+		vertexBuffer->Bind(renderSystem->GetRenderer(), slot, static_cast<UINT>(m_vertexStrides[slot]), static_cast<UINT>(m_vertexOffsets[slot]));
 		slot++;
 	}
 
 	// Bind index buffer
-	m_pIndexBuffer->Bind(renderer, 0u, 0u, m_indicesOffset);
+	m_pIndexBuffer->Bind(renderSystem->GetRenderer(), 0u, 0u, static_cast<UINT>(m_indicesOffset));
 
 	// bind vertex layout
-	m_pInputLayout->Bind(renderer);
+	m_pInputLayout->Bind(renderSystem->GetRenderer());
 
 	// Draw
 	D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
-	D3D_THROW_IF_INFO(context->DrawIndexed(m_indicesCount, 0u, 0u));
+	D3D_THROW_IF_INFO(context->DrawIndexed(static_cast<UINT>(m_indicesCount), 0u, 0u));
 
 	// Unbind SRV
 	ID3D11ShaderResourceView* nullSRV = nullptr;

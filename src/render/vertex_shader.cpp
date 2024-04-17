@@ -2,7 +2,9 @@
 
 #include <d3dcompiler.h>
 
-#include "exceptions.hpp"
+#include "renderer.hpp"
+#include "debug_layer.hpp"
+#include <exceptions.hpp>
 
 
 namespace SD::RENDER {

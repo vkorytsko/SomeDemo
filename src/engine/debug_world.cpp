@@ -29,12 +29,12 @@ DebugWorld::DebugWorld(const Space* space)
 void DebugWorld::Setup()
 {
     const auto& app = Application::GetApplication();
-    const auto& renderer = app->GetRenderer();
+    const auto& renderSystem = app->GetRenderSystem();
 
     SetupLight();
 
-    m_pRasterizer = std::make_unique<RENDER::Rasterizer>(renderer, true);
-    m_pBlender = std::make_unique<RENDER::Blender>(renderer, false);
+    m_pRasterizer = std::make_unique<RENDER::Rasterizer>(renderSystem->GetRenderer(), true);
+    m_pBlender = std::make_unique<RENDER::Blender>(renderSystem->GetRenderer(), false);
 }
 
 void DebugWorld::Simulate(float dt)
@@ -50,10 +50,10 @@ void DebugWorld::Update(float dt)
 void DebugWorld::Draw()
 {
     const auto& app = Application::GetApplication();
-    const auto& renderer = app->GetRenderer();
+    const auto& renderSystem = app->GetRenderSystem();
 
-    m_pRasterizer->Bind(renderer);
-    m_pBlender->Bind(renderer);
+    m_pRasterizer->Bind(renderSystem->GetRenderer());
+    m_pBlender->Bind(renderSystem->GetRenderer());
 
     DrawLight();
 }
@@ -69,7 +69,7 @@ void DebugWorld::DrawImGui()
 
 void DebugWorld::SetupLight() {
     const auto& app = Application::GetApplication();
-    const auto& renderer = app->GetRenderer();
+    const auto& renderSystem = app->GetRenderSystem();
 
     // create vertex buffer
     const std::vector<Vertex> vertices =
@@ -85,7 +85,7 @@ void DebugWorld::SetupLight() {
     };
     m_lightVertexBufferStride = sizeof(decltype(vertices)::value_type);
     m_pLightVertexBuffer = std::make_unique<RENDER::VertexBuffer>();
-    m_pLightVertexBuffer->create(renderer, vertices.data(), m_lightVertexBufferStride * vertices.size());
+    m_pLightVertexBuffer->create(renderSystem->GetRenderer(), vertices.data(), m_lightVertexBufferStride * vertices.size());
 
     // create index buffer
     const std::vector<unsigned short> indices =
@@ -100,40 +100,40 @@ void DebugWorld::SetupLight() {
     m_lightIndexBufferStride = sizeof(decltype(indices)::value_type);
     m_lightIndicesCount = indices.size();
     m_pLightIndexBuffer = std::make_unique<RENDER::IndexBuffer>();
-    m_pLightIndexBuffer->create(renderer, indices.data(), m_lightIndexBufferStride * indices.size());
+    m_pLightIndexBuffer->create(renderSystem->GetRenderer(), indices.data(), m_lightIndexBufferStride * indices.size());
 
     // create shaders
-    m_pLightVertexShader = std::make_unique<RENDER::VertexShader>(renderer, L"light.vs.cso");
-    m_pLightPixelShader = std::make_unique<RENDER::PixelShader>(renderer, L"light.ps.cso");
+    m_pLightVertexShader = std::make_unique<RENDER::VertexShader>(renderSystem->GetRenderer(), L"light.vs.cso");
+    m_pLightPixelShader = std::make_unique<RENDER::PixelShader>(renderSystem->GetRenderer(), L"light.ps.cso");
 
     // create input (vertex) layout
     const std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
-    m_pLightInputLayout = std::make_unique<RENDER::InputLayout>(renderer, inputLayoutDesc, m_pLightVertexShader->GetBytecode());
+    m_pLightInputLayout = std::make_unique<RENDER::InputLayout>(renderSystem->GetRenderer(), inputLayoutDesc, m_pLightVertexShader->GetBytecode());
 
     // create constant buffers
     CB_transform transformCB;
-    m_pLightTransformCB = std::make_unique<RENDER::ConstantBuffer<CB_transform>>(renderer, transformCB);
+    m_pLightTransformCB = std::make_unique<RENDER::ConstantBuffer<CB_transform>>(renderSystem->GetRenderer(), transformCB);
 
     CB_color colorCB;
     colorCB.color = m_lightColor;
-    m_pLightColorCB = std::make_unique<RENDER::ConstantBuffer<CB_color>>(renderer, colorCB);
+    m_pLightColorCB = std::make_unique<RENDER::ConstantBuffer<CB_color>>(renderSystem->GetRenderer(), colorCB);
 
     CB_posLight posLightCB;
     posLightCB.ambient = { 0.4f, 0.4f, 0.4f };
     posLightCB.diffuse = { 0.8f, 0.8f, 0.8f };
     posLightCB.specular = { 1.0f, 1.0f, 1.0f };
     posLightCB.attenuation = { 1.0f, 0.09f, 0.032f };
-    m_pPosLightCB = std::make_unique<RENDER::ConstantBuffer<CB_posLight>>(renderer, posLightCB);
+    m_pPosLightCB = std::make_unique<RENDER::ConstantBuffer<CB_posLight>>(renderSystem->GetRenderer(), posLightCB);
 
     CB_dirLight dirLightCB;
     dirLightCB.direction = { 2.0f, 8.0f, 3.0f };
     dirLightCB.ambient = { 0.05f, 0.05f, 0.05f };
     dirLightCB.diffuse = { 0.1f, 0.1f, 0.1f };
     dirLightCB.specular = { 0.5f, 0.5f, 0.5f };
-    m_pDirLightCB = std::make_unique<RENDER::ConstantBuffer<CB_dirLight>>(renderer, dirLightCB);
+    m_pDirLightCB = std::make_unique<RENDER::ConstantBuffer<CB_dirLight>>(renderSystem->GetRenderer(), dirLightCB);
 
     CB_spotLight spotLightCB;
     spotLightCB.ambient = { 0.0f, 0.0f, 0.0f };
@@ -141,7 +141,7 @@ void DebugWorld::SetupLight() {
     spotLightCB.specular = { 1.0f, 1.0f, 1.0f };
     spotLightCB.attenuation = { 1.0f, 0.09f, 0.032f };
     spotLightCB.cutOff = { std::cosf(DirectX::XMConvertToRadians(12.5f)), std::cosf(DirectX::XMConvertToRadians(15.0f)) };
-    m_pSpotLightCB = std::make_unique<RENDER::ConstantBuffer<CB_spotLight>>(renderer, spotLightCB);
+    m_pSpotLightCB = std::make_unique<RENDER::ConstantBuffer<CB_spotLight>>(renderSystem->GetRenderer(), spotLightCB);
 }
 
 void DebugWorld::SimulateLight(float dt)
@@ -151,69 +151,68 @@ void DebugWorld::SimulateLight(float dt)
     m_lightPosition.x = std::sinf(m_space->simulationTime()) * 6.0f;
 }
 
-void DebugWorld::UpdateLight(float dt)
+void DebugWorld::UpdateLight(float)
 {
     const auto& app = Application::GetApplication();
     const auto& camera = app->GetCamera();
-    const auto& renderer = app->GetRenderer();
+    const auto& renderSystem = app->GetRenderSystem();
 
     const auto& transformCB = m_pLightTransformCB->GetData();
     transformCB->model = GetModelMatrix(m_lightPosition, m_lightRotation, m_lightScale);
     transformCB->view = camera->getView();
     transformCB->projection = camera->getProjection();
     transformCB->viewPosition = camera->getPosition();
-    m_pLightTransformCB->Update(renderer);
+    m_pLightTransformCB->Update(renderSystem->GetRenderer());
 
     const auto& posLightCB = m_pPosLightCB->GetData();
     posLightCB->position = m_lightPosition;
-    m_pPosLightCB->Update(renderer);
+    m_pPosLightCB->Update(renderSystem->GetRenderer());
 
     const auto& spotLightCB = m_pSpotLightCB->GetData();
     spotLightCB->position = camera->getPosition();
     spotLightCB->direction = camera->getDirection();
     spotLightCB->enabled = IsSpotLightEnabled() ? 1 : 0;
-    m_pSpotLightCB->Update(renderer);
+    m_pSpotLightCB->Update(renderSystem->GetRenderer());
 }
 
 void DebugWorld::DrawLight()
 {
     const auto& app = Application::GetApplication();
-    const auto& renderer = app->GetRenderer();
-    const auto& context = renderer->GetContext();
+    const auto& renderSystem = app->GetRenderSystem();
+    const auto& context = renderSystem->GetRenderer()->GetContext();
 
-    D3D_DEBUG_LAYER(renderer);
+    D3D_DEBUG_LAYER(renderSystem->GetRenderer());
 
     // Bind vertex buffer
-    m_pLightVertexBuffer->Bind(renderer, 0u, static_cast<UINT>(m_lightVertexBufferStride), 0u);
+    m_pLightVertexBuffer->Bind(renderSystem->GetRenderer(), 0u, static_cast<UINT>(m_lightVertexBufferStride), 0u);
 
     // Bind index buffer
-    m_pLightIndexBuffer->Bind(renderer, 0u, static_cast<UINT>(m_lightIndexBufferStride), 0u);
+    m_pLightIndexBuffer->Bind(renderSystem->GetRenderer(), 0u, static_cast<UINT>(m_lightIndexBufferStride), 0u);
 
     // bind shaders
-    m_pLightVertexShader->Bind(renderer);
-    m_pLightPixelShader->Bind(renderer);
+    m_pLightVertexShader->Bind(renderSystem->GetRenderer());
+    m_pLightPixelShader->Bind(renderSystem->GetRenderer());
 
     // bind constant buffers
-    m_pLightTransformCB->VSBind(renderer, 0u);
-    m_pLightColorCB->PSBind(renderer, 0u);
+    m_pLightTransformCB->VSBind(renderSystem->GetRenderer(), 0u);
+    m_pLightColorCB->PSBind(renderSystem->GetRenderer(), 0u);
 
     // bind vertex layout
-    m_pLightInputLayout->Bind(renderer);
+    m_pLightInputLayout->Bind(renderSystem->GetRenderer());
 
     // Draw
     D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
-    D3D_THROW_IF_INFO(context->DrawIndexed(m_lightIndicesCount, 0u, 0u));
+    D3D_THROW_IF_INFO(context->DrawIndexed(static_cast<UINT>(m_lightIndicesCount), 0u, 0u));
 }
 
 void DebugWorld::BindLights()
 {
     const auto& app = Application::GetApplication();
-    const auto& renderer = app->GetRenderer();
-    const auto& context = renderer->GetContext();
+    const auto& renderSystem = app->GetRenderSystem();
 
-    m_pPosLightCB->PSBind(renderer, 1u);
-    m_pDirLightCB->PSBind(renderer, 2u);
-    m_pSpotLightCB->PSBind(renderer, 3u);
+    m_pPosLightCB->PSBind(renderSystem->GetRenderer(), 1u);
+    m_pDirLightCB->PSBind(renderSystem->GetRenderer(), 2u);
+    m_pSpotLightCB->PSBind(renderSystem->GetRenderer(), 3u);
 }
 
 bool DebugWorld::IsSpotLightEnabled()

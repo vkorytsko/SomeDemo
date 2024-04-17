@@ -1,5 +1,7 @@
 #include "rasterizer.hpp"
 
+#include "renderer.hpp"
+#include "debug_layer.hpp"
 #include "exceptions.hpp"
 
 

@@ -5,10 +5,10 @@
 
 #include <vector>
 
-#include "renderer.hpp"
-
 
 namespace SD::RENDER {
+
+	class Renderer;
 
 class InputLayout
 {

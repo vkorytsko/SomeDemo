@@ -1,16 +1,18 @@
-# Some Demo.
-Small graphics demo using DirectX 11 backend.
+# Some Demo
+Small C++17 graphics demo using DirectX 11 backend.
 
 ## Getting started
 #### TL;DR
-`git clone --recurse-submodules https://github.com/vkorytsko/SomeDemo`\
-`cd SomeDemo`\
-`cmake .`
+```
+git clone --recurse-submodules --depth 1 https://github.com/vkorytsko/SomeDemo && cd .\SomeDemo\ && .\build.cmd && .\SomeDemo.sln
+```
+```
+git clone --recurse-submodules https://github.com/vkorytsko/SomeDemo
+```
 
 ## Controls
 **W, A, S, D, Q, E** - Camera\
 **F** - Spot Light\
-**Space** - Pause\
 **Ctrl** - Cursor
 
 ## Requirements
