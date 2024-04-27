@@ -11,9 +11,9 @@ namespace SD::RENDER {
 class Sampler
 {
 public:
-	Sampler(Renderer* renderer);
+	Sampler(Renderer* renderer, bool wrap = true);
 
-	void Bind(Renderer* renderer);
+	void Bind(Renderer* renderer, UINT slot);
 
 private:
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_pSampler;

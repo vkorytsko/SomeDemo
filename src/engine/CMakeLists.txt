@@ -5,7 +5,6 @@ set(TARGET_NAME engine)
 set(SOURCES
 	application.cpp
 	camera.cpp
-	debug_world.cpp
 	render_system.cpp
 	space.cpp
 	timer.cpp
@@ -20,7 +19,6 @@ set(SOURCES
 set(HEADERS
 	application.hpp
 	camera.hpp
-	debug_world.hpp
 	render_system.hpp
 	space.hpp
 	timer.hpp

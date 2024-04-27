@@ -29,6 +29,7 @@ set(HEADERS
 	rasterizer.hpp
 	renderer.hpp
 	sampler.hpp
+	structured_buffer.hpp
 	texture.hpp
 	vertex_buffer.hpp
 	vertex_shader.hpp
