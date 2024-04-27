@@ -23,11 +23,11 @@ Sampler::Sampler(Renderer* renderer)
     D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateSamplerState(&samplerDesc, m_pSampler.GetAddressOf()));
 }
 
-void Sampler::Bind(Renderer* renderer)
+void Sampler::Bind(Renderer* renderer, UINT slot)
 {
     D3D_DEBUG_LAYER(renderer);
 
-    D3D_THROW_IF_INFO(renderer->GetContext()->PSSetSamplers(0, 1, m_pSampler.GetAddressOf()));
+    D3D_THROW_IF_INFO(renderer->GetContext()->PSSetSamplers(slot, 1, m_pSampler.GetAddressOf()));
 }
 
 }  // end namespace SD::RENDER

@@ -44,30 +44,7 @@ private:
     struct CB_posLight
     {
         alignas(16) DirectX::XMFLOAT3 position;
-        alignas(16) DirectX::XMFLOAT3 ambient;
-        alignas(16) DirectX::XMFLOAT3 diffuse;
-        alignas(16) DirectX::XMFLOAT3 specular;
-        alignas(16) DirectX::XMFLOAT3 attenuation;  // {constant, linear, quadratic}
-    };
-
-    struct CB_dirLight
-    {
-        alignas(16) DirectX::XMFLOAT3 direction;
-        alignas(16) DirectX::XMFLOAT3 ambient;
-        alignas(16) DirectX::XMFLOAT3 diffuse;
-        alignas(16) DirectX::XMFLOAT3 specular;
-    };
-
-    struct CB_spotLight
-    {
-        alignas(16) DirectX::XMFLOAT3 position;
-        alignas(16) DirectX::XMFLOAT3 direction;
-        alignas(16) DirectX::XMFLOAT3 ambient;
-        alignas(16) DirectX::XMFLOAT3 diffuse;
-        alignas(16) DirectX::XMFLOAT3 specular;
-        alignas(16) DirectX::XMFLOAT3 attenuation;  // {constant, linear, quadratic}
-        alignas(16) DirectX::XMFLOAT2 cutOff;  // {inner, outer}
-        int enabled;
+        alignas(16) DirectX::XMFLOAT3 color;
     };
 #pragma warning( pop )
 
@@ -90,8 +67,6 @@ private:
     void UpdateLight(float dt);
     void DrawLight();
 
-    bool IsSpotLightEnabled();
-
 private:
     const Space* m_space;
 
@@ -111,8 +86,6 @@ private:
     std::unique_ptr<RENDER::ConstantBuffer<CB_transform>> m_pLightTransformCB;
     std::unique_ptr<RENDER::ConstantBuffer<CB_color>> m_pLightColorCB;
     std::unique_ptr<RENDER::ConstantBuffer<CB_posLight>> m_pPosLightCB;
-    std::unique_ptr<RENDER::ConstantBuffer<CB_dirLight>> m_pDirLightCB;
-    std::unique_ptr<RENDER::ConstantBuffer<CB_spotLight>> m_pSpotLightCB;
 
     DirectX::XMFLOAT3 m_lightPosition = { 0.0f, 2.0f, 0.0f };
     DirectX::XMFLOAT3 m_lightRotation = { 0.0f, 0.0f, 0.0f };

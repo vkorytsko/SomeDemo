@@ -5,6 +5,7 @@ set(TARGET_NAME shaders)
 set(SHADERS_BIN_DIR ${INTERNALS_BIN_DIR}/shaders/)
 
 set(VERTEX_SHADERS
+	pbr.vs.hlsl
 	blinn_phong.vs.hlsl
 	color.vs.hlsl
 	light.vs.hlsl
@@ -14,6 +15,7 @@ set(VERTEX_SHADERS
 	texture.vs.hlsl
 )
 set(PIXEL_SHADERS
+	pbr.ps.hlsl
 	blinn_phong.ps.hlsl
 	color.ps.hlsl
 	light.ps.hlsl

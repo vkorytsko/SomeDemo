@@ -172,7 +172,11 @@ private:
 
     struct CB_material
     {
-        alignas(16) float shiness;
+        // TODO: alignment
+        DirectX::XMFLOAT4 baseColorFactor;
+        float normalMapScale;
+        float metallicFactor;
+        alignas(8) float roughnessFactor;
     };
 
 public:
@@ -190,10 +194,14 @@ private:
     std::unique_ptr<RENDER::PixelShader> m_pPixelShader = nullptr;
     std::unique_ptr<RENDER::VertexShader> m_pVertexShader = nullptr;
 
-    std::shared_ptr<const RENDER::Texture> m_pDiffuseTexture = nullptr;
-    std::unique_ptr<RENDER::Texture> m_pSpecularTexture = nullptr;
+    std::shared_ptr<const RENDER::Texture> m_pAlbedoTexture = nullptr;
+    std::shared_ptr<const RENDER::Texture> m_pNormalTexture = nullptr;
+    std::shared_ptr<const RENDER::Texture> m_pMetallicRoughnessTexture = nullptr;
 
-    std::shared_ptr<RENDER::Sampler> m_pSampler = nullptr;
+    std::shared_ptr<RENDER::Sampler> m_pAlbedoSampler = nullptr;
+    std::shared_ptr<RENDER::Sampler> m_pNormalSampler = nullptr;
+    std::shared_ptr<RENDER::Sampler> m_pMetallicRoughnessSampler = nullptr;
+
     std::shared_ptr<RENDER::Rasterizer> m_pRasterizer = nullptr;
     std::shared_ptr<RENDER::Blender> m_pBlender = nullptr;
 

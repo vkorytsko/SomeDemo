@@ -18,6 +18,7 @@
 #define TINYGLTF_USE_CPP14
 #pragma warning( push, 0 )
 #include "tiny_gltf.h"
+#include <DirectXMath.h>
 #pragma warning( pop )
 
 
@@ -435,8 +436,8 @@ void World::Material::Setup(const World* world, const tinygltf::Model& model, co
 	const auto& app = Application::GetApplication();
 	const auto& renderSystem = app->GetRenderSystem();
 
-	m_pVertexShader = std::make_unique<SD::RENDER::VertexShader>(renderSystem->GetRenderer(), L"blinn_phong.vs.cso");
-	m_pPixelShader = std::make_unique<SD::RENDER::PixelShader>(renderSystem->GetRenderer(), L"blinn_phong.ps.cso");
+	m_pVertexShader = std::make_unique<SD::RENDER::VertexShader>(renderSystem->GetRenderer(), L"pbr.vs.cso");
+	m_pPixelShader = std::make_unique<SD::RENDER::PixelShader>(renderSystem->GetRenderer(), L"pbr.ps.cso");
 
 	m_pRasterizer = std::make_unique<RENDER::Rasterizer>(renderSystem->GetRenderer(), !material.doubleSided);
 
@@ -446,27 +447,66 @@ void World::Material::Setup(const World* world, const tinygltf::Model& model, co
 
 	// create textures
 	{
-		const auto textureIndex = material.pbrMetallicRoughness.baseColorTexture.index;
-
-		if (textureIndex >= 0)
+		// albedo
 		{
-			const auto& texture = model.textures[textureIndex];
-			m_pDiffuseTexture = world->m_textures[texture.source];
-			m_pSampler = world->m_samplers[texture.sampler];
+			const auto textureIndex = material.pbrMetallicRoughness.baseColorTexture.index;
+			if (textureIndex >= 0)
+			{
+				const auto& texture = model.textures[textureIndex];
+				m_pAlbedoTexture = world->m_textures[texture.source];
+				m_pAlbedoSampler = world->m_samplers[texture.sampler];
+			}
+			else
+			{
+				static const std::string albedo = SD_RES_DIR + std::string("textures\\albedo.dds");
+				m_pAlbedoTexture = std::make_shared<SD::RENDER::Texture>(renderSystem->GetRenderer(), AToWstring(albedo));
+				m_pAlbedoSampler = std::make_shared<SD::RENDER::Sampler>(renderSystem->GetRenderer());
+			}
 		}
-		else
+		// normal
 		{
-			static const std::string baseColor = SD_RES_DIR + std::string("textures\\base_color.dds");
-			m_pDiffuseTexture = std::make_shared<SD::RENDER::Texture>(renderSystem->GetRenderer(), AToWstring(baseColor));
-			m_pSampler = std::make_shared<SD::RENDER::Sampler>(renderSystem->GetRenderer());
+			const auto textureIndex = material.normalTexture.index;
+			if (textureIndex >= 0)
+			{
+				const auto& texture = model.textures[textureIndex];
+				m_pNormalTexture = world->m_textures[texture.source];
+				m_pNormalSampler = world->m_samplers[texture.sampler];
+			}
+			else
+			{
+				static const std::string normal = SD_RES_DIR + std::string("textures\\normal.dds");
+				m_pNormalTexture = std::make_shared<SD::RENDER::Texture>(renderSystem->GetRenderer(), AToWstring(normal));
+				m_pNormalSampler = std::make_shared<SD::RENDER::Sampler>(renderSystem->GetRenderer());
+			}
 		}
-
-		static const std::string specular = SD_RES_DIR + std::string("textures\\specular.dds");
-		m_pSpecularTexture = std::make_unique<SD::RENDER::Texture>(renderSystem->GetRenderer(), AToWstring(specular));
+		// metallicRoughness
+		{
+			const auto textureIndex = material.pbrMetallicRoughness.metallicRoughnessTexture.index;
+			if (textureIndex >= 0)
+			{
+				const auto& texture = model.textures[textureIndex];
+				m_pMetallicRoughnessTexture = world->m_textures[texture.source];
+				m_pMetallicRoughnessSampler = world->m_samplers[texture.sampler];
+			}
+			else
+			{
+				static const std::string metallicRoughness = SD_RES_DIR + std::string("textures\\metallicRoughness.dds");
+				m_pMetallicRoughnessTexture = std::make_shared<SD::RENDER::Texture>(renderSystem->GetRenderer(), AToWstring(metallicRoughness));
+				m_pMetallicRoughnessSampler = std::make_shared<SD::RENDER::Sampler>(renderSystem->GetRenderer());
+			}
+		}
 	}
 
 	CB_material materialCB;
-	materialCB.shiness = 32.0f;
+	materialCB.normalMapScale = static_cast<float>(material.normalTexture.scale);
+	materialCB.metallicFactor = static_cast<float>(material.pbrMetallicRoughness.metallicFactor);
+	materialCB.roughnessFactor = static_cast<float>(material.pbrMetallicRoughness.roughnessFactor);
+	materialCB.baseColorFactor = DirectX::XMFLOAT4(
+		static_cast<float>(material.pbrMetallicRoughness.baseColorFactor[0]),
+		static_cast<float>(material.pbrMetallicRoughness.baseColorFactor[1]),
+		static_cast<float>(material.pbrMetallicRoughness.baseColorFactor[2]),
+		static_cast<float>(material.pbrMetallicRoughness.baseColorFactor[3])
+	);
 	m_pMaterialCB = std::make_unique<SD::RENDER::ConstantBuffer<CB_material>>(renderSystem->GetRenderer(), materialCB);
 }
 
@@ -483,11 +523,14 @@ void World::Material::Bind()
 	m_pMaterialCB->PSBind(renderSystem->GetRenderer(), 0u);
 
 	// bind textures
-	m_pDiffuseTexture->Bind(renderSystem->GetRenderer(), 0u);
-	m_pSpecularTexture->Bind(renderSystem->GetRenderer(), 1u);
+	m_pAlbedoTexture->Bind(renderSystem->GetRenderer(), 0u);
+	m_pNormalTexture->Bind(renderSystem->GetRenderer(), 1u);
+	m_pMetallicRoughnessTexture->Bind(renderSystem->GetRenderer(), 2u);
 
-	// bind texture sampler
-	m_pSampler->Bind(renderSystem->GetRenderer());
+	// bind texture samplers
+	m_pAlbedoSampler->Bind(renderSystem->GetRenderer(), 0u);
+	m_pNormalSampler->Bind(renderSystem->GetRenderer(), 1u);
+	m_pMetallicRoughnessSampler->Bind(renderSystem->GetRenderer(), 2u);
 
 	// bind rasterizer state
 	m_pRasterizer->Bind(renderSystem->GetRenderer());
@@ -568,24 +611,15 @@ World::Primitive::Primitive(const World* world, const tinygltf::Model& model, co
 		// create vertex buffers
 		for (const auto& [name, idx] : primitive.attributes)
 		{
-			if (name._Starts_with("_"))
-			{
-				continue;
-			}
-
-			if (name == "TANGENT")
-			{
-				continue;
-			}
-
 			const auto& accessor = model.accessors[idx];
 			const auto& bufferView = model.bufferViews[accessor.bufferView];
 
 			const auto& attribute = m_attributes.emplace_back(name);
+			const DXGI_FORMAT format = BUFFER_FORMATS.at({ accessor.componentType, accessor.type });
 
 			inputLayoutDesc.push_back(
 				{ attribute.m_name.c_str(), static_cast<UINT>(attribute.m_semanticIdx),
-				BUFFER_FORMATS.at({accessor.componentType, accessor.type}), inputSlot++, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+				format, inputSlot++,D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 			);
 
 			m_vertexBuffers.push_back(std::static_pointer_cast<const RENDER::VertexBuffer>(world->m_buffers[accessor.bufferView]));

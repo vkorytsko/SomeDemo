@@ -122,26 +122,8 @@ void DebugWorld::SetupLight() {
     m_pLightColorCB = std::make_unique<RENDER::ConstantBuffer<CB_color>>(renderSystem->GetRenderer(), colorCB);
 
     CB_posLight posLightCB;
-    posLightCB.ambient = { 0.4f, 0.4f, 0.4f };
-    posLightCB.diffuse = { 0.8f, 0.8f, 0.8f };
-    posLightCB.specular = { 1.0f, 1.0f, 1.0f };
-    posLightCB.attenuation = { 1.0f, 0.09f, 0.032f };
+    posLightCB.color = { 20.0f, 20.0f, 20.0f };
     m_pPosLightCB = std::make_unique<RENDER::ConstantBuffer<CB_posLight>>(renderSystem->GetRenderer(), posLightCB);
-
-    CB_dirLight dirLightCB;
-    dirLightCB.direction = { 2.0f, 8.0f, 3.0f };
-    dirLightCB.ambient = { 0.05f, 0.05f, 0.05f };
-    dirLightCB.diffuse = { 0.1f, 0.1f, 0.1f };
-    dirLightCB.specular = { 0.5f, 0.5f, 0.5f };
-    m_pDirLightCB = std::make_unique<RENDER::ConstantBuffer<CB_dirLight>>(renderSystem->GetRenderer(), dirLightCB);
-
-    CB_spotLight spotLightCB;
-    spotLightCB.ambient = { 0.0f, 0.0f, 0.0f };
-    spotLightCB.diffuse = { 0.5f, 0.5f, 0.5f };
-    spotLightCB.specular = { 1.0f, 1.0f, 1.0f };
-    spotLightCB.attenuation = { 1.0f, 0.09f, 0.032f };
-    spotLightCB.cutOff = { std::cosf(DirectX::XMConvertToRadians(12.5f)), std::cosf(DirectX::XMConvertToRadians(15.0f)) };
-    m_pSpotLightCB = std::make_unique<RENDER::ConstantBuffer<CB_spotLight>>(renderSystem->GetRenderer(), spotLightCB);
 }
 
 void DebugWorld::SimulateLight(float dt)
@@ -167,12 +149,6 @@ void DebugWorld::UpdateLight(float)
     const auto& posLightCB = m_pPosLightCB->GetData();
     posLightCB->position = m_lightPosition;
     m_pPosLightCB->Update(renderSystem->GetRenderer());
-
-    const auto& spotLightCB = m_pSpotLightCB->GetData();
-    spotLightCB->position = camera->getPosition();
-    spotLightCB->direction = camera->getDirection();
-    spotLightCB->enabled = IsSpotLightEnabled() ? 1 : 0;
-    m_pSpotLightCB->Update(renderSystem->GetRenderer());
 }
 
 void DebugWorld::DrawLight()
@@ -211,12 +187,5 @@ void DebugWorld::BindLights()
     const auto& renderSystem = app->GetRenderSystem();
 
     m_pPosLightCB->PSBind(renderSystem->GetRenderer(), 1u);
-    m_pDirLightCB->PSBind(renderSystem->GetRenderer(), 2u);
-    m_pSpotLightCB->PSBind(renderSystem->GetRenderer(), 3u);
-}
-
-bool DebugWorld::IsSpotLightEnabled()
-{
-    return GetKeyState('F') < 0;
 }
 }  // end namespace SD::ENGINE
