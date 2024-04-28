@@ -18,10 +18,16 @@ cbuffer material : register(b0)
     float roughnessFactor;
 };
 
-cbuffer posLight : register(b1)
+cbuffer pointLights : register(b2)  // TODO: slot
 {
-    float3 plPosition;
-    float3 plColor;
+    int lightsCount;
+};
+
+struct PointLight
+{
+    float3 position;
+    float3 color;
+    float intencity;
 };
 
 
@@ -32,6 +38,8 @@ Texture2D metallicRoughnessMap : TEXTURE : register(t2);
 SamplerState albedoSampler : SAMPLER : register(s0);
 SamplerState normalSampler : SAMPLER : register(s1);
 SamplerState metallicRoughnessSampler : SAMPLER : register(s2);
+
+StructuredBuffer<PointLight> pointLights : register(t3); // TODO: slot
 
 
 float3 getNormalFromMap(PS_INPUIT input);
@@ -46,7 +54,7 @@ float4 main(PS_INPUIT input) : SV_TARGET
     float4 albedo = pow(albedoMap.Sample(albedoSampler, input.uv), 2.2f);
     albedo *= baseColorFactor;
 
-    //clip(albedo.a < 0.1 ? -1 : 1);
+    //clip(albedo.a < 0.1 ? -1 : 1);  // TODO
     clip(albedo.a < 0.9 ? -1 : 1);
 
     const float3 normal = getNormalFromMap(input);
@@ -55,49 +63,65 @@ float4 main(PS_INPUIT input) : SV_TARGET
 
     const float3 worldPos = input.fragPos;
 
-    float3 N = normalize(input.normal);
+    float3 N = normalize(normal);
     float3 V = normalize(input.viewPos - worldPos);
 
+    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
+    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
     float3 F0 = float3(0.04f, 0.04f, 0.04f);
     F0 = lerp(F0, albedo.xyz, metallicRoughness.b);
 
     // reflectance equation
     float3 Lo = float3(0.0f, 0.0f, 0.0f);
+    for (int i = 0; i < lightsCount; i++)
     {
+        PointLight light = pointLights[i];
         // calculate per-light radiance
-        float3 L = normalize(plPosition - worldPos);
+        float3 L = normalize(light.position - worldPos);
         float3 H = normalize(V + L);
-        float distance = length(plPosition - worldPos);
+        float distance = length(light.position - worldPos);
         float attenuation = 1 / (distance * distance);
-        float3 radiance = plColor * attenuation;
+        float3 radiance = light.color * light.intencity * attenuation;
 
-        // cook-torrance brdf
+        // Cook-Torrance BRDF
         float NDF = DistributionGGX(N, H, metallicRoughness.g);
         float G = GeometrySmith(N, V, L, metallicRoughness.g);
         float3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
-        float3 kS = F;
-        float3 kD = float3(1.0f, 1.0f, 1.0f) - kS;
-        kD *= 1.0 - metallicRoughness.b;
-
         float3 numerator = NDF * G * F;
-        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // + 0.0001 to prevent divide by zero
         float3 specular = numerator / denominator;
 
-        // add to outgoing radiance Lo
-        float NdotL = max(dot(N, L), 0.0);
-        Lo += (kD * albedo.xyz / PI + specular) * radiance * NdotL;
-    }
-    
+        // kS is equal to Fresnel
+        float3 kS = F;
+        // for energy conservation, the diffuse and specular light can't
+        // be above 1.0 (unless the surface emits light); to preserve this
+        // relationship the diffuse component (kD) should equal 1.0 - kS.
+        float3 kD = float3(1.0f, 1.0f, 1.0f) - kS;
+        // multiply kD by the inverse metalness such that only non-metals 
+        // have diffuse lighting, or a linear blend if partly metal (pure metals
+        // have no diffuse light).
+        kD *= 1.0 - metallicRoughness.b;
 
+        // scale light by NdotL
+        float NdotL = max(dot(N, L), 0.0);
+
+        // add to outgoing radiance Lo
+        Lo += (kD * albedo.xyz / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
+    }
+
+    // ambient lighting (note that the next IBL tutorial will replace 
+    // this ambient lighting with environment lighting).
     float3 ambient = float3(0.03f, 0.03f, 0.03f) * albedo.xyz * 1.0f;
     float3 color = ambient + Lo;
 
+    // HDR tonemapping
     color = color / (color + float3(1.0f, 1.0f, 1.0f));
-    color = pow(color, 1.0f / 2.2f);
+    // gamma correct
+	color = pow(color, 1.0f / 2.2f);
     
     return float4(color, albedo.a);
-    //return float4(normal.rgb * 0.5 + 0.5, 1.0f);
+    //return float4(normal.rgb * 0.5 + 0.5, 1.0f);  // TODO
 }
 
 float3 getNormalFromMap(PS_INPUIT input)

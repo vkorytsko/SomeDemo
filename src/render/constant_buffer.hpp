@@ -14,8 +14,8 @@ template<class C>
 class ConstantBuffer
 {
 public:
-	ConstantBuffer(Renderer* renderer, C data)
-		: m_data(data)
+	ConstantBuffer(Renderer* renderer, C& data)
+		: m_data(std::move(data))
 	{
 		D3D_DEBUG_LAYER(renderer);
 

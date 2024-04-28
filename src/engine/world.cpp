@@ -37,6 +37,12 @@ const std::unordered_map<const BufferFormat, DXGI_FORMAT, buffer_format_hasher> 
 	{{TINYGLTF_COMPONENT_TYPE_FLOAT, TINYGLTF_TYPE_VEC3}, DXGI_FORMAT_R32G32B32_FLOAT},
 	{{TINYGLTF_COMPONENT_TYPE_FLOAT, TINYGLTF_TYPE_VEC4}, DXGI_FORMAT_R32G32B32A32_FLOAT},
 };
+
+const std::unordered_map<std::string, SD::ENGINE::LightType> LIGHT_TYPES_MAP = {
+	{"point", SD::ENGINE::LightType::POINT},
+	{"spot", SD::ENGINE::LightType::SPOT},
+	{"directional", SD::ENGINE::LightType::DIRECTIONAL},
+};
 }
 
 namespace SD::ENGINE {
@@ -62,6 +68,7 @@ void World::Create(const std::string& path, const DirectX::XMMATRIX& transform)
 	createSamplers(model);
 	createMaterials(model);
 	createMeshes(model);
+	createLights(model);
 	createNodes(model);
 	createScenes(model);
 
@@ -215,6 +222,20 @@ void World::createMeshes(const tinygltf::Model& model)
 	std::clog << "Meshes created: " << m_pTimer->GetDelta() << " s." << std::endl;
 }
 
+void World::createLights(const tinygltf::Model& model)
+{
+	std::clog << "Create lights!" << std::endl;
+
+	for (const auto& light : model.lights)
+	{
+		const auto id = static_cast<uint32_t>(m_nodes.size());
+		const std::string name = light.name.empty() ? "Light " + std::to_string(id) : light.name;
+		m_lights.emplace_back(std::make_shared<Light>(name))->Setup(light);
+	}
+
+	std::clog << "Lights created: " << m_pTimer->GetDelta() << " s." << std::endl;
+}
+
 void World::createNodes(const tinygltf::Model& model)
 {
 	std::clog << "Create nodes!" << std::endl;
@@ -260,6 +281,18 @@ void World::Scene::Setup(const World* world, const tinygltf::Model& model, const
 	{
 		buildHierarchy(world, model, m_root, nodeIdx);
 	}
+
+	const auto& app = Application::GetApplication();
+	const auto& renderSystem = app->GetRenderSystem();
+
+	// create structured and constant buffers
+	std::vector<PointLight> lights;
+	lights.reserve(MAX_LIGHTS);
+	m_pPointLightsBuffer = std::make_unique<RENDER::StructuredBuffer<PointLight>>(renderSystem->GetRenderer(), lights);
+
+	PointLights lightsConstants;
+	lightsConstants.lightsCount = 0;
+	m_pPointLightsConstants = std::make_unique<RENDER::ConstantBuffer<PointLights>>(renderSystem->GetRenderer(), lightsConstants);
 }
 
 void World::Scene::buildHierarchy(
@@ -302,11 +335,36 @@ void World::Scene::Simulate(float dt)
 void World::Scene::Update(float dt)
 {
 	m_root->Update(dt);
+
+	updateLights();
 }
 
 void World::Scene::Draw()
 {
+	const auto& app = Application::GetApplication();
+	const auto& renderSystem = app->GetRenderSystem();
+
+	m_pPointLightsBuffer->PSBind(renderSystem->GetRenderer(), 3);
+	m_pPointLightsConstants->PSBind(renderSystem->GetRenderer(), 2);
+
 	m_root->Draw();
+}
+
+void World::Scene::updateLights()
+{
+	auto& lights = m_pPointLightsBuffer->GetData();
+	lights.clear();
+	lights.reserve(MAX_LIGHTS);
+	m_root->CollectLights(lights);
+
+	auto* lightsConstants = m_pPointLightsConstants->GetData();
+	lightsConstants->lightsCount = static_cast<int>(lights.size());
+
+	const auto& app = Application::GetApplication();
+	const auto& renderSystem = app->GetRenderSystem();
+
+	m_pPointLightsBuffer->Update(renderSystem->GetRenderer());
+	m_pPointLightsConstants->Update(renderSystem->GetRenderer());
 }
 
 World::Node::Node(const std::string& name, const uint32_t id, const DirectX::XMMATRIX& transform)
@@ -324,6 +382,11 @@ void World::Node::Setup(const World* world, const tinygltf::Node& node)
 	if (node.mesh >= 0)
 	{
 		m_mesh = world->m_meshes[node.mesh];
+	}
+
+	if (node.light >= 0)
+	{
+		m_light = world->m_lights[node.light];
 	}
 
 	if (!node.matrix.empty())
@@ -422,6 +485,29 @@ void World::Node::Draw()
 	for (const auto& child : m_children)
 	{
 		child->Draw();
+	}
+}
+
+void World::Node::CollectLights(std::vector<PointLight>& lights)
+{
+	if (m_light)
+	{
+		if (m_light->m_type == LightType::POINT)
+		{
+			PointLight& light = lights.emplace_back();
+
+			DirectX::XMVECTOR translation, rotation, scale;
+			DirectX::XMMatrixDecompose(&scale, &rotation, &translation, m_worldTransform);
+			DirectX::XMStoreFloat3(&light.position, translation);
+
+			light.color = m_light->m_color;
+			light.intencity = m_light->m_intencity;
+		}
+	}
+
+	for (const auto& child : m_children)
+	{
+		child->CollectLights(lights);
 	}
 }
 
@@ -663,5 +749,23 @@ void World::Primitive::Draw()
 	// Unbind SRV
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	D3D_THROW_IF_INFO(context->PSSetShaderResources(2u, 1u, &nullSRV));
+}
+
+World::Light::Light(const std::string& name)
+	: m_name(name)
+{
+}
+
+void World::Light::Setup(const tinygltf::Light& light)
+{
+	m_color = {
+		static_cast<float>(light.color[0]),
+		static_cast<float>(light.color[1]),
+		static_cast<float>(light.color[2])
+	};
+
+	m_type = LIGHT_TYPES_MAP.at(light.type);
+	//m_intencity = static_cast<float>(light.intensity);
+	m_intencity = 1;
 }
 }  // end namespace SD::ENGINE

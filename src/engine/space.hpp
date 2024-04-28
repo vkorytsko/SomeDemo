@@ -40,7 +40,6 @@ private:
 
     // Worlds
     std::unique_ptr<World> m_pWorld = nullptr;
-    std::unique_ptr<DebugWorld> m_pDebugWorld = nullptr;
 
     // Panels
     std::unique_ptr<SpaceSettingsPanel> m_spaceSettingsPanel = nullptr;

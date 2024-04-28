@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "world.hpp"
-#include "debug_world.hpp"
 
 #include "space_settings_panel.hpp"
 #include "viewport_panel.hpp"
@@ -29,8 +28,6 @@ void Space::Init()
     m_pWorld = std::make_unique<World>(this);
     m_pWorld->Create(SD_RES_DIR + std::string("scenes\\Sponza\\main\\main.gltf"));
 
-    m_pDebugWorld = std::make_unique<DebugWorld>(this);
-
     m_spaceSettingsPanel = std::make_unique<SpaceSettingsPanel>();
     m_viewportPanel = std::make_unique<ViewportPanel>();
 
@@ -44,7 +41,6 @@ void Space::Destroy()
     m_pTimer->GetDelta();
 
     m_pWorld.reset();
-    m_pDebugWorld.reset();
 
     std::clog << "Space destroyed: " << m_pTimer->GetDelta() << " s." << std::endl;
 }
@@ -60,26 +56,20 @@ void Space::Simulate(float dt)
     m_simulationTime += dt;
 
     m_pWorld->Simulate(dt);
-    m_pDebugWorld->Simulate(dt);
 }
 
 void Space::Update(float dt)
 {
     m_pWorld->Update(dt);
-    m_pDebugWorld->Update(dt);
 }
 
 void Space::DrawFrame()
 {
-    m_pDebugWorld->BindLights();
     m_pWorld->Draw();
-
-    m_pDebugWorld->Draw();
 }
 void Space::DrawImGui()
 {
     m_pWorld->DrawImGui();
-    m_pDebugWorld->DrawImGui();
 
     m_spaceSettingsPanel->Draw(this);
     m_viewportPanel->Draw();

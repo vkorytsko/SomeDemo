@@ -13,7 +13,7 @@ Rasterizer::Rasterizer(Renderer* renderer, bool cull)
     D3D_DEBUG_LAYER(renderer);
 
     D3D11_RASTERIZER_DESC rasterizerDesc = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT{});
-    rasterizerDesc.CullMode = cull ? D3D11_CULL_BACK : D3D11_CULL_NONE;
+    rasterizerDesc.CullMode = m_cull ? D3D11_CULL_BACK : D3D11_CULL_NONE;
 
     D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateRasterizerState(&rasterizerDesc, m_pRasterizer.GetAddressOf()));
 }

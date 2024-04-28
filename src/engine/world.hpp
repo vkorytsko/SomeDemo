@@ -11,6 +11,7 @@
 #include "blender.hpp"
 #include "buffer.hpp"
 #include "constant_buffer.hpp"
+#include "structured_buffer.hpp"
 #include "index_buffer.hpp"
 #include "input_layout.hpp"
 #include "pixel_shader.hpp"
@@ -29,9 +30,17 @@ struct Mesh;
 struct Primitive;
 struct Scene;
 struct Material;
+struct Light;
 }
 
 namespace SD::ENGINE {
+
+enum class LightType : uint8_t
+{
+    POINT,
+    SPOT,
+    DIRECTIONAL
+};
 
 class World
 {
@@ -44,6 +53,24 @@ private:
     class Primitive;
     class Material;
     class Scene;
+    class Light;
+
+#pragma warning( push )
+#pragma warning( disable : 4324 )  // structure was padded due to alignment specifier
+    struct PointLight
+    {
+        DirectX::XMFLOAT3 position;
+        DirectX::XMFLOAT3 color;
+        float intencity;
+    };
+
+    struct PointLights
+    {
+        alignas(16) int lightsCount;
+    };
+#pragma warning( pop )
+
+    static constexpr size_t MAX_LIGHTS = 512;
 
 public:
     World(const Space* space);
@@ -64,6 +91,7 @@ private:
     void createSamplers(const tinygltf::Model& model);
     void createMaterials(const tinygltf::Model& model);
     void createMeshes(const tinygltf::Model& model);
+    void createLights(const tinygltf::Model& model);
     void createNodes(const tinygltf::Model& model);
     void createScenes(const tinygltf::Model& model);
 
@@ -78,6 +106,7 @@ private:
     std::vector<std::shared_ptr<Material>> m_materials = {};
     std::vector<std::shared_ptr<Mesh>> m_meshes = {};
     std::vector<std::shared_ptr<Node>> m_nodes = {};
+    std::vector<std::shared_ptr<Light>> m_lights = {};
     std::vector<std::shared_ptr<Scene>> m_scenes = {};
 
     DirectX::XMMATRIX m_transform = DirectX::XMMatrixIdentity();
@@ -113,11 +142,16 @@ private:
         const World* world,
         const std::vector<int>& children) const;
 
+    void updateLights();
+
 private:
     const std::string m_name;
     const std::uint32_t m_id;
 
     std::shared_ptr<Node> m_root = nullptr;
+
+    std::unique_ptr<RENDER::StructuredBuffer<PointLight>> m_pPointLightsBuffer;
+    std::unique_ptr<RENDER::ConstantBuffer<PointLights>> m_pPointLightsConstants;
 };
 
 class World::Node
@@ -145,6 +179,8 @@ public:
     void Update(float dt);
     void Draw();
 
+    void CollectLights(std::vector<PointLight>& lights);
+
 private:
     const std::string m_name;
     const std::uint32_t m_id;
@@ -157,6 +193,7 @@ private:
     DirectX::XMVECTOR m_originalTranslation = {};
 
     std::shared_ptr<Mesh> m_mesh = nullptr;
+    std::shared_ptr<Light> m_light = nullptr;
 
     std::weak_ptr<Node> m_parent;
     std::vector<std::shared_ptr<Node>> m_children = {};
@@ -260,5 +297,25 @@ private:
     std::vector<size_t> m_vertexOffsets = {};
 
     std::unique_ptr<RENDER::InputLayout> m_pInputLayout = nullptr;
+};
+
+class World::Light
+{
+private:
+    friend class LightPropertiesPanel;
+    friend class Node; // TODO
+
+public:
+    Light(const std::string& name);
+    ~Light() = default;
+
+    void Setup(const tinygltf::Light& light);
+
+private:
+    const std::string m_name;
+    
+    DirectX::XMFLOAT3 m_color;
+    float m_intencity;
+    LightType m_type;
 };
 }  // end namespace SD::ENGINE
