@@ -11,6 +11,7 @@
 #include "blender.hpp"
 #include "buffer.hpp"
 #include "constant_buffer.hpp"
+#include "frame_buffer.hpp"
 #include "structured_buffer.hpp"
 #include "index_buffer.hpp"
 #include "input_layout.hpp"
@@ -48,6 +49,7 @@ private:
     friend class SceneBrowserPanel;
     friend class NodePropertiesPanel;
 
+    class Environment;
     class Node;
     class Mesh;
     class Primitive;
@@ -76,7 +78,7 @@ public:
     World(const Space* space);
     ~World();
 
-    void Create(const std::string& path, const DirectX::XMMATRIX& transform = DirectX::XMMatrixIdentity());
+    void Create(const std::string& path, const std::string& environment, const DirectX::XMMATRIX& transform = DirectX::XMMatrixIdentity());
 
     void Simulate(float dt);
     void Update(float dt);
@@ -115,6 +117,8 @@ private:
 
     std::unique_ptr<SceneBrowserPanel> m_sceneBrowserPanel = nullptr;
     std::unique_ptr<NodePropertiesPanel> m_nodePropertiesPanel = nullptr;
+
+    std::unique_ptr<World::Environment> m_environment = nullptr;
 };
 
 class World::Scene
@@ -152,6 +156,48 @@ private:
 
     std::unique_ptr<RENDER::StructuredBuffer<PointLight>> m_pPointLightsBuffer;
     std::unique_ptr<RENDER::ConstantBuffer<PointLights>> m_pPointLightsConstants;
+};
+
+class World::Environment
+{
+    struct CB_transform
+    {
+        DirectX::XMMATRIX view;
+    };
+
+public:
+    Environment(const std::string& name);
+    ~Environment() = default;
+
+    void BindRadianceMap() const;
+    void BindIrradianceMap() const;
+
+    void CreateRadianceMap();
+    void ConvolveIrradianceMap();
+
+private:
+    std::unique_ptr<RENDER::Texture> m_environment;
+
+    std::unique_ptr<RENDER::CubeFrameBuffer> m_radianceMap = nullptr;
+    std::unique_ptr<RENDER::CubeFrameBuffer> m_irradianceMap = nullptr;
+
+    std::shared_ptr<RENDER::Sampler> m_cubemapSampler = nullptr;
+    std::shared_ptr<RENDER::Sampler> m_convolveSampler = nullptr;
+
+    std::shared_ptr<RENDER::Rasterizer> m_pRasterizer = nullptr;
+    std::shared_ptr<RENDER::Blender> m_pBlender = nullptr;
+
+    std::unique_ptr<RENDER::PixelShader> m_pConvolvePixelShader = nullptr;
+    std::unique_ptr<RENDER::VertexShader> m_pConvolveVertexShader = nullptr;
+
+    std::unique_ptr<RENDER::ConstantBuffer<CB_transform>> m_transformCB = nullptr;
+
+    std::unique_ptr<RENDER::VertexShader> m_pRadianceVertexShader = nullptr;
+    std::unique_ptr<RENDER::PixelShader> m_pRadiancePixelShader = nullptr;
+
+    std::unique_ptr<RENDER::VertexBuffer> m_pVertexBuffer = nullptr;
+    std::unique_ptr<RENDER::IndexBuffer> m_pIndexBuffer = nullptr;
+    std::unique_ptr<RENDER::InputLayout> m_pInputLayout = nullptr;
 };
 
 class World::Node

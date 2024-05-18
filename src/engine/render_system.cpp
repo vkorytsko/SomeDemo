@@ -29,8 +29,7 @@ RenderSystem::RenderSystem()
     // gain access to texture subresource in swap chain (back buffer)
     Microsoft::WRL::ComPtr<ID3D11Resource> pBackBuffer;
     D3D_THROW_INFO_EXCEPTION(m_renderer->GetSwapChain()->GetBuffer(0, __uuidof(ID3D11Resource), &pBackBuffer));
-    auto* rtv = m_renderer->GetRenderTargetView();
-    m_renderer->GetDevice()->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &rtv);
+    m_renderer->GetDevice()->CreateRenderTargetView(pBackBuffer.Get(), nullptr, m_renderer->GetRenderTargetView().GetAddressOf());
 
     InitImGui();
 }
@@ -133,8 +132,7 @@ void RenderSystem::BeginImGui() const
 {
     D3D_DEBUG_LAYER(m_renderer.get());
 
-    auto* rtv = m_renderer->GetRenderTargetView();
-    D3D_THROW_IF_INFO(m_renderer->GetContext()->OMSetRenderTargets(1u, &rtv, nullptr));
+    D3D_THROW_IF_INFO(m_renderer->GetContext()->OMSetRenderTargets(1u, m_renderer->GetRenderTargetView().GetAddressOf(), nullptr));
 
 
     // Start the Dear ImGui frame
@@ -217,8 +215,7 @@ void RenderSystem::OnWindowResize()
     // Get buffer and create a render-target-view.
     Microsoft::WRL::ComPtr<ID3D11Resource> pBackBuffer;
     D3D_THROW_INFO_EXCEPTION(m_renderer->GetSwapChain()->GetBuffer(0, __uuidof(ID3D11Resource), &pBackBuffer));
-    auto* rtv = m_renderer->GetRenderTargetView();
-    D3D_THROW_INFO_EXCEPTION(m_renderer->GetDevice()->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &rtv));
+    D3D_THROW_INFO_EXCEPTION(m_renderer->GetDevice()->CreateRenderTargetView(pBackBuffer.Get(), nullptr, m_renderer->GetRenderTargetView().GetAddressOf()));
 }
 
 void RenderSystem::OnSpaceViewportResize(const float width, const float height)
@@ -233,12 +230,14 @@ void RenderSystem::Begin()
 {
     D3D_DEBUG_LAYER(m_renderer.get());
 
+    m_frameBuffer->bind(m_renderer.get());
+
     const float color1[] = { EMPTY_COLOR.x, EMPTY_COLOR.y, EMPTY_COLOR.z, 1.0f };
     D3D_THROW_IF_INFO(m_renderer->GetContext()->ClearRenderTargetView(m_frameBuffer->getRTV().Get(), color1));
     D3D_THROW_IF_INFO(m_renderer->GetContext()->ClearDepthStencilView(m_frameBuffer->getDSV().Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
 
     const float color2[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-    D3D_THROW_IF_INFO(m_renderer->GetContext()->ClearRenderTargetView(m_renderer->GetRenderTargetView(), color2));
+    D3D_THROW_IF_INFO(m_renderer->GetContext()->ClearRenderTargetView(m_renderer->GetRenderTargetView().Get(), color2));
 }
 
 void RenderSystem::End()

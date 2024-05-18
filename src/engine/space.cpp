@@ -26,7 +26,10 @@ void Space::Init()
     m_pTimer->GetDelta();
 
     m_pWorld = std::make_unique<World>(this);
-    m_pWorld->Create(SD_RES_DIR + std::string("scenes\\Sponza\\main\\main.gltf"));
+    m_pWorld->Create(
+        SD_RES_DIR + std::string("scenes\\Sponza\\main\\main.gltf"),
+        SD_RES_DIR + std::string("environments\\kloppenheim.hdr")
+    );
 
     m_spaceSettingsPanel = std::make_unique<SpaceSettingsPanel>();
     m_viewportPanel = std::make_unique<ViewportPanel>();

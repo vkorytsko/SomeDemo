@@ -58,10 +58,22 @@ void Texture::Bind(Renderer* renderer, UINT slot) const
 
 DirectX::ScratchImage Texture::Load(const std::wstring& path)
 {
-    DirectX::ScratchImage image, convert;
-    WIN_THROW_IF_FAILED(DirectX::LoadFromDDSFile(path.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, image));
+    DirectX::ScratchImage image;
+    if (path.compare(path.size() - 4, 4, L".dds") == 0)
+    {
+        WIN_THROW_IF_FAILED(DirectX::LoadFromDDSFile(path.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, image));
+    }
+    else if (path.compare(path.size() - 4, 4, L".hdr") == 0)
+    {
+        WIN_THROW_IF_FAILED(DirectX::LoadFromHDRFile(path.c_str(), nullptr, image));
+    }
+    else
+    {
+        WIN_THROW_IF_FAILED(DirectX::LoadFromWICFile(path.c_str(), DirectX::WIC_FLAGS_NONE, nullptr, image));
+    }
 
     /*
+    DirectX::ScratchImage convert;
     if (image.GetImage(0, 0, 0)->format != DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM)
     {
         WIN_THROW_IF_FAILED(DirectX::Convert(

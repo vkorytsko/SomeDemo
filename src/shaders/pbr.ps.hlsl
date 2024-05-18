@@ -54,8 +54,8 @@ float4 main(PS_INPUIT input) : SV_TARGET
     float4 albedo = pow(albedoMap.Sample(albedoSampler, input.uv), 2.2f);
     albedo *= baseColorFactor;
 
-    //clip(albedo.a < 0.1 ? -1 : 1);  // TODO
-    clip(albedo.a < 0.9 ? -1 : 1);
+    clip(albedo.a < 0.1 ? -1 : 1);  // TODO
+    //clip(albedo.a < 0.9 ? -1 : 1);
 
     const float3 normal = getNormalFromMap(input);
     float3 metallicRoughness = metallicRoughnessMap.Sample(metallicRoughnessSampler, input.uv);
@@ -112,7 +112,7 @@ float4 main(PS_INPUIT input) : SV_TARGET
 
     // ambient lighting (note that the next IBL tutorial will replace 
     // this ambient lighting with environment lighting).
-    float3 ambient = float3(0.03f, 0.03f, 0.03f) * albedo.xyz * 1.0f;
+    float3 ambient = float3(0.03f, 0.03f, 0.03f) * albedo.xyz * albedo.a * 1.0f;
     float3 color = ambient + Lo;
 
     // HDR tonemapping
@@ -121,7 +121,7 @@ float4 main(PS_INPUIT input) : SV_TARGET
 	color = pow(color, 1.0f / 2.2f);
     
     return float4(color, albedo.a);
-    //return float4(normal.rgb * 0.5 + 0.5, 1.0f);  // TODO
+    //return float4(normal.rgb * 0.5 + 0.5, albedo.a); // TODO
 }
 
 float3 getNormalFromMap(PS_INPUIT input)

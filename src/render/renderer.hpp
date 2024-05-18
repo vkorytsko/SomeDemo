@@ -27,7 +27,7 @@ public:
     ID3D11Device* GetDevice() const { return m_pD3dDevice.Get(); }
     IDXGISwapChain* GetSwapChain() const { return m_pSwapChain.Get(); }
     ID3D11DeviceContext* GetContext() const { return m_pD3dContext.Get(); }
-    ID3D11RenderTargetView* GetRenderTargetView() const { return m_pRenderTargetView.Get(); }
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView>& GetRenderTargetView() { return m_pRenderTargetView; }  // TODO: fix crash on resize
 
     DebugLayer* GetDebugLayer() const { return m_debugLayer.get(); }
 
