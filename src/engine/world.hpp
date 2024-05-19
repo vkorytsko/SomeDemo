@@ -160,14 +160,22 @@ private:
 
 class World::Environment
 {
-    struct CB_transform
+    struct CB_transform1
     {
         DirectX::XMMATRIX view;
+    };
+
+    struct CB_transform2
+    {
+        DirectX::XMMATRIX view;
+        DirectX::XMMATRIX projection;
     };
 
 public:
     Environment(const std::string& name);
     ~Environment() = default;
+
+    void Draw();
 
     void BindRadianceMap() const;
     void BindIrradianceMap() const;
@@ -181,19 +189,20 @@ private:
     std::unique_ptr<RENDER::CubeFrameBuffer> m_radianceMap = nullptr;
     std::unique_ptr<RENDER::CubeFrameBuffer> m_irradianceMap = nullptr;
 
-    std::shared_ptr<RENDER::Sampler> m_cubemapSampler = nullptr;
-    std::shared_ptr<RENDER::Sampler> m_convolveSampler = nullptr;
+    std::shared_ptr<RENDER::Sampler> m_environmentSampler = nullptr;
 
     std::shared_ptr<RENDER::Rasterizer> m_pRasterizer = nullptr;
     std::shared_ptr<RENDER::Blender> m_pBlender = nullptr;
 
-    std::unique_ptr<RENDER::PixelShader> m_pConvolvePixelShader = nullptr;
-    std::unique_ptr<RENDER::VertexShader> m_pConvolveVertexShader = nullptr;
+    std::unique_ptr<RENDER::VertexShader> m_pCubemapVertexShader = nullptr;
+    std::unique_ptr<RENDER::PixelShader> m_pEquirectangularToCubemapPixelShader = nullptr;
+    std::unique_ptr<RENDER::PixelShader> m_pIrradianceConvolutionPixelShader = nullptr;
 
-    std::unique_ptr<RENDER::ConstantBuffer<CB_transform>> m_transformCB = nullptr;
+    std::unique_ptr<RENDER::VertexShader> m_pBackgroundVertexShader = nullptr;
+    std::unique_ptr<RENDER::PixelShader> m_pBackgroundPixelShader = nullptr;
 
-    std::unique_ptr<RENDER::VertexShader> m_pRadianceVertexShader = nullptr;
-    std::unique_ptr<RENDER::PixelShader> m_pRadiancePixelShader = nullptr;
+    std::unique_ptr<RENDER::ConstantBuffer<CB_transform1>> m_transformCB1 = nullptr;
+    std::unique_ptr<RENDER::ConstantBuffer<CB_transform2>> m_transformCB2 = nullptr;
 
     std::unique_ptr<RENDER::VertexBuffer> m_pVertexBuffer = nullptr;
     std::unique_ptr<RENDER::IndexBuffer> m_pIndexBuffer = nullptr;

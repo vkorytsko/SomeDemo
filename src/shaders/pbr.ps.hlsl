@@ -35,9 +35,14 @@ Texture2D albedoMap : TEXTURE : register(t0);
 Texture2D normalMap : TEXTURE : register(t1);
 Texture2D metallicRoughnessMap : TEXTURE : register(t2);
 
+TextureCube radianceMap : TEXTURE : register(t4);
+TextureCube irradianceMap : TEXTURE : register(t5);
+
 SamplerState albedoSampler : SAMPLER : register(s0);
 SamplerState normalSampler : SAMPLER : register(s1);
 SamplerState metallicRoughnessSampler : SAMPLER : register(s2);
+
+SamplerState environmentSampler : SAMPLER : register(s3);
 
 StructuredBuffer<PointLight> pointLights : register(t3); // TODO: slot
 
@@ -110,9 +115,14 @@ float4 main(PS_INPUIT input) : SV_TARGET
         Lo += (kD * albedo.xyz / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
     }
 
-    // ambient lighting (note that the next IBL tutorial will replace 
-    // this ambient lighting with environment lighting).
-    float3 ambient = float3(0.03f, 0.03f, 0.03f) * albedo.xyz * albedo.a * 1.0f;
+    float3 kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
+    float3 kD = 1.0 - kS;
+    kD *= 1.0 - metallicRoughness.b;
+    float3 irradiance = irradianceMap.Sample(environmentSampler, N).rgb;
+    float3 diffuse = irradiance * albedo;
+    float3 AO = float3(1.0f, 1.0f, 1.0f);
+    float3 ambient = (kD * diffuse) * AO;
+
     float3 color = ambient + Lo;
 
     // HDR tonemapping
@@ -121,7 +131,6 @@ float4 main(PS_INPUIT input) : SV_TARGET
 	color = pow(color, 1.0f / 2.2f);
     
     return float4(color, albedo.a);
-    //return float4(normal.rgb * 0.5 + 0.5, albedo.a); // TODO
 }
 
 float3 getNormalFromMap(PS_INPUIT input)

@@ -98,9 +98,12 @@ void World::Update(float dt)
 
 void World::Draw()
 {
-	m_scenes[m_selectedScene]->Draw();
+	m_environment->Draw();
 
-	m_environment->CreateRadianceMap();
+	m_environment->BindRadianceMap();
+	m_environment->BindIrradianceMap();
+
+	m_scenes[m_selectedScene]->Draw();
 }
 
 void World::DrawImGui()
@@ -378,15 +381,17 @@ World::Environment::Environment(const std::string& name)
 
 	m_environment = std::make_unique<RENDER::Texture>(renderSystem->GetRenderer(), AToWstring(name));
 
-	static constexpr float size = 1024.0f;
+	m_radianceMap = std::make_unique<RENDER::CubeFrameBuffer>(renderSystem->GetRenderer(), 1024.0f);
+	m_irradianceMap = std::make_unique<RENDER::CubeFrameBuffer>(renderSystem->GetRenderer(), 128.0f);
 
-	m_radianceMap = std::make_unique<RENDER::CubeFrameBuffer>(renderSystem->GetRenderer(), size);
-	m_irradianceMap = std::make_unique<RENDER::CubeFrameBuffer>(renderSystem->GetRenderer(), size);
+	m_pCubemapVertexShader = std::make_unique<SD::RENDER::VertexShader>(renderSystem->GetRenderer(), L"cubemap.vs.cso");
+	m_pEquirectangularToCubemapPixelShader = std::make_unique<SD::RENDER::PixelShader>(renderSystem->GetRenderer(), L"equirectangular_to_cubemap.ps.cso");
+	m_pIrradianceConvolutionPixelShader = std::make_unique<SD::RENDER::PixelShader>(renderSystem->GetRenderer(), L"irradiance_convolution.ps.cso");
 
-	m_pRadianceVertexShader = std::make_unique<SD::RENDER::VertexShader>(renderSystem->GetRenderer(), L"environment.vs.cso");
-	m_pRadiancePixelShader = std::make_unique<SD::RENDER::PixelShader>(renderSystem->GetRenderer(), L"environment.ps.cso");
+	m_pBackgroundVertexShader = std::make_unique<SD::RENDER::VertexShader>(renderSystem->GetRenderer(), L"background.vs.cso");
+	m_pBackgroundPixelShader = std::make_unique<SD::RENDER::PixelShader>(renderSystem->GetRenderer(), L"background.ps.cso");
 
-	m_cubemapSampler = std::make_shared<RENDER::Sampler>(renderSystem->GetRenderer());
+	m_environmentSampler = std::make_shared<RENDER::Sampler>(renderSystem->GetRenderer());
 
 	m_pRasterizer = std::make_unique<RENDER::Rasterizer>(renderSystem->GetRenderer(), false);
 
@@ -433,20 +438,96 @@ World::Environment::Environment(const std::string& name)
 
 	// create input (vertex) layout
 	m_pInputLayout = std::make_unique<SD::RENDER::InputLayout>(
-		renderSystem->GetRenderer(), inputLayoutDesc, m_pRadianceVertexShader->GetBytecode()
+		renderSystem->GetRenderer(), inputLayoutDesc, m_pCubemapVertexShader->GetBytecode()
 	);
 
-	CB_transform transformCB;
-	m_transformCB = std::make_unique<SD::RENDER::ConstantBuffer<CB_transform>>(renderSystem->GetRenderer(), transformCB);
+	CB_transform1 transformCB1;
+	m_transformCB1 = std::make_unique<SD::RENDER::ConstantBuffer<CB_transform1>>(renderSystem->GetRenderer(), transformCB1);
+
+	CB_transform2 transformCB2;
+	m_transformCB2 = std::make_unique<SD::RENDER::ConstantBuffer<CB_transform2>>(renderSystem->GetRenderer(), transformCB2);
+
+	CreateRadianceMap();
+	ConvolveIrradianceMap();
+}
+
+void World::Environment::Draw()
+{
+	const auto& app = Application::GetApplication();
+	const auto& camera = app->GetCamera();
+	const auto& renderSystem = app->GetRenderSystem();
+	const auto& renderer = renderSystem->GetRenderer();
+
+	D3D_DEBUG_LAYER(renderer);
+
+	// bind shaders
+	m_pBackgroundVertexShader->Bind(renderer);
+	m_pBackgroundPixelShader->Bind(renderer);
+
+	// bind constant buffer
+	m_transformCB2->VSBind(renderer, 0u);
+
+	// update constant buffer
+	const auto& transformCB = m_transformCB2->GetData();
+	transformCB->view = camera->getView();
+	transformCB->projection = camera->getProjection();
+	m_transformCB2->Update(renderSystem->GetRenderer());
+
+	// bind textures
+	D3D_THROW_IF_INFO(renderer->GetContext()->PSSetShaderResources(0u, 1u, m_radianceMap->getSRV().GetAddressOf()));
+
+	// bind texture samplers
+	m_environmentSampler->Bind(renderer, 0u);
+
+	// bind rasterizer state
+	m_pRasterizer->Bind(renderer);
+
+	// bind Blend State
+	m_pBlender->Bind(renderer);
+
+	// Bind vertex buffer
+	m_pVertexBuffer->Bind(renderer, 0u, 12u, 0u);
+
+	// Bind index buffer
+	m_pIndexBuffer->Bind(renderer, 0u, 0u, 0u);
+
+	// bind vertex layout
+	m_pInputLayout->Bind(renderer);
+
+	const auto& context = renderer->GetContext();
+
+	const auto* framebuffer = renderSystem->GetFrameBuffer();
+	framebuffer->bind(renderer, false);
+
+	D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
+
+	D3D_THROW_IF_INFO(context->DrawIndexed(36u, 0u, 0u));
+
+	framebuffer->bind(renderer, true);
 }
 
 void World::Environment::BindRadianceMap() const
 {
-	
+	const auto& app = Application::GetApplication();
+	const auto& renderSystem = app->GetRenderSystem();
+	const auto& renderer = renderSystem->GetRenderer();
+
+	D3D_DEBUG_LAYER(renderer);
+
+	D3D_THROW_IF_INFO(renderer->GetContext()->PSSetShaderResources(4u, 1u, m_radianceMap->getSRV().GetAddressOf()));
+
+	m_environmentSampler->Bind(renderer, 3u);
 }
 
 void World::Environment::BindIrradianceMap() const
 {
+	const auto& app = Application::GetApplication();
+	const auto& renderSystem = app->GetRenderSystem();
+	const auto& renderer = renderSystem->GetRenderer();
+
+	D3D_DEBUG_LAYER(renderer);
+
+	D3D_THROW_IF_INFO(renderer->GetContext()->PSSetShaderResources(5u, 1u, m_irradianceMap->getSRV().GetAddressOf()));
 }
 
 void World::Environment::CreateRadianceMap()
@@ -465,10 +546,7 @@ void World::Environment::CreateRadianceMap()
 		for (uint8_t face = 0; face < 6; ++face)
 		{
 			D3D_THROW_IF_INFO(renderer->GetContext()->ClearRenderTargetView(m_radianceMap->getRTV(face).Get(), color));
-			D3D_THROW_IF_INFO(renderer->GetContext()->ClearDepthStencilView(m_radianceMap->getDSV(face).Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
 		}
-
-		D3D_THROW_IF_INFO(renderer->GetContext()->ClearRenderTargetView(renderer->GetRenderTargetView().Get(), color));
 	}
 
 	// Draw
@@ -484,20 +562,131 @@ void World::Environment::CreateRadianceMap()
 		D3D_THROW_IF_INFO(renderer->GetContext()->RSSetViewports(1u, &vp));
 
 		// bind shaders
-		m_pRadianceVertexShader->Bind(renderer);
-		m_pRadiancePixelShader->Bind(renderer);
+		m_pCubemapVertexShader->Bind(renderer);
+		m_pEquirectangularToCubemapPixelShader->Bind(renderer);
 
 		// bind constant buffer
-		m_transformCB->VSBind(renderer, 0u);
+		m_transformCB1->VSBind(renderer, 0u);
 
 		// bind textures
 		m_environment->Bind(renderer, 0u);
 
-		// bind texture
-		m_environment->Bind(renderer, 0u);
+		// bind texture samplers
+		m_environmentSampler->Bind(renderer, 0u);
+
+		// bind rasterizer state
+		m_pRasterizer->Bind(renderer);
+
+		// bind Blend State
+		m_pBlender->Bind(renderer);
+
+		// Bind vertex buffer
+		m_pVertexBuffer->Bind(renderer, 0u, 12u, 0u);
+
+		// Bind index buffer
+		m_pIndexBuffer->Bind(renderer, 0u, 0u, 0u);
+
+		// bind vertex layout
+		m_pInputLayout->Bind(renderer);
+
+		const auto& context = renderer->GetContext();
+
+		D3D_THROW_IF_INFO(context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
+
+
+		const DirectX::XMMATRIX views[] = {
+			DirectX::XMMatrixLookAtLH(
+				{0.0f, 0.0f, 0.0f},
+				{1.0f, 0.0f, 0.0f},
+				{ 0.0f, 1.0f, 0.0f }),
+			DirectX::XMMatrixLookAtLH(
+				{0.0f, 0.0f, 0.0f},
+				{-1.0f, 0.0f, 0.0f},
+				{ 0.0f, 1.0f, 0.0f }),
+			DirectX::XMMatrixLookAtLH(
+				{0.0f, 0.0f, 0.0f},
+				{0.0f, 1.0f, 0.0f},
+				{ 0.0f, 0.0f, -1.0f }),
+			DirectX::XMMatrixLookAtLH(
+				{0.0f, 0.0f, 0.0f},
+				{0.0f, -1.0f, 0.0f},
+				{ 0.0f, 0.0f, 1.0f }),
+			DirectX::XMMatrixLookAtLH(
+				{0.0f, 0.0f, 0.0f},
+				{0.0f, 0.0f, 1.0f},
+				{ 0.0f, 1.0f, 0.0f }),
+			DirectX::XMMatrixLookAtLH(
+				{0.0f, 0.0f, 0.0f},
+				{0.0f, 0.0f, -1.0f},
+				{ 0.0f, 1.0f, 0.0f }),
+		};
+
+		for (uint8_t face = 0; face < 6; ++face)
+		{
+			D3D_THROW_IF_INFO(renderer->GetContext()->OMSetRenderTargets(1u, m_radianceMap->getRTV(face).GetAddressOf(), nullptr));
+
+			const auto& transformCB = m_transformCB1->GetData();
+			transformCB->view = views[face];
+			m_transformCB1->Update(renderSystem->GetRenderer());
+
+			D3D_THROW_IF_INFO(context->DrawIndexed(36u, 0u, 0u));
+		}
+	}
+
+	// End
+	{
+		// Unbind SRV
+		ID3D11ShaderResourceView* nullSRV = nullptr;
+		D3D_THROW_IF_INFO(renderer->GetContext()->PSSetShaderResources(0u, 1u, &nullSRV));
+
+		// Reset RenderTarget
+		D3D_THROW_IF_INFO(renderer->GetContext()->OMSetRenderTargets(0, nullptr, nullptr));
+	}
+}
+
+void World::Environment::ConvolveIrradianceMap()
+{
+	const auto& app = Application::GetApplication();
+	const auto& renderSystem = app->GetRenderSystem();
+	const auto& renderer = renderSystem->GetRenderer();
+
+	D3D_DEBUG_LAYER(renderer);
+
+	// Begin
+	{
+		m_irradianceMap->bind(renderer);  // ???
+
+		const float color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+		for (uint8_t face = 0; face < 6; ++face)
+		{
+			D3D_THROW_IF_INFO(renderer->GetContext()->ClearRenderTargetView(m_irradianceMap->getRTV(face).Get(), color));
+		}
+	}
+
+	// Draw
+	{
+		// configure viewport
+		D3D11_VIEWPORT vp;
+		vp.Width = static_cast<float>(m_irradianceMap->size());
+		vp.Height = static_cast<float>(m_irradianceMap->size());
+		vp.MinDepth = 0;
+		vp.MaxDepth = 1;
+		vp.TopLeftX = 0;
+		vp.TopLeftY = 0;
+		D3D_THROW_IF_INFO(renderer->GetContext()->RSSetViewports(1u, &vp));
+
+		// bind shaders
+		m_pCubemapVertexShader->Bind(renderer);
+		m_pIrradianceConvolutionPixelShader->Bind(renderer);
+
+		// bind constant buffer
+		m_transformCB1->VSBind(renderer, 0u);
+
+		// bind textures
+		D3D_THROW_IF_INFO(renderer->GetContext()->PSSetShaderResources(0u, 1u, m_radianceMap->getSRV().GetAddressOf()));
 
 		// bind texture samplers
-		m_cubemapSampler->Bind(renderer, 0u);
+		m_environmentSampler->Bind(renderer, 0u);
 
 		// bind rasterizer state
 		m_pRasterizer->Bind(renderer);
@@ -548,23 +737,25 @@ void World::Environment::CreateRadianceMap()
 
 		for (uint8_t face = 0; face < 6; ++face)
 		{
-			D3D_THROW_IF_INFO(renderer->GetContext()->OMSetRenderTargets(1u, m_radianceMap->getRTV(face).GetAddressOf(), nullptr));
+			D3D_THROW_IF_INFO(renderer->GetContext()->OMSetRenderTargets(1u, m_irradianceMap->getRTV(face).GetAddressOf(), nullptr));
 
-			const auto& transformCB = m_transformCB->GetData();
+			const auto& transformCB = m_transformCB1->GetData();
 			transformCB->view = views[face];
-			m_transformCB->Update(renderSystem->GetRenderer());
+			m_transformCB1->Update(renderSystem->GetRenderer());
 
 			D3D_THROW_IF_INFO(context->DrawIndexed(36u, 0u, 0u));
-
-			// Unbind SRV
-			ID3D11ShaderResourceView* nullSRV = nullptr;
-			D3D_THROW_IF_INFO(context->PSSetShaderResources(2u, 1u, &nullSRV));
 		}
 	}
-}
 
-void World::Environment::ConvolveIrradianceMap()
-{
+	// End
+	{
+		// Unbind SRV
+		ID3D11ShaderResourceView* nullSRV = nullptr;
+		D3D_THROW_IF_INFO(renderer->GetContext()->PSSetShaderResources(0u, 1u, &nullSRV));
+
+		// Reset RenderTarget
+		D3D_THROW_IF_INFO(renderer->GetContext()->OMSetRenderTargets(0, nullptr, nullptr));
+	}
 }
 
 World::Node::Node(const std::string& name, const uint32_t id, const DirectX::XMMATRIX& transform)
@@ -966,6 +1157,6 @@ void World::Light::Setup(const tinygltf::Light& light)
 
 	m_type = LIGHT_TYPES_MAP.at(light.type);
 	//m_intencity = static_cast<float>(light.intensity);
-	m_intencity = 8;
+	m_intencity = 8;  // TODO
 }
 }  // end namespace SD::ENGINE

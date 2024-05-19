@@ -16,12 +16,19 @@ FrameBuffer::FrameBuffer(Renderer* renderer, const float width, const float heig
     createStates(renderer);
 }
 
-void FrameBuffer::bind(Renderer* renderer) const
+void FrameBuffer::bind(Renderer* renderer, bool depth) const
 {
     D3D_DEBUG_LAYER(renderer);
 
     // bind depth state
-    D3D_THROW_IF_INFO(renderer->GetContext()->OMSetDepthStencilState(m_pDepthStencilState.Get(), 1u));
+    if (depth)
+    {
+        D3D_THROW_IF_INFO(renderer->GetContext()->OMSetDepthStencilState(m_pDepthStencilStateEnabled.Get(), 1u));
+    }
+    else
+    {
+        D3D_THROW_IF_INFO(renderer->GetContext()->OMSetDepthStencilState(m_pDepthStencilStateDisabled.Get(), 1u));
+    }
 }
 
 void FrameBuffer::resize(Renderer* renderer, const UINT width, const UINT height)
@@ -29,7 +36,8 @@ void FrameBuffer::resize(Renderer* renderer, const UINT width, const UINT height
     m_width = width;
     m_height = height;
 
-    m_pDepthStencilState->Release();
+    m_pDepthStencilStateEnabled->Release();
+    m_pDepthStencilStateDisabled->Release();
 
     m_pRenderTargetView->Release();
     m_pShaderResourceView->Release();
@@ -111,12 +119,15 @@ void FrameBuffer::createStates(const Renderer* renderer)
 {
     D3D_DEBUG_LAYER(renderer);
 
-    // create depth stencil state
+    // create depth stencil states
     D3D11_DEPTH_STENCIL_DESC depthStencilDesc = {};
+    depthStencilDesc.DepthEnable = FALSE;
+    D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateDepthStencilState(&depthStencilDesc, m_pDepthStencilStateDisabled.GetAddressOf()));
+
     depthStencilDesc.DepthEnable = TRUE;
     depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
     depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
-    D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateDepthStencilState(&depthStencilDesc, m_pDepthStencilState.GetAddressOf()));
+    D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateDepthStencilState(&depthStencilDesc, m_pDepthStencilStateEnabled.GetAddressOf()));
 }
 
 
@@ -145,9 +156,9 @@ void CubeFrameBuffer::resize(Renderer* renderer, const UINT size)
     for (uint8_t face = 0; face < FACE_COUNT; ++face)
     {
         m_pRenderTargetView[face]->Release();
-        m_pShaderResourceView[face]->Release();
         m_pDepthStencilView[face]->Release();
     }
+    m_pShaderResourceView->Release();
 
     m_pRenderTarget->Release();
     m_pDepthStencil->Release();
@@ -210,18 +221,13 @@ void CubeFrameBuffer::createViews(const Renderer* renderer)
         D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateRenderTargetView(m_pRenderTarget.Get(), &descRTV, m_pRenderTargetView[face].GetAddressOf()));
     }
 
-    // create shader resource views
-    for (uint8_t face = 0; face < FACE_COUNT; ++face)
-    {
-        D3D11_SHADER_RESOURCE_VIEW_DESC descSRV = {};
-        descSRV.Format = renderTargetTextureDesc.Format;
-        descSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-        descSRV.Texture2DArray.MostDetailedMip = 0;
-        descSRV.Texture2DArray.MipLevels = 1;
-        descSRV.Texture2DArray.FirstArraySlice = face;
-        descSRV.Texture2DArray.ArraySize = 1;
-        D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateShaderResourceView(m_pRenderTarget.Get(), &descSRV, m_pShaderResourceView[face].GetAddressOf()));
-    }
+    // create shader resource view
+    D3D11_SHADER_RESOURCE_VIEW_DESC descSRV = {};
+    descSRV.Format = renderTargetTextureDesc.Format;
+    descSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+    descSRV.TextureCube.MostDetailedMip = 0;
+    descSRV.TextureCube.MipLevels = 1;
+    D3D_THROW_INFO_EXCEPTION(renderer->GetDevice()->CreateShaderResourceView(m_pRenderTarget.Get(), &descSRV, m_pShaderResourceView.GetAddressOf()));
 
     // create depth stencil views
     for (uint8_t face = 0; face < FACE_COUNT; ++face)

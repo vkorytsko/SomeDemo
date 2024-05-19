@@ -15,7 +15,7 @@ public:
 	FrameBuffer(Renderer* renderer, const float width, const float height);
 	~FrameBuffer() = default;
 
-	void bind(Renderer* renderer) const;
+	void bind(Renderer* renderer, bool depth = true) const;
 
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> getRTV() const { return m_pRenderTargetView; }
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> getSRV() const { return m_pShaderResourceView; }
@@ -42,7 +42,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pShaderResourceView;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_pDepthStencilView;
 
-	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_pDepthStencilState;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_pDepthStencilStateEnabled;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_pDepthStencilStateDisabled;
 };
 
 
@@ -57,7 +58,7 @@ public:
 	void bind(Renderer* renderer) const;
 
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> getRTV(uint8_t face) const { return m_pRenderTargetView[face]; }
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> getSRV(uint8_t face) const { return m_pShaderResourceView[face]; }
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> getSRV() const { return m_pShaderResourceView; }
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> getDSV(uint8_t face) const { return m_pDepthStencilView[face]; }
 
 	void resize(Renderer* renderer, const UINT size);
@@ -76,7 +77,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_pDepthStencil;
 
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_pRenderTargetView[6];
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pShaderResourceView[6];
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pShaderResourceView;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_pDepthStencilView[6];
 
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_pDepthStencilState;
