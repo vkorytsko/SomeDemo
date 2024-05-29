@@ -7,6 +7,7 @@ set(SHADERS_BIN_DIR ${INTERNALS_BIN_DIR}/shaders/)
 set(VERTEX_SHADERS
 	pbr.vs.hlsl
 	background.vs.hlsl
+	prefilter.vs.hlsl
 	cubemap.vs.hlsl
 	blinn_phong.vs.hlsl
 	color.vs.hlsl
@@ -19,6 +20,7 @@ set(VERTEX_SHADERS
 set(PIXEL_SHADERS
 	pbr.ps.hlsl
 	background.ps.hlsl
+	prefilter.ps.hlsl
 	equirectangular_to_cubemap.ps.hlsl
 	irradiance_convolution.ps.hlsl
 	blinn_phong.ps.hlsl

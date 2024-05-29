@@ -11,6 +11,8 @@ using namespace SD;
 
 int main(int, char**)
 {
+    //return ENGINE::Application().Run();
+
     try
     {
         return ENGINE::Application().Run();

@@ -37,6 +37,7 @@ Texture2D metallicRoughnessMap : TEXTURE : register(t2);
 
 TextureCube radianceMap : TEXTURE : register(t4);
 TextureCube irradianceMap : TEXTURE : register(t5);
+TextureCube prefilteredMap : TEXTURE : register(t6);
 
 SamplerState albedoSampler : SAMPLER : register(s0);
 SamplerState normalSampler : SAMPLER : register(s1);

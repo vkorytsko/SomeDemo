@@ -4,7 +4,8 @@ struct PS_INPUT
     float3 localPos : POSITION0;
 };
 
-TextureCube environmentTexture : TEXTURE : register(t0);
+//TextureCube environmentTexture : TEXTURE : register(t0);
+TextureCube environmentTexture : TEXTURE : register(t6);
 SamplerState samplerState : SAMPLER : register(s0);
 
 
